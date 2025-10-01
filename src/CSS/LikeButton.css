@@ -1,0 +1,39 @@
+.like-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+  }
+  
+  .heart {
+    fill: #AAB8C2;
+    transition: all 0.3s ease;
+  }
+  
+  .heart.is-active {
+    fill: #E2264D;
+    animation: animateHeart 0.3s forwards;
+  }
+  
+  @keyframes animateHeart {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  
+  .main-circ {
+    transition: opacity 0.3s ease;
+  }
+  
+  .oval {
+    transition: all 0.3s ease;
+  }
+  
