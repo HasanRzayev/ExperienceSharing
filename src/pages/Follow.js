@@ -8,7 +8,7 @@ const FollowersPage = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5029/api/Followers/followers", {
+      .get(`${process.env.REACT_APP_API_BASE_URL}/Followers/followers`, {
         headers: { Authorization: `Bearer ${Cookies.get("token")}` },
       })
       .then((res) => {

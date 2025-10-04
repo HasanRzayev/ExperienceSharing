@@ -14,7 +14,7 @@ const FollowButton = ({ userId }) => {
 
       try {
         const response = await axios.get(
-          `http://localhost:5029/api/Followers/${userId}/status`,
+          `${process.env.REACT_APP_API_BASE_URL}/Followers/${userId}/status`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setStatus(response.data.status);
@@ -46,7 +46,7 @@ const FollowButton = ({ userId }) => {
         });
 
         if (result.isConfirmed) {
-          await axios.delete(`http://localhost:5029/api/Followers/${userId}`, {
+          await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/Followers/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -65,7 +65,7 @@ const FollowButton = ({ userId }) => {
         if (result.isConfirmed) {
           console.log("Sent FollowedId:", userId);
           await axios.post(
-            "http://localhost:5029/api/Followers/cancel-follow-request",
+            `${process.env.REACT_APP_API_BASE_URL}/Followers/cancel-follow-request`,
             {
               followedId: userId, // Sending only the followed user's ID
             },
@@ -82,7 +82,7 @@ const FollowButton = ({ userId }) => {
         }
       } else {
         await axios.post(
-          `http://localhost:5029/api/Followers/${userId}/request`,
+          `${process.env.REACT_APP_API_BASE_URL}/Followers/${userId}/request`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import swal from 'sweetalert';
-import { FileInput, Label } from "flowbite-react"; // Import Flowbite components
+import { FileInput, Label } from "flowbite-react";
+import AIModerationService from '../services/AIModerationService';
 
 const NewExperience = () => {
   const [tags, setTags] = useState([]);
@@ -13,6 +14,8 @@ const NewExperience = () => {
   const [location, setLocation] = useState('');
   const [date, setDate] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [moderationResults, setModerationResults] = useState(null);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && inputValue.trim()) {
@@ -32,6 +35,18 @@ const NewExperience = () => {
 
   const handleImageRemove = (index) => {
     setImages(images.filter((_, i) => i !== index)); // Remove image at index
+  };
+
+  const clearForm = () => {
+    setTags([]);
+    setInputValue('');
+    setImages([]);
+    setTitle('');
+    setDescription('');
+    setLocation('');
+    setDate('');
+    setError('');
+    setModerationResults(null);
   };
 
   const handleDrop = (e) => {
@@ -62,35 +77,85 @@ const NewExperience = () => {
     }
   
     setError(""); // Əgər hər şey qaydasındadırsa, error mesajını sıfırla
-  
-    const token = Cookies.get("token");
-    const formData = new FormData();
-    formData.append("Title", title.trim());
-    formData.append("Description", description.trim());
-    formData.append("Location", location.trim());
-    formData.append("Date", date.trim());
-    formData.append("Tags", JSON.stringify(tags.filter(tag => tag.trim())));
-  
-    images.forEach((image) => {
-      formData.append("Images", image);
-    });
-  
+    setIsLoading(true);
+    setModerationResults(null);
+
     try {
-      const response = await axios.post("http://localhost:5029/api/Experiences", formData, {
+      // AI Moderation Check
+      console.log("Starting AI moderation...");
+      const moderationResults = await AIModerationService.performCompleteModeration(
+        title.trim(),
+        description.trim(),
+        location.trim(),
+        tags.filter(tag => tag.trim()),
+        images
+      );
+
+      setModerationResults(moderationResults);
+
+      if (!moderationResults.overallApproved) {
+        let errorMessage = "Content moderation failed:\n";
+        
+        if (!moderationResults.textModeration.isAppropriate) {
+          errorMessage += `Text: ${moderationResults.textModeration.reasons.join(', ')}\n`;
+        }
+        
+        if (moderationResults.imageModeration) {
+          moderationResults.imageModeration.forEach((img, index) => {
+            if (!img.isAppropriate) {
+              errorMessage += `Image ${index + 1}: ${img.reasons.join(', ')}\n`;
+            }
+          });
+        }
+        
+        if (moderationResults.relevanceCheck && !moderationResults.relevanceCheck.isRelevant) {
+          errorMessage += `Relevance: ${moderationResults.relevanceCheck.reasons.join(', ')}\n`;
+        }
+
+        swal({
+          title: "Content Not Approved",
+          text: errorMessage,
+          icon: "warning",
+          button: "OK"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // If moderation passes, proceed with upload
+      console.log("AI moderation passed, uploading experience...");
+      
+      const token = Cookies.get("token");
+      const formData = new FormData();
+      formData.append("Title", title.trim());
+      formData.append("Description", description.trim());
+      formData.append("Location", location.trim());
+      formData.append("Date", date.trim());
+      formData.append("Tags", JSON.stringify(tags.filter(tag => tag.trim())));
+    
+      images.forEach((image) => {
+        formData.append("Images", image);
+      });
+    
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/Experiences`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
         withCredentials: true,
       });
+
+      // Success - clear form and show success message
+      clearForm();
       swal({
         title: "Success!",
-        text: "Experience added successfully",
+        text: "Experience added successfully after AI moderation",
         icon: "success",
         timer: 3000,
         button: false,
       });
     } catch (error) {
+      console.error("Submit error:", error);
       swal({
         title: "Error!",
         text: error.response ? error.response.data.message : "An error occurred",
@@ -99,6 +164,8 @@ const NewExperience = () => {
         button: false,
       });
       setError("Gönderiyi yüklerken bir hata oluştu. Lütfen tekrar deneyin.");
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -112,7 +179,32 @@ const NewExperience = () => {
           </p>
         </div>
 
-        <div className="card-modern p-8">
+        <div className="card-modern p-8 relative">
+          {/* Loading Overlay */}
+          {isLoading && (
+            <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50 rounded-lg">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">AI Content Moderation</h3>
+                <p className="text-gray-600">Checking content for appropriateness...</p>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-gray-600">Analyzing text content</span>
+                  </div>
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                    <span className="text-sm text-gray-600">Checking images</span>
+                  </div>
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                    <span className="text-sm text-gray-600">Verifying relevance</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="grid md:grid-cols-2 gap-6">
               <div>
@@ -125,9 +217,10 @@ const NewExperience = () => {
                 <input 
                   type="text" 
                   placeholder="Give your experience a memorable title..." 
-                  className="input-modern w-full" 
+                  className="input-modern w-full disabled:opacity-50 disabled:cursor-not-allowed" 
                   value={title} 
                   onChange={(e) => setTitle(e.target.value)} 
+                  disabled={isLoading}
                   required 
                 />
               </div>
@@ -143,9 +236,10 @@ const NewExperience = () => {
                 <input 
                   type="text" 
                   placeholder="Where did this happen?" 
-                  className="input-modern w-full" 
+                  className="input-modern w-full disabled:opacity-50 disabled:cursor-not-allowed" 
                   value={location} 
                   onChange={(e) => setLocation(e.target.value)} 
+                  disabled={isLoading}
                   required 
                 />
               </div>
@@ -160,9 +254,10 @@ const NewExperience = () => {
               </label>
               <textarea 
                 placeholder="Tell us about your amazing experience in detail..." 
-                className="input-modern w-full h-32 resize-none" 
+                className="input-modern w-full h-32 resize-none disabled:opacity-50 disabled:cursor-not-allowed" 
                 value={description} 
                 onChange={(e) => setDescription(e.target.value)} 
+                disabled={isLoading}
                 required 
               />
             </div>
@@ -176,9 +271,10 @@ const NewExperience = () => {
               </label>
               <input 
                 type="date" 
-                className="input-modern w-full" 
+                className="input-modern w-full disabled:opacity-50 disabled:cursor-not-allowed" 
                 value={date} 
                 onChange={(e) => setDate(e.target.value)} 
+                disabled={isLoading}
                 required 
               />
             </div>
@@ -208,10 +304,11 @@ const NewExperience = () => {
               </div>
               <input 
                 type="text" 
-                className="input-modern w-full" 
+                className="input-modern w-full disabled:opacity-50 disabled:cursor-not-allowed" 
                 value={inputValue} 
                 onChange={(e) => setInputValue(e.target.value)} 
                 onKeyDown={handleKeyDown} 
+                disabled={isLoading}
                 placeholder="Add tags (press Enter to add)" 
               />
             </div>
@@ -226,9 +323,9 @@ const NewExperience = () => {
               
               {/* Drag-and-Drop file upload */}
               <div
-                onDrop={handleDrop}
-                onDragOver={(e) => e.preventDefault()}
-                className="relative group"
+                onDrop={isLoading ? undefined : handleDrop}
+                onDragOver={isLoading ? undefined : (e) => e.preventDefault()}
+                className={`relative group ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
               >
                 <Label
                   htmlFor="dropzone-file"
@@ -245,7 +342,7 @@ const NewExperience = () => {
                     </p>
                     <p className="text-sm text-gray-500">PNG, JPG, GIF up to 10MB each</p>
                   </div>
-                  <FileInput id="dropzone-file" className="hidden" onChange={handleImageChange} multiple />
+                  <FileInput id="dropzone-file" className="hidden" onChange={handleImageChange} multiple disabled={isLoading} />
                 </Label>
               </div>
 
@@ -287,22 +384,72 @@ const NewExperience = () => {
                 </div>
               </div>
             )}
+
+            {/* AI Moderation Results */}
+            {moderationResults && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start">
+                  <svg className="w-5 h-5 text-blue-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  <div className="flex-1">
+                    <h4 className="text-blue-800 font-semibold mb-2">AI Content Moderation Results</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center">
+                        <span className={`w-2 h-2 rounded-full mr-2 ${moderationResults.textModeration.isAppropriate ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                        <span className="text-gray-700">Text Content: {moderationResults.textModeration.isAppropriate ? 'Approved' : 'Rejected'}</span>
+                      </div>
+                      {moderationResults.imageModeration && (
+                        <div className="flex items-center">
+                          <span className={`w-2 h-2 rounded-full mr-2 ${moderationResults.imageModeration.every(img => img.isAppropriate) ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                          <span className="text-gray-700">Images: {moderationResults.imageModeration.every(img => img.isAppropriate) ? 'Approved' : 'Rejected'}</span>
+                        </div>
+                      )}
+                      {moderationResults.relevanceCheck && (
+                        <div className="flex items-center">
+                          <span className={`w-2 h-2 rounded-full mr-2 ${moderationResults.relevanceCheck.isRelevant ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                          <span className="text-gray-700">Content Relevance: {moderationResults.relevanceCheck.isRelevant ? 'Approved' : 'Rejected'}</span>
+                        </div>
+                      )}
+                      <div className="mt-2 p-2 bg-white rounded border">
+                        <span className="font-medium text-gray-800">Overall Status: </span>
+                        <span className={moderationResults.overallApproved ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
+                          {moderationResults.overallApproved ? '✓ Approved' : '✗ Rejected'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             
             <div className="flex justify-end space-x-4 pt-6 border-t">
               <button 
                 type="button"
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                onClick={clearForm}
+                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isLoading}
               >
-                Cancel
+                Clear Form
               </button>
               <button 
                 type="submit" 
-                className="btn-primary px-8 py-3 text-lg font-semibold"
+                className="btn-primary px-8 py-3 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isLoading}
               >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-                Share Experience
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    AI Checking...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    Share Experience
+                  </>
+                )}
               </button>
             </div>
           </form>

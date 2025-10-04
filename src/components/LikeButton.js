@@ -14,7 +14,7 @@ const LikeButton = ({ experienceId }) => {
 
       try {
         const response = await axios.get(
-          `http://localhost:5029/api/Likes/${experienceId}/status`,
+          `${process.env.REACT_APP_API_BASE_URL}/Likes/${experienceId}/status`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setLiked(response.data.isLiked);
@@ -34,7 +34,7 @@ const LikeButton = ({ experienceId }) => {
 
     try {
       await axios.post(
-        `http://localhost:5029/api/Likes/${experienceId}`,
+        `${process.env.REACT_APP_API_BASE_URL}/Likes/${experienceId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

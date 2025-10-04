@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login, register } from '../services/AuthService.js';
+import { useAuth } from '../App';
 
-function Login() {
+function Login({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const { handleLogin } = useAuth();
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await login(email, password);
+      const response = await login(email, password);
+      // Call the onLogin prop to update parent state
+      if (onLogin) {
+        onLogin(response.userData || null);
+      }
+      // Also call the context handleLogin (will fetch user data from API)
+      handleLogin(response.userData || null);
       navigate('/');
     } catch (error) {
       console.error(error);
@@ -58,7 +66,7 @@ function Login() {
                   <p className="text-gray-600">Welcome back! Please sign in to your account</p>
                 </div>
 
-                <form className="space-y-6" onSubmit={handleLogin}>
+                <form className="space-y-6" onSubmit={handleSubmit}>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>

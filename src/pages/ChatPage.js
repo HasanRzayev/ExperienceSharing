@@ -30,7 +30,7 @@ export async function uploadFile(file) {
   const fileType = file.type.split("/")[0]; // "image", "video", "audio"
   const fileExtension = file.name.split('.').pop().toLowerCase(); // Fayl uzantısı
 
-  let cloudinaryEndpoint = "https://api.cloudinary.com/v1_1/dj997ctyw/";
+  let cloudinaryEndpoint = process.env.REACT_APP_CLOUDINARY_ENDPOINT;
 
   if (fileType === "image") {
       cloudinaryEndpoint += "image/upload";
@@ -88,7 +88,7 @@ const ChatPage = () => {
   const fetchTrendingGifs = async () => {
     try {
       const response = await axios.get(
-        "https://api.giphy.com/v1/gifs/trending",
+        `${process.env.REACT_APP_GIPHY_API_URL}/trending`,
         {
           params: {
             api_key: "DjEE0CmAPnIkmKlM7sjBN1bGBwQQE21V", // Öz API açarını yaz
@@ -107,7 +107,7 @@ const ChatPage = () => {
   const searchGifs = async (query) => {
     try {
       const response = await axios.get(
-        "https://api.giphy.com/v1/gifs/search",
+        `${process.env.REACT_APP_GIPHY_API_URL}/search`,
         {
           params: {
             api_key: "DjEE0CmAPnIkmKlM7sjBN1bGBwQQE21V", // Giphy API açarın
@@ -175,7 +175,7 @@ const stopRecording = () => {
     console.log("Fetching user profile...");
   
     axios
-      .get("http://localhost:5029/api/users/me", {
+      .get(`${process.env.REACT_APP_API_BASE_URL}/users/me`, {
         headers: { Authorization: `Bearer ${Cookies.get("token")}` },
       })
       .then((res) => {
@@ -190,14 +190,14 @@ const stopRecording = () => {
     const fetchUsers = async () => {
       try {
         const followersRes = await axios.get(
-          "http://localhost:5029/api/Followers/followers",
+          `${process.env.REACT_APP_API_BASE_URL}/Followers/followers`,
           {
             headers: { Authorization: `Bearer ${Cookies.get("token")}` },
           }
         );
 
         const sendersRes = await axios.get(
-          "http://localhost:5029/api/Followers/senders",
+          `${process.env.REACT_APP_API_BASE_URL}/Followers/senders`,
           {
             headers: { Authorization: `Bearer ${Cookies.get("token")}` },
           }
@@ -225,7 +225,7 @@ const stopRecording = () => {
 
   useEffect(() => {
     const newConnection = new HubConnectionBuilder()
-      .withUrl("http://localhost:5029/api/hubs/message", {
+      .withUrl(process.env.REACT_APP_SIGNALR_HUB_URL, {
         accessTokenFactory: () => Cookies.get("token")
       })
       .withAutomaticReconnect()
@@ -279,7 +279,7 @@ const stopRecording = () => {
       console.log("Fetching messages for user:", selectedUser.id); // Kullanıcı ID'sini kontrol et
     
       axios
-        .get(`http://localhost:5029/api/messages/${selectedUser.id}`, {
+        .get(`${process.env.REACT_APP_API_BASE_URL}/messages/${selectedUser.id}`, {
           headers: { Authorization: `Bearer ${Cookies.get("token")}` },
         })
         .then((res) => {
@@ -306,7 +306,7 @@ const stopRecording = () => {
 
   const uploadFileToServer = async (formData) => {
     try {
-      const response = await axios.post("http://localhost:5029/api/upload", formData, {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       return response.data; // API'den dönen medya URL'si
@@ -420,14 +420,27 @@ const removeFile = () => {
 };
 
 // Auto scroll to bottom function
-const scrollToBottom = () => {
-  messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+const scrollToBottom = (smooth = true) => {
+  messagesEndRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "instant" });
 };
+
+// State to track if it's the initial load
+const [isInitialLoad, setIsInitialLoad] = useState(true);
+const [previousMessageCount, setPreviousMessageCount] = useState(0);
 
 // Auto scroll when messages change
 useEffect(() => {
-  scrollToBottom();
-}, [messages]);
+  if (isInitialLoad && messages.length > 0) {
+    // First load: scroll to bottom instantly without smooth animation
+    scrollToBottom(false);
+    setIsInitialLoad(false);
+    setPreviousMessageCount(messages.length);
+  } else if (!isInitialLoad && messages.length > previousMessageCount) {
+    // New message received: scroll smoothly
+    scrollToBottom(true);
+    setPreviousMessageCount(messages.length);
+  }
+}, [messages, isInitialLoad, previousMessageCount]);
 
   return (
     <div className="h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex overflow-hidden">

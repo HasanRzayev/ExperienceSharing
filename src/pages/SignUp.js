@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login, register } from '../services/AuthService.js';
+import { useAuth } from '../App';
 
 function SignUp() {
   const [firstName, setFirstName] = useState('');
@@ -11,11 +12,14 @@ function SignUp() {
   const [profileImage, setProfileImage] = useState(null);
   const [userName, setUserName] = useState('');
   const navigate = useNavigate();
+  const { handleLogin } = useAuth();
 
   const handleSignUp = async (e) => {
     e.preventDefault();
     try {
-      await register(firstName, lastName, email, password, country, profileImage, userName);
+      const response = await register(firstName, lastName, email, password, country, profileImage, userName);
+      // Call the context handleLogin to update authentication state
+      handleLogin(response.userData);
       alert('Signup Successful!');
       navigate('/');
     } catch (error) {

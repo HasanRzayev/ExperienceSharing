@@ -18,27 +18,37 @@ export default function FollowRequestsPage() {
 
     // Follow requestləri alırıq
     axios
-      .get("http://localhost:5029/api/Followers/follow-requests", {
+      .get(`${process.env.REACT_APP_API_BASE_URL}/Followers/follow-requests`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
         setFollowRequests(response.data); // Follow request-ləri state-ə yükləyirik
-        console.log(response.data);
+        console.log("Follow requests data:", response.data);
+        console.log("First request structure:", response.data[0]);
       })
       .catch((error) => console.error("Error fetching follow requests:", error));
   }, [token]);
 
-  const handleFollowResponse = async (requestId, followerId, isAccepted) => {
+  const handleFollowResponse = async (requestId, isAccepted) => {
     try {
-      // Follow request cavabını göndəririk
+      // Follow request-i tapırıq
+      const request = followRequests.find(req => req.id === requestId);
+      console.log("Found request:", request);
+      
+      // Backend pattern-ə əsasən followerId istifadə edirik
+      console.log("Trying with followerId:", request.followerId);
       await axios.post(
-        `http://localhost:5029/api/Followers/${requestId}/respond`,
-        { isAccepted },
+        `${process.env.REACT_APP_API_BASE_URL}/Followers/${request.followerId}/respond`,
+        { 
+          isAccepted: isAccepted 
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       // Follow request qəbul olunduğu və ya rədd edildiyi halda siyahıdan silirik
       setFollowRequests((prev) => prev.filter((req) => req.id !== requestId));
+      console.log("Success! Follow request handled.");
+      
     } catch (error) {
       console.error("Error responding to follow request", error.response?.data);
     }
@@ -100,7 +110,7 @@ export default function FollowRequestsPage() {
                     <div className="flex space-x-3">
                       <Button
                         className="btn-primary px-6 py-2"
-                        onClick={() => handleFollowResponse(request.followerId, request.followerId, true)}
+                        onClick={() => handleFollowResponse(request.id, true)}
                       >
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -109,7 +119,7 @@ export default function FollowRequestsPage() {
                       </Button>
                       <Button
                         className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-                        onClick={() => handleFollowResponse(request.followerId, request.followerId, false)}
+                        onClick={() => handleFollowResponse(request.id, false)}
                       >
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

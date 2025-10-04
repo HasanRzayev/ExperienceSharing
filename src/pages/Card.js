@@ -1,17 +1,101 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LikeButton from '../components/LikeButton';
+import Cookies from 'js-cookie';
+import { useAuth } from '../App';
+
+// JWT token-dan user ID-ni çıxarmaq üçün funksiya
+const getUserIdFromToken = () => {
+  try {
+    const token = Cookies.get("token");
+    if (!token) return null;
+    
+    // JWT token-ı decode etmək
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    console.log("Card.js - JWT payload:", payload);
+    
+    // User ID-ni tapmaq üçün müxtəlif sahələri yoxla
+    const userId = payload.userId || 
+                   payload.id || 
+                   payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
+                   payload.sub;
+    
+    console.log("Card.js - Extracted user ID:", userId);
+    return userId;
+  } catch (error) {
+    console.error("Card.js - Error decoding JWT:", error);
+    return null;
+  }
+};
 
 const CustomCard = ({ imageUrls, date, title, description, location, rating, user, id }) => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
+  const { userData: currentUserData } = useAuth();
+  
+  console.log("Card.js - Received user data:", user);
+  console.log("Card.js - User firstName:", user?.firstName);
+  console.log("Card.js - User lastName:", user?.lastName);
+  console.log("Card.js - User userName:", user?.userName);
+  console.log("Card.js - User ID:", user?.id);
+  console.log("Card.js - Current user data:", currentUserData);
+  console.log("Card.js - Current user data keys:", currentUserData ? Object.keys(currentUserData) : 'No current user data');
+  console.log("Card.js - Current user data full object:", currentUserData);
+  console.log("Card.js - Current user ID:", currentUserData?.id);
+  console.log("Card.js - Current user userId:", currentUserData?.userId);
 
   const handleAboutClick = () => {
+    console.log("Card.js - handleAboutClick called");
+    console.log("Card.js - Card ID:", id);
+    console.log("Card.js - Card ID type:", typeof id);
+    console.log("Card.js - Card ID is valid?", !!id);
+    
+    if (!id) {
+      console.error("Card ID is missing or undefined!");
+      return;
+    }
+    
+    console.log("Card.js - Navigating to:", `/about/${id}`);
     navigate(`/about/${id}`);
   };
 
   const handleUserNameClick = () => {
-    navigate(`/profile/${user?.id}`);
+    console.log("Card.js - handleUserNameClick called");
+    console.log("Card.js - Card user:", user);
+    console.log("Card.js - Current user:", currentUserData);
+    
+    // Əgər current user data yoxdursa, login-ə yönləndir
+    if (!currentUserData) {
+      console.log("Card.js - No current user data, redirecting to login");
+      navigate("/login");
+      return;
+    }
+    
+    // Əgər user data yoxdursa, UserProfilePage-ə yönləndir
+    if (!user || !user.id) {
+      console.log("Card.js - No user data, redirecting to UserProfilePage");
+      navigate(`/profile/${user?.id}`);
+      return;
+    }
+    
+    // User ID-lərini müqayisə et
+    const currentUserId = currentUserData.id || currentUserData.userId || getUserIdFromToken();
+    const cardUserId = user.id;
+    
+    console.log("Card.js - Current user ID:", currentUserId);
+    console.log("Card.js - Current user ID (from id):", currentUserData.id);
+    console.log("Card.js - Current user ID (from userId):", currentUserData.userId);
+    console.log("Card.js - Current user ID (from JWT):", getUserIdFromToken());
+    console.log("Card.js - Card user ID:", cardUserId);
+    
+    // Əgər user özünün card-ına tıklayırsa, Profil.js aç
+    if (currentUserId && cardUserId && currentUserId.toString() === cardUserId.toString()) {
+      console.log("Card.js - User clicked on their own card, navigating to Profil");
+      navigate("/Profil");
+    } else {
+      console.log("Card.js - User clicked on someone else's card, navigating to UserProfilePage");
+      navigate(`/profile/${cardUserId}`);
+    }
   };
 
   return (
@@ -80,9 +164,18 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
             />
             <div>
               <p className="text-sm font-medium text-gray-800 cursor-pointer hover:text-purple-600 transition-colors" onClick={handleUserNameClick}>
-                {user?.userName || "Unknown User"}
+                {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.userName || "Unknown User"}
               </p>
-              <p className="text-xs text-gray-500">{date}</p>
+              <p className="text-xs text-gray-500">
+                {date && typeof date === 'string' 
+                  ? new Date(date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    })
+                  : date || 'No date'
+                }
+              </p>
             </div>
           </div>
           

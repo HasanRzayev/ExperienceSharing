@@ -7,6 +7,7 @@ import CustomCard from './Card';
 
 const UserProfilePage = () => {
   const [userData, setUserData] = useState(null);
+  const [userExperiences, setUserExperiences] = useState([]);
   const { userId } = useParams(); // Kullanıcı ID'sini URL'den alın
   const token = Cookies.get('token');
   const navigate = useNavigate(); // useNavigate ekleyin
@@ -15,12 +16,14 @@ const UserProfilePage = () => {
     const fetchUserData = async () => {
       if (token) {
         try {
-          const response = await axios.get(`http://localhost:5029/api/Auth/GetUserProfile/${userId}`, {
+          const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/Auth/GetUserProfile/${userId}`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           });
+          console.log("UserProfilePage - Full response data:", response.data);
           setUserData(response.data);
+          setUserExperiences(response.data.userExperiences || []);
         } catch (error) {
           console.error('Error fetching user data:', error);
         }
@@ -38,7 +41,7 @@ const UserProfilePage = () => {
     return <div>Loading...</div>;
   }
 
-  const { firstName, lastName, email, country, profileImage, userExperiences } = userData;
+  const { firstName, lastName, email, country, profileImage, userExperiences: userExperiencesFromData } = userData;
 
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col items-center p-8">
@@ -79,18 +82,34 @@ const UserProfilePage = () => {
     {/* Paylaşımlar */}
 <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
   {userExperiences.length > 0 ? (
-    userExperiences.map((post, index) => (
-      <CustomCard
-        key={`${post.id}-${index}`}
-        imageUrls={post.imageUrls?.length > 0 ? post.imageUrls[0]?.url : ""}
-        Date={post.date}
-        title={post.title}
-        description={post.description}
-        location={post.location}
-        rating={post.rating}
-        user={post.user}
-      />
-    ))
+    userExperiences.map((post, index) => {
+      console.log("UserProfilePage.js - Post data:", post);
+      console.log("UserProfilePage.js - Post ID:", post.id);
+      console.log("UserProfilePage.js - Post userId:", post.userId);
+      console.log("UserProfilePage.js - Post user:", post.user);
+      console.log("UserProfilePage.js - User firstName:", post.user?.firstName);
+      console.log("UserProfilePage.js - User lastName:", post.user?.lastName);
+      console.log("UserProfilePage.js - User userName:", post.user?.userName);
+      console.log("UserProfilePage.js - All post keys:", Object.keys(post));
+      
+      // Müvəqqəti həll: userId istifadə et
+      const cardId = post.id || post.userId || `temp-${index}`;
+      console.log("UserProfilePage.js - Using cardId:", cardId);
+      
+      return (
+        <CustomCard
+          key={`${cardId}-${index}`}
+          id={cardId}
+          imageUrls={post.imageUrls?.length > 0 ? post.imageUrls[0]?.url : ""}
+          date={post.date}
+          title={post.title}
+          description={post.description}
+          location={post.location}
+          rating={post.rating}
+          user={userData}
+        />
+      );
+    })
   ) : (
     <p className="text-gray-500 dark:text-gray-400 text-center">Loading...</p>
   )}

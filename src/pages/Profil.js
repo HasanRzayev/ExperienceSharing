@@ -16,7 +16,7 @@ const ProfilePage = () => {
       if (token) {
         try {
           const response = await axios.get(
-            "http://localhost:5029/api/Auth/GetProfile",
+            `${process.env.REACT_APP_API_BASE_URL}/Auth/GetProfile`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -32,12 +32,12 @@ const ProfilePage = () => {
       if (token) {
         try {
           const followingRes = await axios.get(
-            "http://localhost:5029/api/followers/following",
+            `${process.env.REACT_APP_API_BASE_URL}/followers/following`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
 
           const followersRes = await axios.get(
-            "http://localhost:5029/api/followers/followers",
+            `${process.env.REACT_APP_API_BASE_URL}/followers/followers`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
 
@@ -182,19 +182,35 @@ const ProfilePage = () => {
 
           {userExperiences.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {userExperiences.map((post, index) => (
-                <div key={`${post.id}-${index}`} className="animate-fadeInUp" style={{animationDelay: `${index * 0.1}s`}}>
-                  <CustomCard
-                    imageUrls={post.imageUrls?.length > 0 ? post.imageUrls[0]?.url : ""}
-                    date={post.date}
-                    title={post.title}
-                    description={post.description}
-                    location={post.location}
-                    rating={post.rating}
-                    user={post.user}
-                  />
-                </div>
-              ))}
+              {userExperiences.map((post, index) => {
+                console.log("Profil.js - Post data:", post);
+                console.log("Profil.js - Post ID:", post.id);
+                console.log("Profil.js - Post userId:", post.userId);
+                console.log("Profil.js - Post user:", post.user);
+                console.log("Profil.js - User firstName:", post.user?.firstName);
+                console.log("Profil.js - User lastName:", post.user?.lastName);
+                console.log("Profil.js - User userName:", post.user?.userName);
+                console.log("Profil.js - All post keys:", Object.keys(post));
+                
+                // Müvəqqəti həll: userId istifadə et
+                const cardId = post.id || post.userId || `temp-${index}`;
+                console.log("Profil.js - Using cardId:", cardId);
+                
+                return (
+                  <div key={`${cardId}-${index}`} className="animate-fadeInUp" style={{animationDelay: `${index * 0.1}s`}}>
+                    <CustomCard
+                      id={cardId}
+                      imageUrls={post.imageUrls?.length > 0 ? post.imageUrls[0]?.url : ""}
+                      date={post.date}
+                      title={post.title}
+                      description={post.description}
+                      location={post.location}
+                      rating={post.rating}
+                      user={userData}
+                    />
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-20">

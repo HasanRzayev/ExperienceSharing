@@ -15,13 +15,15 @@ function Home() {
     try {
       setLoading(true);
       const url = query 
-        ? `http://localhost:5029/api/Experiences/search?query=${query}&page=${pageNumber}&pageSize=8`
-        : `http://localhost:5029/api/Experiences?page=${pageNumber}&pageSize=8`;
+        ? `${process.env.REACT_APP_API_BASE_URL}/Experiences/search?query=${query}&page=${pageNumber}&pageSize=8`
+        : `${process.env.REACT_APP_API_BASE_URL}/Experiences?page=${pageNumber}&pageSize=8`;
       
       const response = await fetch(url);
       if (!response.ok) throw new Error("Network response was not ok");
       
       const data = await response.json();
+      console.log("Home.js - Fetched posts data:", data);
+      console.log("Home.js - First post user data:", data[0]?.user);
       
       if (pageNumber === 1) {
         setPosts(data);

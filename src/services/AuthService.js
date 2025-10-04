@@ -2,7 +2,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import swal from 'sweetalert';
 
-const API_URL = 'http://localhost:5029/api/Auth';
+const API_URL = `${process.env.REACT_APP_API_BASE_URL}/Auth`;
 
 const register = async (firstName, lastName, email, password, country, profileImage = null, userName) => {
   try {
@@ -33,7 +33,16 @@ const register = async (firstName, lastName, email, password, country, profileIm
       });
       Cookies.set('token', response.data.token, { expires: 1 }); // 1 gün süreyle saklar
     }
-    return response.data;
+    
+    // Create userData object for context
+    const userData = {
+      fullName: `${firstName} ${lastName}`,
+      email: email,
+      userName: userName,
+      profileImage: profileImage ? URL.createObjectURL(profileImage) : null
+    };
+    
+    return { ...response.data, userData };
   } catch (error) {
     swal({
       title: "Error!",
@@ -66,6 +75,8 @@ const login = async (email, password) => {
       Cookies.set('token', response.data.token, { expires: 1 }); // 1 gün süreyle saklar
     }
 
+    // For login, we'll fetch user data from the API
+    // For now, return the response data
     return response.data;
   } catch (error) {
     console.error('Giriş hatası:', error.response?.data || error.message);

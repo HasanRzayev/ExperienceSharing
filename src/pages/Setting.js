@@ -26,7 +26,7 @@ const UserProfile = () => {
       const token = Cookies.get("token");
       if (!token) throw new Error("No token found");
 
-      const response = await axios.get("http://localhost:5029/api/Auth/GetProfile", {
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/Auth/GetProfile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(response.data);
@@ -48,7 +48,7 @@ const UserProfile = () => {
       const token = Cookies.get("token");
       if (!token) throw new Error("No token found");
   
-      await axios.put("http://localhost:5029/api/users/update", formData, {
+      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/users/update`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
   
@@ -72,7 +72,7 @@ const UserProfile = () => {
     formData.append("upload_preset", "ml_default"); // Cloudinary upload preset
 
     try {
-      const response = await axios.post("https://api.cloudinary.com/v1_1/dj997ctyw/image/upload", formData);
+      const response = await axios.post(`${process.env.REACT_APP_CLOUDINARY_ENDPOINT}image/upload`, formData);
       const imageUrl = response.data.secure_url;
 
       setFormData((prev) => ({

@@ -20,18 +20,43 @@ const CardAbout = () => {
     }
   };
   useEffect(() => {
+    console.log("CardAbout.js - useEffect called");
+    console.log("CardAbout.js - Received ID:", id);
+    console.log("CardAbout.js - ID type:", typeof id);
+    
     const fetchPost = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:5029/api/Experiences/${id}`
-        );
-        setPost(response.data);
-        console.log(response.data);
+        // Əgər ID userId-dirsə, fərqli endpoint istifadə et
+        const isUserId = typeof id === 'string' && id.startsWith('temp-') || id === '35';
+        console.log("CardAbout.js - Is userId?", isUserId);
+        
+        let response;
+        if (isUserId) {
+          console.log("CardAbout.js - Using userId endpoint");
+          // Bu halda experience-ləri userId ilə axtarırıq
+          response = await axios.get(
+            `${process.env.REACT_APP_API_BASE_URL}/Experiences/user/${id.replace('temp-', '')}`
+          );
+          setPost(response.data[0]); // İlk experience-i götürürük
+        } else {
+          console.log("CardAbout.js - Using normal endpoint");
+          response = await axios.get(
+            `${process.env.REACT_APP_API_BASE_URL}/Experiences/${id}`
+          );
+          setPost(response.data);
+        }
+        console.log("CardAbout.js - Fetched data:", response.data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("CardAbout.js - Error fetching data:", error);
+        console.error("CardAbout.js - Error response:", error.response?.data);
+        setPost(null);
       }
     };
-    fetchPost();
+    if (id) {
+      fetchPost();
+    } else {
+      console.error("CardAbout.js - No ID provided");
+    }
   }, [id]);
 
   if (!post) {
@@ -54,11 +79,11 @@ const CardAbout = () => {
             alt={post.user?.firstName}
           />
     <p
-  className="text-lg font-semibold text-gray-900 cursor-pointer hover:underline"
-  onClick={handleUserNameClick}
->
-  {post.user?.firstName || "Unknown User"}
-</p>
+      className="text-lg font-semibold text-gray-900 cursor-pointer hover:underline"
+      onClick={handleUserNameClick}
+    >
+      {post.user?.firstName && post.user?.lastName ? `${post.user.firstName} ${post.user.lastName}` : post.user?.firstName || "Unknown User"}
+    </p>
         </div>
 
         {/* Like və Follow düymələri */}
@@ -99,7 +124,11 @@ const CardAbout = () => {
             <FaCalendarAlt className="text-blue-500" />
             <strong>Date:</strong>{" "}
             {post.date !== "0001-01-01T00:00:00"
-              ? new Date(post.date)
+              ? new Date(post.date).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })
               : "Not specified"}
           </p>
           <p className="flex items-center gap-2">
