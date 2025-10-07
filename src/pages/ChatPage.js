@@ -250,8 +250,9 @@ const stopRecording = () => {
         }, 5000);
       });
 
-    newConnection.on("ReceiveMessage", (senderId, content) => {
-      setMessages((prev) => [...prev, { senderId, content }]);
+    newConnection.on("ReceiveMessage", (senderId, messageData) => {
+      console.log("Received message:", senderId, messageData);
+      setMessages((prev) => [...prev, messageData]);
     });
 
     // Bağlantı vəziyyətini izlə
@@ -364,7 +365,7 @@ const stopRecording = () => {
         content: text.trim(),
         mediaUrl: fileUrl, 
         mediaType: mediaType, // GIF üçün də mediaType olacaq
-        senderId: user,
+        senderId: user.id, // user.id istifadə et, user obyektini yox
         receiverId: selectedUser.id,
         timestamp: new Date().toISOString()
     };
@@ -381,6 +382,7 @@ const stopRecording = () => {
           setMessages((prevMessages) => [...prevMessages, messageData]);
           setNewMessage(""); // Mesaj göndərildikdən sonra inputu təmizlə
           setFile(null); // Fayl seçimini sıfırla
+          setFilePreview(null); // Fayl preview-ni də təmizlə
         } else {
           console.error("❌ Bağlantı hazır deyil:", connection.state);
           alert("Bağlantı problemi var. Zəhmət olmasa səhifəni yeniləyin.");
@@ -510,7 +512,7 @@ useEffect(() => {
             </div>
           ) : (
             messages.map((msg, index) => {
-              const isMyMessage = user?.id && msg.senderId === user.id;
+              const isMyMessage = user?.id && msg.senderId && msg.senderId.toString() === user.id.toString();
               
               return (
                 <div key={index} className={`flex items-end space-x-3 ${isMyMessage ? "justify-end" : "justify-start"}`}>
@@ -675,7 +677,11 @@ useEffect(() => {
               placeholder={file ? `Mesaj yazın və ${file.name} göndərin...` : "Type a message..."}
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage(newMessage, file)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && (newMessage.trim() || file)) {
+                  sendMessage(newMessage, file);
+                }
+              }}
             />
             {file && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -751,9 +757,9 @@ useEffect(() => {
           {/* Send Button */}
           <button 
             onClick={() => {
-              sendMessage(newMessage, file);
-              setFile(null);
-              setFilePreview(null);
+              if (newMessage.trim() || file) {
+                sendMessage(newMessage, file);
+              }
             }} 
             className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white font-semibold hover:shadow-hover transition-smooth focus:outline-none"
           >
