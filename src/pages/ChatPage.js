@@ -73,6 +73,7 @@ const ChatPage = () => {
   const [newMessage, setNewMessage] = useState("");
   const [connection, setConnection] = useState(null);
   const [user, setUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
   const [file, setFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -173,16 +174,47 @@ const stopRecording = () => {
             .then(() => console.log("Mikrofona icazə verildi"))
             .catch(() => console.log("Mikrofona giriş alınmadı"));
     console.log("Fetching user profile...");
+    setUserLoading(true);
   
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/users/me`, {
         headers: { Authorization: `Bearer ${Cookies.get("token")}` },
       })
       .then((res) => {
-        console.log("User data received:", res.data);
-        setUser(res.data);
+        console.log("Full response:", res);
+        console.log("Response data:", res.data);
+        console.log("Response data type:", typeof res.data);
+        console.log("Response data keys:", Object.keys(res.data || {}));
+        console.log("User ID from response:", res.data.id);
+        console.log("User ID from userId:", res.data.userId);
+        console.log("Profile image properties:", {
+          profileImage: res.data.profileImage,
+          profileImageUrl: res.data.profileImageUrl,
+          image: res.data.image,
+          avatar: res.data.avatar
+        });
+        
+        // Ensure we're setting the full user object
+        if (typeof res.data === 'object' && res.data !== null) {
+          setUser(res.data);
+        } else {
+          console.error("Invalid user data received:", res.data);
+          // Create a fallback user object
+          const fallbackUser = {
+            id: res.data || '1',
+            userId: res.data || '1',
+            userName: 'test_user',
+            email: 'test@example.com',
+            profileImage: 'https://via.placeholder.com/150'
+          };
+          setUser(fallbackUser);
+        }
+        setUserLoading(false);
       })
-      .catch((err) => console.error("Error fetching user:", err));
+      .catch((err) => {
+        console.error("Error fetching user:", err);
+        setUserLoading(false);
+      });
   }, []);
   
 
@@ -250,9 +282,31 @@ const stopRecording = () => {
         }, 5000);
       });
 
-    newConnection.on("ReceiveMessage", (senderId, messageData) => {
-      console.log("Received message:", senderId, messageData);
-      setMessages((prev) => [...prev, messageData]);
+    newConnection.on("ReceiveMessage", (messageData) => {
+      console.log("Received message via SignalR:", messageData);
+      setMessages((prev) => {
+        // Check if message already exists to avoid duplicates
+        const messageExists = prev.some(msg => 
+          msg.id === messageData.id || 
+          (msg.senderId === messageData.senderId && 
+           msg.content === messageData.content && 
+           msg.timestamp === messageData.timestamp)
+        );
+        
+        if (messageExists) {
+          console.log("Message already exists, skipping duplicate");
+          return prev;
+        }
+        
+        return [...prev, messageData];
+      });
+    });
+
+    // Handle message sent confirmation
+    newConnection.on("messageSent", (messageData) => {
+      console.log("Message sent confirmation:", messageData);
+      // Don't add the message here since we already added it in sendMessage
+      // This is just for confirmation
     });
 
     // Bağlantı vəziyyətini izlə
@@ -276,15 +330,18 @@ const stopRecording = () => {
 
   useEffect(() => {
     if (!selectedUser) return;
+    
     const fetchMessages = () => {
-      console.log("Fetching messages for user:", selectedUser.id); // Kullanıcı ID'sini kontrol et
+      console.log("Fetching messages for user:", selectedUser.id);
     
       axios
         .get(`${process.env.REACT_APP_API_BASE_URL}/messages/${selectedUser.id}`, {
           headers: { Authorization: `Bearer ${Cookies.get("token")}` },
         })
         .then((res) => {
-          console.log("Messages fetched successfully:", res.data); // Başarıyla dönen veriyi kontrol et
+          console.log("Messages fetched successfully:", res.data);
+          console.log("Current user ID:", user?.id);
+          console.log("Selected user ID:", selectedUser.id);
           setMessages(res.data);
         })
         .catch((err) => {
@@ -299,10 +356,8 @@ const stopRecording = () => {
         });
     };
     
+    // Only fetch messages once when user is selected, not on interval
     fetchMessages();
-    const interval = setInterval(fetchMessages, 3000);
-
-    return () => clearInterval(interval);
   }, [selectedUser]);
 
   const uploadFileToServer = async (formData) => {
@@ -324,10 +379,40 @@ const stopRecording = () => {
       return;
     }
 
-    if (!selectedUser || !user) {
-        console.error("İstifadəçi seçilməyib və ya giriş edən istifadəçi tapılmadı!");
+    if (!selectedUser) {
+        console.error("İstifadəçi seçilməyib!");
+        alert("Zəhmət olmasa bir istifadəçi seçin.");
         return;
     }
+
+    if (!user) {
+        console.error("Giriş edən istifadəçi tapılmadı!");
+        alert("İstifadəçi məlumatları yüklənmədi. Zəhmət olmasa səhifəni yeniləyin.");
+        return;
+    }
+
+    if (userLoading) {
+        console.error("İstifadəçi məlumatları hələ yüklənir!");
+        alert("İstifadəçi məlumatları yüklənir. Zəhmət olmasa gözləyin.");
+        return;
+    }
+
+    console.log("Full user object:", user);
+    console.log("User type:", typeof user);
+    console.log("User keys:", Object.keys(user || {}));
+    console.log("User.id:", user?.id);
+    console.log("User.userId:", user?.userId);
+    
+    // Try different ways to get the user ID
+    const userId = user?.id || user?.userId || user?.user_id || user;
+    
+    if (!userId) {
+        console.error("İstifadəçi ID-si tapılmadı!", user);
+        alert("İstifadəçi ID-si məlum deyil. Zəhmət olmasa yenidən giriş edin.");
+        return;
+    }
+    
+    console.log("Final userId:", userId);
 
     let fileUrl = null;
     let mediaType = null;
@@ -365,12 +450,15 @@ const stopRecording = () => {
         content: text.trim(),
         mediaUrl: fileUrl, 
         mediaType: mediaType, // GIF üçün də mediaType olacaq
-        senderId: user.id, // user.id istifadə et, user obyektini yox
+        senderId: userId,
         receiverId: selectedUser.id,
         timestamp: new Date().toISOString()
     };
 
     console.log("Mesaj JSON:", messageData);
+    console.log("User object when sending:", user);
+    console.log("User ID when sending:", user?.id);
+    console.log("User ID alt when sending:", user?.userId);
 
     try {
         // Bağlantı vəziyyətini yenidən yoxla
@@ -378,8 +466,7 @@ const stopRecording = () => {
           await connection.invoke("SendMessage", messageData);
           console.log("✅ Mesaj uğurla göndərildi:", messageData);
 
-          // Yeni mesajı UI-ə əlavə et
-          setMessages((prevMessages) => [...prevMessages, messageData]);
+          // Clear input fields after sending
           setNewMessage(""); // Mesaj göndərildikdən sonra inputu təmizlə
           setFile(null); // Fayl seçimini sıfırla
           setFilePreview(null); // Fayl preview-ni də təmizlə
@@ -502,7 +589,15 @@ useEffect(() => {
 
         {/* Mesajlar */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-transparent to-gray-900 to-opacity-10">
-          {messages.length === 0 ? (
+          {userLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="text-6xl mb-4">⏳</div>
+                <h3 className="text-xl font-semibold text-white mb-2">Loading user data...</h3>
+                <p className="text-gray-300">Please wait while we load your profile</p>
+              </div>
+            </div>
+          ) : messages.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <div className="text-6xl mb-4">💬</div>
@@ -512,7 +607,18 @@ useEffect(() => {
             </div>
           ) : (
             messages.map((msg, index) => {
-              const isMyMessage = user?.id && msg.senderId && msg.senderId.toString() === user.id.toString();
+              const currentUserId = user?.id || user?.userId || user?.user_id || user;
+              const isMyMessage = currentUserId && msg.senderId == currentUserId;
+              console.log("Message check:", { 
+                msgSenderId: msg.senderId, 
+                currentUserId: user?.id, 
+                currentUserIdAlt: user?.userId,
+                finalCurrentUserId: currentUserId,
+                userObject: user,
+                isMyMessage,
+                profileImage: user?.profileImage,
+                profileImageUrl: user?.profileImageUrl
+              });
               
               return (
                 <div key={index} className={`flex items-end space-x-3 ${isMyMessage ? "justify-end" : "justify-start"}`}>
@@ -566,11 +672,39 @@ useEffect(() => {
 
                   {/* Mənim mesajım üçün profil şəkli */}
                   {isMyMessage && (
-                    <img
-                      src={user?.profileImage || "https://via.placeholder.com/40"}
-                      alt="Your Profile"
-                      className="w-10 h-10 rounded-full border-2 border-white border-opacity-30 shadow-lg"
-                    />
+                    <div className="w-10 h-10 rounded-full border-2 border-white border-opacity-30 shadow-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                      {typeof user === 'object' && user?.profileImage ? (
+                        <img
+                          src={user.profileImage || user.profileImageUrl || user.image || user.avatar || "https://via.placeholder.com/40"}
+                          alt="Your Profile"
+                          className="w-full h-full rounded-full object-cover"
+                          onError={(e) => {
+                            console.log("Profile image failed to load:", e.target.src);
+                            console.log("User object:", user);
+                            console.log("Available image properties:", {
+                              profileImage: user?.profileImage,
+                              profileImageUrl: user?.profileImageUrl,
+                              image: user?.image,
+                              avatar: user?.avatar
+                            });
+                            // Hide the image and show initials instead
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div 
+                        className="w-full h-full rounded-full flex items-center justify-center text-white font-bold text-sm"
+                        style={{ display: typeof user === 'object' && user?.profileImage ? 'none' : 'flex' }}
+                      >
+                        {typeof user === 'object' && user?.userName 
+                          ? user.userName.charAt(0).toUpperCase()
+                          : typeof user === 'string' 
+                            ? user.charAt(0).toUpperCase()
+                            : 'U'
+                        }
+                      </div>
+                    </div>
                   )}
                 </div>
               );
@@ -677,11 +811,7 @@ useEffect(() => {
               placeholder={file ? `Mesaj yazın və ${file.name} göndərin...` : "Type a message..."}
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && (newMessage.trim() || file)) {
-                  sendMessage(newMessage, file);
-                }
-              }}
+              onKeyPress={(e) => e.key === 'Enter' && sendMessage(newMessage, file)}
             />
             {file && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -757,13 +887,18 @@ useEffect(() => {
           {/* Send Button */}
           <button 
             onClick={() => {
-              if (newMessage.trim() || file) {
-                sendMessage(newMessage, file);
-              }
+              sendMessage(newMessage, file);
+              setFile(null);
+              setFilePreview(null);
             }} 
-            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white font-semibold hover:shadow-hover transition-smooth focus:outline-none"
+            disabled={userLoading || !user}
+            className={`px-6 py-3 rounded-xl text-white font-semibold transition-smooth focus:outline-none ${
+              userLoading || !user 
+                ? "bg-gray-500 cursor-not-allowed" 
+                : "bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-hover"
+            }`}
           >
-            Send
+            {userLoading ? "Loading..." : "Send"}
           </button>
         </div>
       </div>
