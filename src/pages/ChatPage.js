@@ -245,9 +245,12 @@ const stopRecording = () => {
         
         // Əvvəlcə messaging-contacts endpoint-ini cəhd et
         try {
+          console.log('Trying messaging-contacts endpoint...');
           const messagingResponse = await axios.get(`${apiBaseUrl}/Followers/messaging-contacts`, {
             headers: { Authorization: `Bearer ${Cookies.get("token")}` }
           });
+          
+          console.log('Messaging-contacts response:', messagingResponse.data);
           
           const formattedContacts = messagingResponse.data.map((contact) => ({
             id: contact.Id,
@@ -256,6 +259,7 @@ const stopRecording = () => {
             relationshipType: contact.RelationshipType
           }));
           
+          console.log('Formatted contacts:', formattedContacts);
           setUsers(formattedContacts);
           return;
         } catch (messagingError) {
@@ -263,21 +267,35 @@ const stopRecording = () => {
         }
         
         // Fallback: following və followers endpoint-lərini ayrı-ayrı çağır
+        console.log('Using fallback endpoints...');
         const [followingRes, followersRes, sendersRes] = await Promise.all([
           axios.get(`${apiBaseUrl}/Followers/following`, {
             headers: { Authorization: `Bearer ${Cookies.get("token")}` }
-          }).catch(() => ({ data: [] })),
+          }).catch((err) => {
+            console.error('Following endpoint error:', err);
+            return { data: [] };
+          }),
           axios.get(`${apiBaseUrl}/Followers/followers`, {
             headers: { Authorization: `Bearer ${Cookies.get("token")}` }
-          }).catch(() => ({ data: [] })),
+          }).catch((err) => {
+            console.error('Followers endpoint error:', err);
+            return { data: [] };
+          }),
           axios.get(`${apiBaseUrl}/Followers/senders`, {
             headers: { Authorization: `Bearer ${Cookies.get("token")}` }
-          }).catch(() => ({ data: [] }))
+          }).catch((err) => {
+            console.error('Senders endpoint error:', err);
+            return { data: [] };
+          })
         ]);
         
         const following = followingRes.data || [];
         const followers = followersRes.data || [];
         const senders = sendersRes.data || [];
+        
+        console.log('Following data:', following);
+        console.log('Followers data:', followers);
+        console.log('Senders data:', senders);
         
         // Bütün kontakları formatla
         const formattedFollowing = following.map((user) => ({
@@ -316,6 +334,7 @@ const stopRecording = () => {
             return (order[a.relationshipType] || 4) - (order[b.relationshipType] || 4);
           });
 
+        console.log('Final all contacts:', allContacts);
         setUsers(allContacts);
       } catch (err) {
         console.error("Error fetching users:", err);
