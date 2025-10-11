@@ -70,6 +70,12 @@ export async function uploadFile(file) {
 const ChatPage = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
+  
+  // Debug: users state-ini yoxla
+  useEffect(() => {
+    console.log('Users state changed:', users);
+    console.log('Users length:', users.length);
+  }, [users]);
   const [messages, setMessages] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [newMessage, setNewMessage] = useState("");
@@ -251,13 +257,25 @@ const stopRecording = () => {
           });
           
           console.log('Messaging-contacts response:', messagingResponse.data);
+          console.log('Response type:', typeof messagingResponse.data);
+          console.log('Response length:', messagingResponse.data?.length);
           
-          const formattedContacts = messagingResponse.data.map((contact) => ({
-            id: contact.Id,
-            username: contact.Username,
-            profileImage: contact.ProfileImage,
-            relationshipType: contact.RelationshipType
-          }));
+          if (!Array.isArray(messagingResponse.data)) {
+            console.error('Response is not an array:', messagingResponse.data);
+            return;
+          }
+          
+          const formattedContacts = messagingResponse.data.map((contact) => {
+            console.log('Processing contact:', contact);
+            return {
+              id: contact.Id,
+              username: contact.Username,
+              profileImage: contact.ProfileImage,
+              relationshipType: contact.RelationshipType,
+              firstName: contact.FirstName,
+              lastName: contact.LastName
+            };
+          });
           
           console.log('Formatted contacts:', formattedContacts);
           setUsers(formattedContacts);
@@ -634,16 +652,21 @@ useEffect(() => {
         <div className="p-6 flex-1 overflow-y-auto">
           <h2 className="text-2xl font-bold mb-6 gradient-text">💬 Chats</h2>
           <div className="space-y-3">
-            {users.map((user) => (
-              <div
-                key={user.id}
-                className={`p-4 flex items-center space-x-4 cursor-pointer rounded-xl transition-smooth hover:shadow-hover ${
-                  selectedUser?.id === user.id 
-                    ? "bg-gradient-to-r from-purple-600 to-blue-600 shadow-lg" 
-                    : "glass hover:bg-white hover:bg-opacity-10"
-                }`}
-                onClick={() => setSelectedUser(user)}
-              >
+        {users.map((user) => {
+          console.log('Rendering user:', user);
+          return (
+          <div
+            key={user.id}
+            className={`p-4 flex items-center space-x-4 cursor-pointer rounded-xl transition-smooth hover:shadow-hover ${
+              selectedUser?.id === user.id 
+                ? "bg-gradient-to-r from-purple-600 to-blue-600 shadow-lg" 
+                : "glass hover:bg-white hover:bg-opacity-10"
+            }`}
+            onClick={() => {
+              console.log('User clicked:', user);
+              setSelectedUser(user);
+            }}
+          >
                 <div className="relative">
                   <img
                     src={user.ProfileImage || user.profileImage || "https://via.placeholder.com/40"}
@@ -675,7 +698,8 @@ useEffect(() => {
                   <p className="text-sm text-gray-300">Online</p>
                 </div>
               </div>
-            ))}
+            );
+          })}
           </div>
         </div>
       </div>
