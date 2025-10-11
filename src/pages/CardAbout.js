@@ -30,18 +30,20 @@ const CardAbout = () => {
         const isUserId = typeof id === 'string' && id.startsWith('temp-') || id === '35';
         console.log("CardAbout.js - Is userId?", isUserId);
         
+        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+        
         let response;
         if (isUserId) {
           console.log("CardAbout.js - Using userId endpoint");
           // Bu halda experience-ləri userId ilə axtarırıq
           response = await axios.get(
-            `${process.env.REACT_APP_API_BASE_URL}/Experiences/user/${id.replace('temp-', '')}`
+            `${apiBaseUrl}/Experiences/user/${id.replace('temp-', '')}`
           );
           setPost(response.data[0]); // İlk experience-i götürürük
         } else {
           console.log("CardAbout.js - Using normal endpoint");
           response = await axios.get(
-            `${process.env.REACT_APP_API_BASE_URL}/Experiences/${id}`
+            `${apiBaseUrl}/Experiences/${id}`
           );
           setPost(response.data);
         }
@@ -61,80 +63,162 @@ const CardAbout = () => {
 
   if (!post) {
     return (
-      <p className="text-center text-lg font-semibold text-gray-700 mt-5">
-        Loading...
-      </p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-xl font-semibold text-gray-700">Loading experience...</p>
+          <p className="text-gray-500 mt-2">Please wait while we fetch the details</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto bg-white shadow-2xl rounded-2xl overflow-hidden p-6 mt-10">
-      {/* Üst hissə: İstifadəçi adı və Like/Follow düymələri */}
-      <div className="flex justify-between items-center mb-4">
-        {/* İstifadəçi məlumatları */}
-        <div className="flex items-center gap-4">
-          <img
-            className="w-12 h-12 rounded-full border-2 border-gray-300"
-            src={post.user?.profileImage || "/default-avatar.png"}
-            alt={post.user?.firstName}
-          />
-    <p
-      className="text-lg font-semibold text-gray-900 cursor-pointer hover:underline"
-      onClick={handleUserNameClick}
-    >
-      {post.user?.firstName && post.user?.lastName ? `${post.user.firstName} ${post.user.lastName}` : post.user?.firstName || "Unknown User"}
-    </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Ana Kart */}
+        <div className="bg-white shadow-2xl rounded-3xl overflow-hidden">
+          {/* Üst hissə: İstifadəçi məlumatları və düymələr */}
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+              {/* İstifadəçi məlumatları */}
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <img
+                    className="w-16 h-16 rounded-full border-4 border-white shadow-lg object-cover"
+                    src={post.user?.profileImage || "/default-avatar.png"}
+                    alt={post.user?.firstName}
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
+                </div>
+                <div>
+                  <p
+                    className="text-xl font-bold text-white cursor-pointer hover:text-purple-200 transition-colors"
+                    onClick={handleUserNameClick}
+                  >
+                    {post.user?.firstName && post.user?.lastName ? `${post.user.firstName} ${post.user.lastName}` : post.user?.firstName || "Unknown User"}
+                  </p>
+                  <p className="text-purple-100 text-sm">@{post.user?.userName || "user"}</p>
+                </div>
+              </div>
 
-        {/* Like və Follow düymələri */}
-        <div className="flex items-center gap-4">
-          <LikeButton experienceId={post.id} />
-          <FollowButton userId={post.user?.id} />
-        </div>
-      </div>
+              {/* Like və Follow düymələri */}
+              <div className="flex items-center gap-3">
+                <LikeButton experienceId={post.id} />
+                <FollowButton userId={post.user?.id} />
+              </div>
+            </div>
+          </div>
 
-      {/* Şəkil Karuseli */}
-      <div className="relative h-64 sm:h-80 xl:h-96 2xl:h-[30rem] rounded-xl overflow-hidden shadow-lg">
-        <Carousel className="rounded-xl">
-          {post.imageUrls && post.imageUrls.length > 0 ? (
-            post.imageUrls.map((image, index) => (
-              <img
-                key={index}
-                className="w-full h-full object-cover rounded-xl"
-                src={image.url}
-                alt={`Slide ${index}`}
-              />
-            ))
-          ) : (
-            <p className="text-center text-gray-500">No images available</p>
-          )}
-        </Carousel>
-      </div>
+          {/* Şəkil Karuseli */}
+          <div className="relative h-64 sm:h-80 xl:h-96 2xl:h-[32rem]">
+            <Carousel className="rounded-none">
+              {post.imageUrls && post.imageUrls.length > 0 ? (
+                post.imageUrls.map((image, index) => (
+                  <img
+                    key={index}
+                    className="w-full h-full object-cover"
+                    src={image.url}
+                    alt={`Slide ${index}`}
+                  />
+                ))
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                  <div className="text-center">
+                    <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-gray-500 text-lg">No images available</p>
+                  </div>
+                </div>
+              )}
+            </Carousel>
+          </div>
 
-      {/* Aşağı hissə: Başlıq, təsvir, tarix və məkan */}
-      <div className="mt-6 space-y-4 text-gray-700">
-        <h1 className="text-2xl font-bold text-gray-900 text-center">
-          {post.title}
-        </h1>
-        <p className="text-lg text-gray-800 leading-relaxed bg-gray-100 p-4 rounded-xl shadow-sm text-center">
-          {post.description || "No description available."}
-        </p>
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-4 text-lg">
-          <p className="flex items-center gap-2">
-            <FaCalendarAlt className="text-blue-500" />
-            <strong>Date:</strong>{" "}
-            {post.date !== "0001-01-01T00:00:00"
-              ? new Date(post.date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })
-              : "Not specified"}
-          </p>
-          <p className="flex items-center gap-2">
-            <FaMapMarkerAlt className="text-red-500" />
-            <strong>Location:</strong> {post.location}
-          </p>
+          {/* Məzmun hissəsi */}
+          <div className="p-8">
+            {/* Başlıq */}
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6 text-center bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              {post.title}
+            </h1>
+
+            {/* Təsvir */}
+            <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-6 rounded-2xl shadow-inner mb-8">
+              <p className="text-lg text-gray-800 leading-relaxed text-center">
+                {post.description || "No description available."}
+              </p>
+            </div>
+
+            {/* Tarix və məkan kartları */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              {/* Tarix kartı */}
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-2xl shadow-lg text-white">
+                <div className="flex items-center gap-4">
+                  <div className="bg-white bg-opacity-20 p-3 rounded-xl">
+                    <FaCalendarAlt className="text-2xl" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-1">Experience Date</h3>
+                    <p className="text-blue-100">
+                      {post.date !== "0001-01-01T00:00:00"
+                        ? new Date(post.date).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })
+                        : "Not specified"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Məkan kartı */}
+              <div className="bg-gradient-to-br from-red-500 to-red-600 p-6 rounded-2xl shadow-lg text-white">
+                <div className="flex items-center gap-4">
+                  <div className="bg-white bg-opacity-20 p-3 rounded-xl">
+                    <FaMapMarkerAlt className="text-2xl" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-1">Location</h3>
+                    <p className="text-red-100">{post.location || "Not specified"}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Tag-lər (əgər varsa) */}
+            {post.tags && post.tags.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {post.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-medium shadow-md hover:shadow-lg transition-shadow"
+                    >
+                      #{tag.tagName || tag.name || tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Statistikalar */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-gradient-to-r from-green-400 to-green-500 p-4 rounded-xl text-white text-center">
+                <div className="text-2xl font-bold">{post.likesCount || 0}</div>
+                <div className="text-green-100">Likes</div>
+              </div>
+              <div className="bg-gradient-to-r from-blue-400 to-blue-500 p-4 rounded-xl text-white text-center">
+                <div className="text-2xl font-bold">{post.commentsCount || 0}</div>
+                <div className="text-blue-100">Comments</div>
+              </div>
+              <div className="bg-gradient-to-r from-purple-400 to-purple-500 p-4 rounded-xl text-white text-center">
+                <div className="text-2xl font-bold">{post.imageUrls?.length || 0}</div>
+                <div className="text-purple-100">Images</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
