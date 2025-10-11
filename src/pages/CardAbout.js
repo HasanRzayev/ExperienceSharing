@@ -5,14 +5,18 @@ import Cookies from "js-cookie";
 import LikeButton from "../components/LikeButton";
 import FollowButton from "../components/FollowButton";
 import { Carousel } from "flowbite-react";
-import { FaMapMarkerAlt, FaCalendarAlt, FaShare, FaWhatsapp, FaInstagram, FaTiktok, FaCopy, FaCheck } from "react-icons/fa";
+import { FaMapMarkerAlt, FaCalendarAlt, FaShare, FaWhatsapp, FaInstagram, FaTiktok, FaCopy, FaCheck, FaUsers, FaPaperPlane } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 const CardAbout = () => {
   const { id } = useParams();
   const [post, setPost] = useState(null);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [followers, setFollowers] = useState([]);
+  const [selectedFollowers, setSelectedFollowers] = useState([]);
   const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
   const token = Cookies.get("token");
   const navigate = useNavigate();
 
@@ -69,6 +73,61 @@ const CardAbout = () => {
         }
     }
     setShowShareModal(false);
+  };
+
+  // Followers fetch funksiyası
+  const fetchFollowers = async () => {
+    try {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const response = await axios.get(`${apiBaseUrl}/Follow/following`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setFollowers(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching followers:', error);
+      setFollowers([]);
+    }
+  };
+
+  // Follower seçimi
+  const toggleFollower = (followerId) => {
+    setSelectedFollowers(prev => 
+      prev.includes(followerId) 
+        ? prev.filter(id => id !== followerId)
+        : [...prev, followerId]
+    );
+  };
+
+  // Takib etdiklərinə göndər
+  const sendToFollowers = async () => {
+    if (selectedFollowers.length === 0) return;
+    
+    setSending(true);
+    try {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const url = getShareUrl();
+      const text = getShareText();
+      
+      // Hər seçilmiş follower-ə mesaj göndər
+      for (const followerId of selectedFollowers) {
+        await axios.post(`${apiBaseUrl}/Messages`, {
+          receiverId: followerId,
+          content: `${text}\n\n🔗 ${url}`,
+          messageType: 'experience_share'
+        }, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      }
+      
+      alert(`Experience shared with ${selectedFollowers.length} follower(s)!`);
+      setShowFollowersModal(false);
+      setSelectedFollowers([]);
+    } catch (error) {
+      console.error('Error sending to followers:', error);
+      alert('Error sending messages. Please try again.');
+    } finally {
+      setSending(false);
+    }
   };
   useEffect(() => {
     console.log("CardAbout.js - useEffect called");
@@ -290,6 +349,18 @@ const CardAbout = () => {
 
               {/* Share Options */}
               <div className="grid grid-cols-2 gap-4 mb-6">
+                {/* Send to Followers */}
+                <button
+                  onClick={() => {
+                    setShowShareModal(false);
+                    fetchFollowers();
+                    setShowFollowersModal(true);
+                  }}
+                  className="flex flex-col items-center p-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg col-span-2"
+                >
+                  <FaUsers className="text-3xl mb-2" />
+                  <span className="font-semibold">Send to My Followers</span>
+                </button>
                 {/* WhatsApp */}
                 <button
                   onClick={() => handleShare('whatsapp')}
@@ -351,6 +422,97 @@ const CardAbout = () => {
               >
                 Cancel
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Followers Modal */}
+        {showFollowersModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl p-6 max-w-lg w-full mx-4 shadow-2xl max-h-[80vh] overflow-hidden flex flex-col">
+              <div className="text-center mb-4">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Send to Followers</h3>
+                <p className="text-gray-600">Select followers to share this experience with</p>
+              </div>
+
+              {/* Followers List */}
+              <div className="flex-1 overflow-y-auto mb-4">
+                {followers.length > 0 ? (
+                  <div className="space-y-3">
+                    {followers.map((follower) => (
+                      <div
+                        key={follower.id}
+                        className={`flex items-center p-3 rounded-xl border-2 transition-all cursor-pointer ${
+                          selectedFollowers.includes(follower.id)
+                            ? 'border-purple-500 bg-purple-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => toggleFollower(follower.id)}
+                      >
+                        <div className="relative">
+                          <img
+                            src={follower.profileImage || "/default-avatar.png"}
+                            alt={follower.firstName}
+                            className="w-12 h-12 rounded-full object-cover"
+                          />
+                          {selectedFollowers.includes(follower.id) && (
+                            <div className="absolute -top-1 -right-1 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
+                              <FaCheck className="text-white text-xs" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="ml-4 flex-1">
+                          <h4 className="font-semibold text-gray-900">
+                            {follower.firstName} {follower.lastName}
+                          </h4>
+                          <p className="text-sm text-gray-600">@{follower.userName}</p>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 ${
+                          selectedFollowers.includes(follower.id)
+                            ? 'bg-purple-500 border-purple-500'
+                            : 'border-gray-300'
+                        }`}></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <FaUsers className="text-4xl text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">No followers found</p>
+                    <p className="text-sm text-gray-400">Start following people to share experiences!</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowFollowersModal(false);
+                    setSelectedFollowers([]);
+                  }}
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-2xl font-semibold transition-all duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={sendToFollowers}
+                  disabled={selectedFollowers.length === 0 || sending}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-400 text-white py-3 rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center"
+                >
+                  {sending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <FaPaperPlane className="mr-2" />
+                      Send ({selectedFollowers.length})
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}
