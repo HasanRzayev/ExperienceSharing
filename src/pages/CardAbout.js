@@ -138,7 +138,7 @@ const CardAbout = () => {
           {/* Məzmun hissəsi */}
           <div className="p-8">
             {/* Başlıq */}
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6 text-center bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl sm:text-4xl font-bold mb-6 text-center bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               {post.title}
             </h1>
 
