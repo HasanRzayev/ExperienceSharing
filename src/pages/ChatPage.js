@@ -490,6 +490,7 @@ const stopRecording = () => {
           console.error("Error fetching messages:", err);
           if (err.response) {
             console.error("Server responded with:", err.response.status, err.response.data);
+            console.error("Full error response:", JSON.stringify(err.response.data, null, 2));
           } else if (err.request) {
             console.error("No response received:", err.request);
           } else {
