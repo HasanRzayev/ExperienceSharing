@@ -252,6 +252,9 @@ const stopRecording = () => {
         // Əvvəlcə messaging-contacts endpoint-ini cəhd et
         try {
           console.log('Trying messaging-contacts endpoint...');
+          console.log('API URL:', `${apiBaseUrl}/Followers/messaging-contacts`);
+          console.log('Token:', Cookies.get("token"));
+          
           const messagingResponse = await axios.get(`${apiBaseUrl}/Followers/messaging-contacts`, {
             headers: { Authorization: `Bearer ${Cookies.get("token")}` }
           });
@@ -291,6 +294,8 @@ const stopRecording = () => {
           return;
         } catch (messagingError) {
           console.warn('Messaging-contacts endpoint not available, falling back to separate endpoints:', messagingError);
+          console.error('Messaging error details:', messagingError.response?.data);
+          console.error('Messaging error status:', messagingError.response?.status);
         }
         
         // Fallback: following və followers endpoint-lərini ayrı-ayrı çağır
@@ -321,8 +326,11 @@ const stopRecording = () => {
         const senders = sendersRes.data || [];
         
         console.log('Following data:', following);
+        console.log('Following length:', following.length);
         console.log('Followers data:', followers);
+        console.log('Followers length:', followers.length);
         console.log('Senders data:', senders);
+        console.log('Senders length:', senders.length);
         
         // Bütün kontakları formatla
         const formattedFollowing = following.map((user) => ({
@@ -361,6 +369,9 @@ const stopRecording = () => {
             return (order[a.relationshipType] || 4) - (order[b.relationshipType] || 4);
           });
 
+        console.log('Formatted following:', formattedFollowing);
+        console.log('Formatted followers:', formattedFollowers);
+        console.log('Formatted senders:', formattedSenders);
         console.log('Final all contacts:', allContacts);
         setUsers(allContacts);
       } catch (err) {
