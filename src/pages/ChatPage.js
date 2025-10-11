@@ -411,8 +411,15 @@ const stopRecording = () => {
       });
 
     newConnection.on("ReceiveMessage", (messageData) => {
-      console.log("Received message via SignalR:", messageData);
+      console.log("📨 Received message via SignalR:", messageData);
+      console.log("📨 Message sender ID:", messageData.senderId);
+      console.log("📨 Message receiver ID:", messageData.receiverId);
+      console.log("📨 Current user ID:", user?.id);
+      console.log("📨 Selected user ID:", selectedUser?.id);
+      
       setMessages((prev) => {
+        console.log("📨 Current messages count:", prev.length);
+        
         // Check if message already exists to avoid duplicates
         const messageExists = prev.some(msg => 
           msg.id === messageData.id || 
@@ -422,10 +429,11 @@ const stopRecording = () => {
         );
         
         if (messageExists) {
-          console.log("Message already exists, skipping duplicate");
+          console.log("📨 Message already exists, skipping duplicate");
           return prev;
         }
         
+        console.log("📨 Adding new message to chat");
         return [...prev, messageData];
       });
     });
@@ -597,6 +605,7 @@ const stopRecording = () => {
     try {
         // Bağlantı vəziyyətini yenidən yoxla
         if (connection.state === "Connected") {
+          console.log("🚀 Sending message via SignalR:", messageData);
           await connection.invoke("SendMessage", messageData);
           console.log("✅ Mesaj uğurla göndərildi:", messageData);
 
@@ -610,6 +619,7 @@ const stopRecording = () => {
         }
     } catch (error) {
         console.error("❌ Server xətası:", error?.message || error);
+        console.error("❌ Full error:", error);
         alert("Mesaj göndərilmədi. Zəhmət olmasa yenidən cəhd edin.");
     }
 }
