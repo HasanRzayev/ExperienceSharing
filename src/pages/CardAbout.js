@@ -79,12 +79,56 @@ const CardAbout = () => {
   const fetchFollowers = async () => {
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
-      const response = await axios.get(`${apiBaseUrl}/Followers/messaging-contacts`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setFollowers(response.data || []);
+      
+      // Əvvəlcə messaging-contacts endpoint-ini cəhd et
+      try {
+        const response = await axios.get(`${apiBaseUrl}/Followers/messaging-contacts`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        setFollowers(response.data || []);
+        return;
+      } catch (messagingError) {
+        console.warn('Messaging-contacts endpoint not available, falling back to following + followers:', messagingError);
+      }
+      
+      // Fallback: following və followers endpoint-lərini ayrı-ayrı çağır
+      const [followingResponse, followersResponse] = await Promise.all([
+        axios.get(`${apiBaseUrl}/Followers/following`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => ({ data: [] })),
+        axios.get(`${apiBaseUrl}/Followers/followers`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => ({ data: [] }))
+      ]);
+      
+      const following = followingResponse.data || [];
+      const followers = followersResponse.data || [];
+      
+      // Bütün kontakları birləşdir və dublikatları çıxar
+      const allContacts = [...following, ...followers]
+        .reduce((acc, contact) => {
+          const existing = acc.find(c => c.id === contact.id);
+          if (!existing) {
+            acc.push({
+              ...contact,
+              RelationshipType: following.find(f => f.id === contact.id) && followers.find(f => f.id === contact.id)
+                ? 'mutual'
+                : following.find(f => f.id === contact.id)
+                ? 'following'
+                : 'follower'
+            });
+          }
+          return acc;
+        }, [])
+        .sort((a, b) => {
+          // mutual -> following -> follower sırası
+          const order = { mutual: 0, following: 1, follower: 2 };
+          return (order[a.RelationshipType] || 3) - (order[b.RelationshipType] || 3);
+        });
+      
+      setFollowers(allContacts);
     } catch (error) {
-      console.error('Error fetching messaging contacts:', error);
+      console.error('Error fetching contacts:', error);
       setFollowers([]);
     }
   };
