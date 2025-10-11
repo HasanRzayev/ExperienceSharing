@@ -34,7 +34,7 @@ const LikeButton = ({ experienceId }) => {
 
     try {
       await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/Likes/${experienceId}`,
+        `${process.env.REACT_APP_API_BASE_URL}/Like/${experienceId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
