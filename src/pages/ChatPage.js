@@ -259,6 +259,7 @@ const stopRecording = () => {
           console.log('Messaging-contacts response:', messagingResponse.data);
           console.log('Response type:', typeof messagingResponse.data);
           console.log('Response length:', messagingResponse.data?.length);
+          console.log('First contact example:', messagingResponse.data?.[0]);
           
           if (!Array.isArray(messagingResponse.data)) {
             console.error('Response is not an array:', messagingResponse.data);
@@ -267,7 +268,12 @@ const stopRecording = () => {
           
           const formattedContacts = messagingResponse.data.map((contact) => {
             console.log('Processing contact:', contact);
-            return {
+            console.log('Contact.Id:', contact.Id);
+            console.log('Contact.Username:', contact.Username);
+            console.log('Contact.ProfileImage:', contact.ProfileImage);
+            console.log('Contact.RelationshipType:', contact.RelationshipType);
+            
+            const formatted = {
               id: contact.Id,
               username: contact.Username,
               profileImage: contact.ProfileImage,
@@ -275,6 +281,9 @@ const stopRecording = () => {
               firstName: contact.FirstName,
               lastName: contact.LastName
             };
+            
+            console.log('Formatted contact:', formatted);
+            return formatted;
           });
           
           console.log('Formatted contacts:', formattedContacts);
@@ -652,11 +661,11 @@ useEffect(() => {
         <div className="p-6 flex-1 overflow-y-auto">
           <h2 className="text-2xl font-bold mb-6 gradient-text">💬 Chats</h2>
           <div className="space-y-3">
-        {users.map((user) => {
+        {users.map((user, index) => {
           console.log('Rendering user:', user);
           return (
           <div
-            key={user.id}
+            key={user.id || `user-${index}`}
             className={`p-4 flex items-center space-x-4 cursor-pointer rounded-xl transition-smooth hover:shadow-hover ${
               selectedUser?.id === user.id 
                 ? "bg-gradient-to-r from-purple-600 to-blue-600 shadow-lg" 
