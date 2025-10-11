@@ -2,7 +2,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import swal from 'sweetalert';
 
-const API_URL = `${process.env.REACT_APP_API_BASE_URL}/Auth`;
+const API_URL = `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api'}/Auth`;
 
 const register = async (firstName, lastName, email, password, country, profileImage = null, userName) => {
   try {

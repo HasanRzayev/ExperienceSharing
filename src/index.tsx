@@ -4,6 +4,11 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 
+// Set API base URL for .NET backend
+if (!process.env.REACT_APP_API_BASE_URL) {
+  process.env.REACT_APP_API_BASE_URL = "http://localhost:5029/api";
+}
+
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,
 );

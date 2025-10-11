@@ -14,9 +14,10 @@ function Home() {
   const fetchPosts = useCallback(async (query, pageNumber) => {
     try {
       setLoading(true);
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
       const url = query 
-        ? `${process.env.REACT_APP_API_BASE_URL}/Experiences/search?query=${query}&page=${pageNumber}&pageSize=8`
-        : `${process.env.REACT_APP_API_BASE_URL}/Experiences?page=${pageNumber}&pageSize=8`;
+        ? `${apiBaseUrl}/Experiences/search?query=${query}&page=${pageNumber}&pageSize=8`
+        : `${apiBaseUrl}/Experiences?page=${pageNumber}&pageSize=8`;
       
       const response = await fetch(url);
       if (!response.ok) throw new Error("Network response was not ok");
@@ -36,6 +37,10 @@ function Home() {
     } catch (error) {
       console.error("Error fetching data:", error);
       setLoading(false);
+      // Don't show error to user, just log it
+      if (error.name !== 'AbortError') {
+        console.warn('Failed to fetch experiences, using empty array');
+      }
     }
   }, []);
 

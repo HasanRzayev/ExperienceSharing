@@ -15,6 +15,14 @@ import ChatPage from './pages/ChatPage';
 import Settings from './pages/Setting';
 import FollowersPage from './pages/Follow';
 import FollowingPage  from './pages/Following';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminExperiences from './pages/admin/AdminExperiences';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminTags from './pages/admin/AdminTags';
+import AdminComments from './pages/admin/AdminComments';
+import AdminLikes from './pages/admin/AdminLikes';
+import AdminFollows from './pages/admin/AdminFollows';
 
 // Authentication Context
 const AuthContext = createContext();
@@ -46,7 +54,8 @@ export default function App() {
     if (!token) return;
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/Auth/GetProfile`, {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const response = await fetch(`${apiBaseUrl}/Auth/GetProfile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
@@ -91,24 +100,45 @@ export default function App() {
   return (
     <AuthContext.Provider value={authValue}>
       <Router>
-        <NavbarComponent />
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about/:id" element={<CardAbout />} />
-          <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
-          <Route path="/chatpage" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ChatPage /></ProtectedRoute>} />
-          <Route path="/signup" element={isLoggedIn ? <Navigate to="/" /> : <SignUp />} />
-          <Route path="/Profil" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ProfilePage /></ProtectedRoute>} />
-          <Route path="/Notification" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Notification /></ProtectedRoute>} />
-          <Route path="/Settings" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Settings /></ProtectedRoute>} />
-          <Route path="/Follow" element={<ProtectedRoute isLoggedIn={isLoggedIn}><FollowersPage /></ProtectedRoute>} />
-          <Route path="/Following" element={<ProtectedRoute isLoggedIn={isLoggedIn}><FollowingPage /></ProtectedRoute>} />
-          <Route path="/profile/:userId" element={<UserProfilePage />} />
-
-          <Route path="/NewExperience" element={<ProtectedRoute isLoggedIn={isLoggedIn}><NewExperience /></ProtectedRoute>} />
+          {/* Admin Routes - No Navbar/Footer */}
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/admin/*" element={
+            <AdminRoute isLoggedIn={isLoggedIn} userData={userData}>
+              <Routes>
+                <Route path="/" element={<AdminDashboard />} />
+                <Route path="/experiences" element={<AdminExperiences />} />
+                <Route path="/users" element={<AdminUsers />} />
+                <Route path="/tags" element={<AdminTags />} />
+                <Route path="/comments" element={<AdminComments />} />
+                <Route path="/likes" element={<AdminLikes />} />
+                <Route path="/follows" element={<AdminFollows />} />
+              </Routes>
+            </AdminRoute>
+          } />
+          
+          {/* Regular Routes - With Navbar/Footer */}
+          <Route path="/*" element={
+            <>
+              <NavbarComponent />
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/about/:id" element={<CardAbout />} />
+                <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
+                <Route path="/chatpage" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ChatPage /></ProtectedRoute>} />
+                <Route path="/signup" element={isLoggedIn ? <Navigate to="/" /> : <SignUp />} />
+                <Route path="/Profil" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ProfilePage /></ProtectedRoute>} />
+                <Route path="/Notification" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Notification /></ProtectedRoute>} />
+                <Route path="/Settings" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Settings /></ProtectedRoute>} />
+                <Route path="/Follow" element={<ProtectedRoute isLoggedIn={isLoggedIn}><FollowersPage /></ProtectedRoute>} />
+                <Route path="/Following" element={<ProtectedRoute isLoggedIn={isLoggedIn}><FollowingPage /></ProtectedRoute>} />
+                <Route path="/profile/:userId" element={<UserProfilePage />} />
+                <Route path="/NewExperience" element={<ProtectedRoute isLoggedIn={isLoggedIn}><NewExperience /></ProtectedRoute>} />
+              </Routes>
+              <FooterComponent />
+            </>
+          } />
         </Routes>
-
-        <FooterComponent />
       </Router>
     </AuthContext.Provider>
   );
@@ -116,4 +146,16 @@ export default function App() {
 
 function ProtectedRoute({ isLoggedIn, children }) {
   return isLoggedIn ? children : <Navigate to="/login" replace />;
+}
+
+function AdminRoute({ isLoggedIn, userData, children }) {
+  if (!isLoggedIn) {
+    return <Navigate to="/admin-login" replace />;
+  }
+  
+  if (!userData || (userData.role !== 'admin' && userData.email !== 'admin@admin')) {
+    return <Navigate to="/admin-login" replace />;
+  }
+  
+  return children;
 }
