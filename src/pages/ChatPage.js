@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { HubConnectionBuilder } from "@microsoft/signalr";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -67,6 +68,7 @@ export async function uploadFile(file) {
 
 
 const ChatPage = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [messages, setMessages] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -166,6 +168,24 @@ const stopRecording = () => {
     setNewMessage((prevText) => prevText + emojiData.emoji); // ✔️
     // setShowPicker(false); // Seçildikdən sonra bağlanmasın - istifadəçi çoxlu emoji seçə bilər
   };
+
+  // Mesajlara tıklamaq funksiyası
+  const handleMessageClick = (message) => {
+    // Əgər mesaj experience share tipindədirsə və experience ID varsa
+    if (message.messageType === 'experience_share' && message.content) {
+      // Content-dən experience linkini çıxar
+      const experienceMatch = message.content.match(/\/about\/(\d+)/);
+      if (experienceMatch) {
+        const experienceId = experienceMatch[1];
+        navigate(`/about/${experienceId}`);
+      }
+    }
+    // Əgər media varsa və image/video-dursa, böyütmək üçün modal aç
+    else if (message.mediaUrl && (message.mediaType === 'image' || message.mediaType === 'video')) {
+      // Bu hissədə media modal əlavə edə bilərik
+      console.log('Media clicked:', message.mediaUrl);
+    }
+  };
   useEffect(() => {
     const newRecorder = new MicRecorder({ bitRate: 128 });
         setRecorder(newRecorder);
@@ -221,34 +241,85 @@ const stopRecording = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const followersRes = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/Followers/followers`,
-          {
-            headers: { Authorization: `Bearer ${Cookies.get("token")}` },
-          }
-        );
-
-        const sendersRes = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/Followers/senders`,
-          {
-            headers: { Authorization: `Bearer ${Cookies.get("token")}` },
-          }
-        );
+        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
         
-        const formattedSenders = sendersRes.data.map((sender) => ({
+        // Əvvəlcə messaging-contacts endpoint-ini cəhd et
+        try {
+          const messagingResponse = await axios.get(`${apiBaseUrl}/Followers/messaging-contacts`, {
+            headers: { Authorization: `Bearer ${Cookies.get("token")}` }
+          });
+          
+          const formattedContacts = messagingResponse.data.map((contact) => ({
+            id: contact.Id,
+            username: contact.Username,
+            profileImage: contact.ProfileImage,
+            relationshipType: contact.RelationshipType
+          }));
+          
+          setUsers(formattedContacts);
+          return;
+        } catch (messagingError) {
+          console.warn('Messaging-contacts endpoint not available, falling back to separate endpoints:', messagingError);
+        }
+        
+        // Fallback: following və followers endpoint-lərini ayrı-ayrı çağır
+        const [followingRes, followersRes, sendersRes] = await Promise.all([
+          axios.get(`${apiBaseUrl}/Followers/following`, {
+            headers: { Authorization: `Bearer ${Cookies.get("token")}` }
+          }).catch(() => ({ data: [] })),
+          axios.get(`${apiBaseUrl}/Followers/followers`, {
+            headers: { Authorization: `Bearer ${Cookies.get("token")}` }
+          }).catch(() => ({ data: [] })),
+          axios.get(`${apiBaseUrl}/Followers/senders`, {
+            headers: { Authorization: `Bearer ${Cookies.get("token")}` }
+          }).catch(() => ({ data: [] }))
+        ]);
+        
+        const following = followingRes.data || [];
+        const followers = followersRes.data || [];
+        const senders = sendersRes.data || [];
+        
+        // Bütün kontakları formatla
+        const formattedFollowing = following.map((user) => ({
+          id: user.Id,
+          username: user.Username,
+          profileImage: user.ProfileImage,
+          relationshipType: 'following'
+        }));
+        
+        const formattedFollowers = followers.map((user) => ({
+          id: user.Id,
+          username: user.Username,
+          profileImage: user.ProfileImage,
+          relationshipType: 'follower'
+        }));
+        
+        const formattedSenders = senders.map((sender) => ({
           id: sender.id,
           username: sender.userName,
           profileImage: sender.profileImage,
+          relationshipType: 'sender'
         }));
 
-        const mergedUsers = [...followersRes.data, ...formattedSenders];
-        const uniqueUsers = Array.from(
-          new Map(mergedUsers.map((user) => [user.id, user])).values()
-        );
+        // Bütün kontakları birləşdir və dublikatları çıxar
+        const allContacts = [...formattedFollowing, ...formattedFollowers, ...formattedSenders]
+          .reduce((acc, contact) => {
+            const existing = acc.find(c => c.id === contact.id);
+            if (!existing) {
+              acc.push(contact);
+            }
+            return acc;
+          }, [])
+          .sort((a, b) => {
+            // mutual -> following -> follower -> sender sırası
+            const order = { mutual: 0, following: 1, follower: 2, sender: 3 };
+            return (order[a.relationshipType] || 4) - (order[b.relationshipType] || 4);
+          });
 
-        setUsers(uniqueUsers);
+        setUsers(allContacts);
       } catch (err) {
         console.error("Error fetching users:", err);
+        setUsers([]);
       }
     };
 
@@ -557,7 +628,25 @@ useEffect(() => {
                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
                 </div>
                 <div className="flex-1">
-                  <span className="font-semibold text-white">{user.username}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-white">{user.username}</span>
+                    {user.relationshipType && (
+                      <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                        user.relationshipType === 'mutual' 
+                          ? 'bg-green-500 bg-opacity-80 text-white' 
+                          : user.relationshipType === 'following'
+                          ? 'bg-blue-500 bg-opacity-80 text-white'
+                          : user.relationshipType === 'follower'
+                          ? 'bg-gray-500 bg-opacity-80 text-white'
+                          : 'bg-purple-500 bg-opacity-80 text-white'
+                      }`}>
+                        {user.relationshipType === 'mutual' ? '🤝' :
+                         user.relationshipType === 'following' ? '👤' :
+                         user.relationshipType === 'follower' ? '👥' :
+                         '📨'}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-300">Online</p>
                 </div>
               </div>
@@ -645,7 +734,20 @@ useEffect(() => {
                         isMyMessage 
                           ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white ml-auto" 
                           : "bg-white bg-opacity-20 backdrop-blur-sm text-white mr-auto"
+                      } ${
+                        (msg.messageType === 'experience_share' && msg.content?.includes('/about/')) ||
+                        (msg.mediaUrl && (msg.mediaType === 'image' || msg.mediaType === 'video'))
+                          ? "cursor-pointer hover:shadow-xl hover:scale-105" 
+                          : ""
                       }`}
+                      onClick={() => handleMessageClick(msg)}
+                      title={
+                        msg.messageType === 'experience_share' && msg.content?.includes('/about/')
+                          ? "Click to view experience"
+                          : msg.mediaUrl && (msg.mediaType === 'image' || msg.mediaType === 'video')
+                          ? "Click to view media"
+                          : ""
+                      }
                     >
                       {msg.mediaUrl && msg.mediaType === "image" && (
                         <img src={msg.mediaUrl} alt="Uploaded media" className="rounded-xl max-w-full mb-2" />
