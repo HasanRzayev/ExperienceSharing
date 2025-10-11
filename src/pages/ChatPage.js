@@ -776,17 +776,15 @@ useEffect(() => {
             </div>
           ) : (
             messages.map((msg, index) => {
-              const currentUserId = user?.id || user?.userId || user?.user_id || user;
-              const isMyMessage = currentUserId && msg.senderId == currentUserId;
+              // Backend-dən gələn IsFromCurrentUser field-ini istifadə edək
+              const isMyMessage = msg.IsFromCurrentUser || false;
               console.log("Message check:", { 
                 msgSenderId: msg.senderId, 
                 currentUserId: user?.id, 
-                currentUserIdAlt: user?.userId,
-                finalCurrentUserId: currentUserId,
-                userObject: user,
                 isMyMessage,
-                profileImage: user?.profileImage,
-                profileImageUrl: user?.profileImageUrl
+                IsFromCurrentUser: msg.IsFromCurrentUser,
+                msgContent: msg.content,
+                msgSentAt: msg.sentAt
               });
               
               return (
