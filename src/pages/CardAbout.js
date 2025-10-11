@@ -5,12 +5,14 @@ import Cookies from "js-cookie";
 import LikeButton from "../components/LikeButton";
 import FollowButton from "../components/FollowButton";
 import { Carousel } from "flowbite-react";
-import { FaMapMarkerAlt, FaCalendarAlt } from "react-icons/fa";
+import { FaMapMarkerAlt, FaCalendarAlt, FaShare, FaWhatsapp, FaInstagram, FaTiktok, FaCopy, FaCheck } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 const CardAbout = () => {
   const { id } = useParams();
   const [post, setPost] = useState(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copied, setCopied] = useState(false);
   const token = Cookies.get("token");
   const navigate = useNavigate();
 
@@ -18,6 +20,55 @@ const CardAbout = () => {
     if (post.user?.id) {
       navigate(`/profile/${post.user.id}`);
     }
+  };
+
+  // Share funksionallığı
+  const getShareUrl = () => {
+    return `${window.location.origin}/about/${id}`;
+  };
+
+  const getShareText = () => {
+    return `Check out this amazing experience: "${post?.title}" by ${post?.user?.firstName} ${post?.user?.lastName}`;
+  };
+
+  const handleShare = (platform) => {
+    const url = getShareUrl();
+    const text = getShareText();
+    
+    switch (platform) {
+      case 'whatsapp':
+        window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`, '_blank');
+        break;
+      case 'instagram':
+        // Instagram Stories üçün
+        window.open(`https://www.instagram.com/`, '_blank');
+        break;
+      case 'tiktok':
+        // TikTok üçün
+        window.open(`https://www.tiktok.com/`, '_blank');
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(url).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
+        break;
+      default:
+        if (navigator.share) {
+          navigator.share({
+            title: post?.title,
+            text: text,
+            url: url
+          });
+        } else {
+          // Fallback: copy to clipboard
+          navigator.clipboard.writeText(url).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          });
+        }
+    }
+    setShowShareModal(false);
   };
   useEffect(() => {
     console.log("CardAbout.js - useEffect called");
@@ -102,10 +153,17 @@ const CardAbout = () => {
                 </div>
               </div>
 
-              {/* Like və Follow düymələri */}
+              {/* Like, Follow və Share düymələri */}
               <div className="flex items-center gap-3">
                 <LikeButton experienceId={post.id} />
                 <FollowButton userId={post.user?.id} />
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-3 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
+                  title="Share this experience"
+                >
+                  <FaShare className="text-lg" />
+                </button>
               </div>
             </div>
           </div>
@@ -220,6 +278,82 @@ const CardAbout = () => {
             </div>
           </div>
         </div>
+
+        {/* Share Modal */}
+        {showShareModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Share Experience</h3>
+                <p className="text-gray-600">Share this amazing experience with others</p>
+              </div>
+
+              {/* Share Options */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                {/* WhatsApp */}
+                <button
+                  onClick={() => handleShare('whatsapp')}
+                  className="flex flex-col items-center p-4 bg-green-500 hover:bg-green-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
+                >
+                  <FaWhatsapp className="text-3xl mb-2" />
+                  <span className="font-semibold">WhatsApp</span>
+                </button>
+
+                {/* Instagram */}
+                <button
+                  onClick={() => handleShare('instagram')}
+                  className="flex flex-col items-center p-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
+                >
+                  <FaInstagram className="text-3xl mb-2" />
+                  <span className="font-semibold">Instagram</span>
+                </button>
+
+                {/* TikTok */}
+                <button
+                  onClick={() => handleShare('tiktok')}
+                  className="flex flex-col items-center p-4 bg-black hover:bg-gray-800 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
+                >
+                  <FaTiktok className="text-3xl mb-2" />
+                  <span className="font-semibold">TikTok</span>
+                </button>
+
+                {/* Copy Link */}
+                <button
+                  onClick={() => handleShare('copy')}
+                  className="flex flex-col items-center p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
+                >
+                  {copied ? (
+                    <FaCheck className="text-3xl mb-2" />
+                  ) : (
+                    <FaCopy className="text-3xl mb-2" />
+                  )}
+                  <span className="font-semibold">
+                    {copied ? 'Copied!' : 'Copy Link'}
+                  </span>
+                </button>
+              </div>
+
+              {/* Native Share (if available) */}
+              {navigator.share && (
+                <button
+                  onClick={() => handleShare('native')}
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-4 rounded-2xl font-semibold text-lg transition-all duration-200 hover:scale-105 shadow-lg mb-4"
+                >
+                  <FaShare className="inline mr-2" />
+                  Share via Device
+                </button>
+              )}
+
+              {/* Cancel Button */}
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-2xl font-semibold transition-all duration-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
