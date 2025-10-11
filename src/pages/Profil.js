@@ -58,18 +58,23 @@ const ProfilePage = () => {
 
   // Function to fetch liked experiences
   const fetchLikedExperiences = async () => {
-    if (!token || !userData?.id) {
+    // Try to get user ID from different possible fields
+    const userId = userData?.id || userData?.userId || userData?.Id || userData?.UserId;
+    
+    if (!token || !userId) {
       console.log("❌ Cannot fetch liked experiences - missing token or userData");
       console.log("Token:", !!token);
       console.log("UserData:", userData);
+      console.log("UserId found:", userId);
+      console.log("UserData keys:", Object.keys(userData || {}));
       return;
     }
     
-    console.log("🔄 Fetching liked experiences for user:", userData.id);
+    console.log("🔄 Fetching liked experiences for user:", userId);
     setLoadingLiked(true);
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
-      const url = `${apiBaseUrl}/Likes/user/${userData.id}/liked-experiences?page=1&pageSize=50`;
+      const url = `${apiBaseUrl}/Likes/user/${userId}/liked-experiences?page=1&pageSize=50`;
       console.log("📡 API URL:", url);
       
       const response = await axios.get(url, {
@@ -92,10 +97,11 @@ const ProfilePage = () => {
 
   // Fetch liked experiences when tab changes to liked
   useEffect(() => {
-    if (activeTab === 'liked-experiences' && userData?.id) {
+    const userId = userData?.id || userData?.userId || userData?.Id || userData?.UserId;
+    if (activeTab === 'liked-experiences' && userId) {
       fetchLikedExperiences();
     }
-  }, [activeTab, userData?.id]);
+  }, [activeTab, userData]);
 
   if (!userData) {
     return <div className="text-center py-10 text-gray-600">Yükleniyor...</div>;
@@ -103,6 +109,8 @@ const ProfilePage = () => {
 
   console.log("🔍 Profile Page - userData:", userData);
   console.log("🔍 Profile Page - userData.id:", userData?.id);
+  console.log("🔍 Profile Page - userData.userId:", userData?.userId);
+  console.log("🔍 Profile Page - userData keys:", Object.keys(userData || {}));
   console.log("🔍 Profile Page - token:", !!token);
   console.log("🔍 Profile Page - activeTab:", activeTab);
 
