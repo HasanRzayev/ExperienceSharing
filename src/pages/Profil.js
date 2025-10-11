@@ -59,7 +59,13 @@ const ProfilePage = () => {
   // Function to fetch liked experiences
   const fetchLikedExperiences = async () => {
     // Try to get user ID from different possible fields
-    const userId = userData?.id || userData?.userId || userData?.Id || userData?.UserId;
+    let userId = userData?.id || userData?.userId || userData?.Id || userData?.UserId;
+    
+    // If still no userId, try to get it from userExperiences array
+    if (!userId && userData?.userExperiences && userData.userExperiences.length > 0) {
+      userId = userData.userExperiences[0]?.userId || userData.userExperiences[0]?.user?.id;
+      console.log("🔍 Found userId from userExperiences:", userId);
+    }
     
     if (!token || !userId) {
       console.log("❌ Cannot fetch liked experiences - missing token or userData");
@@ -67,6 +73,7 @@ const ProfilePage = () => {
       console.log("UserData:", userData);
       console.log("UserId found:", userId);
       console.log("UserData keys:", Object.keys(userData || {}));
+      console.log("UserExperiences:", userData?.userExperiences);
       return;
     }
     
@@ -97,7 +104,13 @@ const ProfilePage = () => {
 
   // Fetch liked experiences when tab changes to liked
   useEffect(() => {
-    const userId = userData?.id || userData?.userId || userData?.Id || userData?.UserId;
+    let userId = userData?.id || userData?.userId || userData?.Id || userData?.UserId;
+    
+    // If still no userId, try to get it from userExperiences array
+    if (!userId && userData?.userExperiences && userData.userExperiences.length > 0) {
+      userId = userData.userExperiences[0]?.userId || userData.userExperiences[0]?.user?.id;
+    }
+    
     if (activeTab === 'liked-experiences' && userId) {
       fetchLikedExperiences();
     }
