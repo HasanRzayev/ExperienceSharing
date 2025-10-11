@@ -75,16 +75,16 @@ const CardAbout = () => {
     setShowShareModal(false);
   };
 
-  // Followers fetch funksiyası
+  // Messaging contacts fetch funksiyası
   const fetchFollowers = async () => {
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
-      const response = await axios.get(`${apiBaseUrl}/Followers/following`, {
+      const response = await axios.get(`${apiBaseUrl}/Followers/messaging-contacts`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setFollowers(response.data || []);
     } catch (error) {
-      console.error('Error fetching followers:', error);
+      console.error('Error fetching messaging contacts:', error);
       setFollowers([]);
     }
   };
@@ -359,7 +359,7 @@ const CardAbout = () => {
                   className="flex flex-col items-center p-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg col-span-2"
                 >
                   <FaUsers className="text-3xl mb-2" />
-                  <span className="font-semibold">Send to My Followers</span>
+                  <span className="font-semibold">Send to Contacts</span>
                 </button>
                 {/* WhatsApp */}
                 <button
@@ -431,8 +431,8 @@ const CardAbout = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-3xl p-6 max-w-lg w-full mx-4 shadow-2xl max-h-[80vh] overflow-hidden flex flex-col">
               <div className="text-center mb-4">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Send to Followers</h3>
-                <p className="text-gray-600">Select followers to share this experience with</p>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Send to Contacts</h3>
+                <p className="text-gray-600">Select contacts to share this experience with</p>
               </div>
 
               {/* Followers List */}
@@ -462,9 +462,24 @@ const CardAbout = () => {
                           )}
                         </div>
                         <div className="ml-4 flex-1">
-                          <h4 className="font-semibold text-gray-900">
-                            {follower.firstName || follower.Username}
-                          </h4>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold text-gray-900">
+                              {follower.firstName || follower.Username}
+                            </h4>
+                            {follower.RelationshipType && (
+                              <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                                follower.RelationshipType === 'mutual' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : follower.RelationshipType === 'following'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {follower.RelationshipType === 'mutual' ? '🤝 Mutual' :
+                                 follower.RelationshipType === 'following' ? '👤 Following' :
+                                 '👥 Follower'}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-sm text-gray-600">@{follower.Username}</p>
                         </div>
                         <div className={`w-5 h-5 rounded-full border-2 ${
@@ -478,8 +493,8 @@ const CardAbout = () => {
                 ) : (
                   <div className="text-center py-8">
                     <FaUsers className="text-4xl text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">No followers found</p>
-                    <p className="text-sm text-gray-400">Start following people to share experiences!</p>
+                    <p className="text-gray-500">No contacts found</p>
+                    <p className="text-sm text-gray-400">Start following people or have people follow you to share experiences!</p>
                   </div>
                 )}
               </div>
