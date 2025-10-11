@@ -271,18 +271,18 @@ const stopRecording = () => {
           
           const formattedContacts = messagingResponse.data.map((contact) => {
             console.log('Processing contact:', contact);
-            console.log('Contact.Id:', contact.Id);
-            console.log('Contact.Username:', contact.Username);
-            console.log('Contact.ProfileImage:', contact.ProfileImage);
-            console.log('Contact.RelationshipType:', contact.RelationshipType);
+            console.log('Contact.id:', contact.id);
+            console.log('Contact.username:', contact.username);
+            console.log('Contact.profileImage:', contact.profileImage);
+            console.log('Contact.relationshipType:', contact.relationshipType);
             
             const formatted = {
-              id: contact.Id,
-              username: contact.Username,
-              profileImage: contact.ProfileImage,
-              relationshipType: contact.RelationshipType,
-              firstName: contact.FirstName,
-              lastName: contact.LastName
+              id: contact.id,
+              username: contact.username,
+              profileImage: contact.profileImage,
+              relationshipType: contact.relationshipType,
+              firstName: contact.firstName,
+              lastName: contact.lastName
             };
             
             console.log('Formatted contact:', formatted);
@@ -334,16 +334,16 @@ const stopRecording = () => {
         
         // Bütün kontakları formatla
         const formattedFollowing = following.map((user) => ({
-          id: user.Id,
-          username: user.Username,
-          profileImage: user.ProfileImage,
+          id: user.id,
+          username: user.username,
+          profileImage: user.profileImage,
           relationshipType: 'following'
         }));
         
         const formattedFollowers = followers.map((user) => ({
-          id: user.Id,
-          username: user.Username,
-          profileImage: user.ProfileImage,
+          id: user.id,
+          username: user.username,
+          profileImage: user.profileImage,
           relationshipType: 'follower'
         }));
         
