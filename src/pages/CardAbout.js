@@ -79,10 +79,10 @@ const CardAbout = () => {
   const fetchFollowers = async () => {
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
-      const response = await axios.get(`${apiBaseUrl}/Follow/following`, {
+      const response = await axios.get(`${apiBaseUrl}/Followers/following`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      setFollowers(response.data.data || []);
+      setFollowers(response.data || []);
     } catch (error) {
       console.error('Error fetching followers:', error);
       setFollowers([]);
@@ -463,9 +463,9 @@ const CardAbout = () => {
                         </div>
                         <div className="ml-4 flex-1">
                           <h4 className="font-semibold text-gray-900">
-                            {follower.firstName} {follower.lastName}
+                            {follower.firstName || follower.Username}
                           </h4>
-                          <p className="text-sm text-gray-600">@{follower.userName}</p>
+                          <p className="text-sm text-gray-600">@{follower.Username}</p>
                         </div>
                         <div className={`w-5 h-5 rounded-full border-2 ${
                           selectedFollowers.includes(follower.id)
