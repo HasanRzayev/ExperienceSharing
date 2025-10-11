@@ -81,7 +81,7 @@ const ProfilePage = () => {
     setLoadingLiked(true);
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
-      const url = `${apiBaseUrl}/Likes/user/${userId}/liked-experiences?page=1&pageSize=50`;
+      const url = `${apiBaseUrl}/Like/user/${userId}/liked-experiences?page=1&pageSize=50`;
       console.log("📡 API URL:", url);
       
       const response = await axios.get(url, {
