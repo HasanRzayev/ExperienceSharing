@@ -423,9 +423,15 @@ const stopRecording = () => {
     
     const fetchMessages = () => {
       console.log("Fetching messages for user:", selectedUser.id);
+      console.log("Selected user object:", selectedUser);
+      
+      if (!selectedUser.id) {
+        console.error("Selected user ID is undefined");
+        return;
+      }
     
       axios
-        .get(`${process.env.REACT_APP_API_BASE_URL}/messages/${selectedUser.id}`, {
+        .get(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api'}/Messages/conversation/${selectedUser.id}`, {
           headers: { Authorization: `Bearer ${Cookies.get("token")}` },
         })
         .then((res) => {
@@ -640,15 +646,15 @@ useEffect(() => {
               >
                 <div className="relative">
                   <img
-                    src={user.profileImage || "https://via.placeholder.com/40"}
-                    alt={user.username}
+                    src={user.ProfileImage || user.profileImage || "https://via.placeholder.com/40"}
+                    alt={user.Username || user.username}
                     className="w-12 h-12 rounded-full border-2 border-white border-opacity-30 shadow-lg"
                   />
                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-white">{user.username}</span>
+                    <span className="font-semibold text-white">{user.Username || user.username}</span>
                     {user.relationshipType && (
                       <span className={`px-2 py-1 text-xs rounded-full font-medium ${
                         user.relationshipType === 'mutual' 

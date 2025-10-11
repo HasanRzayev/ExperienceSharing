@@ -235,31 +235,31 @@ const CardAbout = () => {
           {/* Üst hissə: İstifadəçi məlumatları və düymələr */}
           <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              {/* İstifadəçi məlumatları */}
-              <div className="flex items-center gap-4">
+        {/* İstifadəçi məlumatları */}
+        <div className="flex items-center gap-4">
                 <div className="relative">
-                  <img
+          <img
                     className="w-16 h-16 rounded-full border-4 border-white shadow-lg object-cover"
-                    src={post.user?.profileImage || "/default-avatar.png"}
-                    alt={post.user?.firstName}
-                  />
+            src={post.user?.profileImage || "/default-avatar.png"}
+            alt={post.user?.firstName}
+          />
                   <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
                 </div>
                 <div>
-                  <p
+    <p
                     className="text-xl font-bold text-white cursor-pointer hover:text-purple-200 transition-colors"
-                    onClick={handleUserNameClick}
-                  >
-                    {post.user?.firstName && post.user?.lastName ? `${post.user.firstName} ${post.user.lastName}` : post.user?.firstName || "Unknown User"}
-                  </p>
+      onClick={handleUserNameClick}
+    >
+      {post.user?.firstName && post.user?.lastName ? `${post.user.firstName} ${post.user.lastName}` : post.user?.firstName || "Unknown User"}
+    </p>
                   <p className="text-purple-100 text-sm">@{post.user?.userName || "user"}</p>
                 </div>
-              </div>
+        </div>
 
               {/* Like, Follow və Share düymələri */}
               <div className="flex items-center gap-3">
-                <LikeButton experienceId={post.id} />
-                <FollowButton userId={post.user?.id} />
+          <LikeButton experienceId={post.id} />
+          <FollowButton userId={post.user?.id} />
                 <button
                   onClick={() => setShowShareModal(true)}
                   className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-3 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
@@ -268,22 +268,22 @@ const CardAbout = () => {
                   <FaShare className="text-lg" />
                 </button>
               </div>
-            </div>
-          </div>
+        </div>
+      </div>
 
-          {/* Şəkil Karuseli */}
+      {/* Şəkil Karuseli */}
           <div className="relative h-64 sm:h-80 xl:h-96 2xl:h-[32rem]">
             <Carousel className="rounded-none">
-              {post.imageUrls && post.imageUrls.length > 0 ? (
-                post.imageUrls.map((image, index) => (
-                  <img
-                    key={index}
+          {post.imageUrls && post.imageUrls.length > 0 ? (
+            post.imageUrls.map((image, index) => (
+              <img
+                key={index}
                     className="w-full h-full object-cover"
-                    src={image.url}
-                    alt={`Slide ${index}`}
-                  />
-                ))
-              ) : (
+                src={image.url}
+                alt={`Slide ${index}`}
+              />
+            ))
+          ) : (
                 <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                   <div className="text-center">
                     <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -292,22 +292,22 @@ const CardAbout = () => {
                     <p className="text-gray-500 text-lg">No images available</p>
                   </div>
                 </div>
-              )}
-            </Carousel>
-          </div>
+          )}
+        </Carousel>
+      </div>
 
           {/* Məzmun hissəsi */}
           <div className="p-8">
             {/* Başlıq */}
             <h1 className="text-3xl sm:text-4xl font-bold mb-6 text-center bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              {post.title}
-            </h1>
+          {post.title}
+        </h1>
 
             {/* Təsvir */}
             <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-6 rounded-2xl shadow-inner mb-8">
               <p className="text-lg text-gray-800 leading-relaxed text-center">
-                {post.description || "No description available."}
-              </p>
+          {post.description || "No description available."}
+        </p>
             </div>
 
             {/* Tarix və məkan kartları */}
@@ -321,14 +321,14 @@ const CardAbout = () => {
                   <div>
                     <h3 className="text-lg font-semibold mb-1">Experience Date</h3>
                     <p className="text-blue-100">
-                      {post.date !== "0001-01-01T00:00:00"
-                        ? new Date(post.date).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })
-                        : "Not specified"}
-                    </p>
+            {post.date !== "0001-01-01T00:00:00"
+              ? new Date(post.date).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })
+              : "Not specified"}
+          </p>
                   </div>
                 </div>
               </div>
@@ -571,7 +571,7 @@ const CardAbout = () => {
                     </>
                   )}
                 </button>
-              </div>
+        </div>
             </div>
           </div>
         )}
