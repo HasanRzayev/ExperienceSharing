@@ -8,6 +8,9 @@ const ProfilePage = () => {
   const [userData, setUserData] = useState(null);
   const [followingCount, setFollowingCount] = useState(0);
   const [followersCount, setFollowersCount] = useState(0);
+  const [activeTab, setActiveTab] = useState('my-experiences'); // New state for tab management
+  const [likedExperiences, setLikedExperiences] = useState([]);
+  const [loadingLiked, setLoadingLiked] = useState(false);
   const token = Cookies.get("token");
   const navigate = useNavigate();
 
@@ -52,6 +55,35 @@ const ProfilePage = () => {
     fetchUserData();
     fetchFollowData();
   }, [token]);
+
+  // Function to fetch liked experiences
+  const fetchLikedExperiences = async () => {
+    if (!token || !userData?.id) return;
+    
+    setLoadingLiked(true);
+    try {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const response = await axios.get(
+        `${apiBaseUrl}/Likes/user/${userData.id}/liked-experiences?page=1&pageSize=50`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setLikedExperiences(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching liked experiences:", error);
+      setLikedExperiences([]);
+    } finally {
+      setLoadingLiked(false);
+    }
+  };
+
+  // Fetch liked experiences when tab changes to liked
+  useEffect(() => {
+    if (activeTab === 'liked-experiences' && userData?.id) {
+      fetchLikedExperiences();
+    }
+  }, [activeTab, userData?.id]);
 
   if (!userData) {
     return <div className="text-center py-10 text-gray-600">Yükleniyor...</div>;
@@ -161,73 +193,173 @@ const ProfilePage = () => {
                 </div>
                 <div className="text-gray-600 font-medium">Experiences</div>
               </div>
+              <div 
+                onClick={() => setActiveTab('liked-experiences')} 
+                className="cursor-pointer text-center group"
+              >
+                <div className="text-3xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors">
+                  {likedExperiences.length}
+                </div>
+                <div className="text-gray-600 font-medium">Liked</div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Experiences Section */}
+        {/* Tab Navigation */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold text-gray-800">My Experiences</h3>
-            <button 
-              onClick={() => navigate("/NewExperience")}
-              className="btn-primary px-6 py-2"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Share New Experience
-            </button>
+            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+              <button
+                onClick={() => setActiveTab('my-experiences')}
+                className={`px-6 py-3 rounded-md font-medium transition-all duration-200 ${
+                  activeTab === 'my-experiences'
+                    ? 'bg-white text-purple-600 shadow-md'
+                    : 'text-gray-600 hover:text-purple-600 hover:bg-white/50'
+                }`}
+              >
+                <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                My Experiences
+              </button>
+              <button
+                onClick={() => setActiveTab('liked-experiences')}
+                className={`px-6 py-3 rounded-md font-medium transition-all duration-200 ${
+                  activeTab === 'liked-experiences'
+                    ? 'bg-white text-purple-600 shadow-md'
+                    : 'text-gray-600 hover:text-purple-600 hover:bg-white/50'
+                }`}
+              >
+                <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                Liked Experiences
+              </button>
+            </div>
+            
+            {activeTab === 'my-experiences' && (
+              <button 
+                onClick={() => navigate("/NewExperience")}
+                className="btn-primary px-6 py-2"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Share New Experience
+              </button>
+            )}
           </div>
 
-          {userExperiences.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {userExperiences.map((post, index) => {
-                console.log("Profil.js - Post data:", post);
-                console.log("Profil.js - Post ID:", post.id);
-                console.log("Profil.js - Post userId:", post.userId);
-                console.log("Profil.js - Post user:", post.user);
-                console.log("Profil.js - User firstName:", post.user?.firstName);
-                console.log("Profil.js - User lastName:", post.user?.lastName);
-                console.log("Profil.js - User userName:", post.user?.userName);
-                console.log("Profil.js - All post keys:", Object.keys(post));
-                
-                // Müvəqqəti həll: userId istifadə et
-                const cardId = post.id || post.userId || `temp-${index}`;
-                console.log("Profil.js - Using cardId:", cardId);
-                
-                return (
-                  <div key={`${cardId}-${index}`} className="animate-fadeInUp" style={{animationDelay: `${index * 0.1}s`}}>
-                    <CustomCard
-                      id={cardId}
-                      imageUrls={post.imageUrls?.length > 0 ? post.imageUrls[0]?.url : ""}
-                      date={post.date}
-                      title={post.title}
-                      description={post.description}
-                      location={post.location}
-                      rating={post.rating}
-                      user={userData}
-                    />
+          {/* Tab Content */}
+          {activeTab === 'my-experiences' && (
+            <>
+              {userExperiences.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {userExperiences.map((post, index) => {
+                    console.log("Profil.js - Post data:", post);
+                    console.log("Profil.js - Post ID:", post.id);
+                    console.log("Profil.js - Post userId:", post.userId);
+                    console.log("Profil.js - Post user:", post.user);
+                    console.log("Profil.js - User firstName:", post.user?.firstName);
+                    console.log("Profil.js - User lastName:", post.user?.lastName);
+                    console.log("Profil.js - User userName:", post.user?.userName);
+                    console.log("Profil.js - All post keys:", Object.keys(post));
+                    
+                    // Müvəqqəti həll: userId istifadə et
+                    const cardId = post.id || post.userId || `temp-${index}`;
+                    console.log("Profil.js - Using cardId:", cardId);
+                    
+                    return (
+                      <div key={`${cardId}-${index}`} className="animate-fadeInUp" style={{animationDelay: `${index * 0.1}s`}}>
+                        <CustomCard
+                          id={cardId}
+                          imageUrls={post.imageUrls?.length > 0 ? post.imageUrls[0]?.url : ""}
+                          date={post.date}
+                          title={post.title}
+                          description={post.description}
+                          location={post.location}
+                          rating={post.rating}
+                          user={userData}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <div className="glass p-12 rounded-3xl max-w-md mx-auto">
+                    <div className="text-6xl mb-4">📝</div>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">No experiences yet</h3>
+                    <p className="text-gray-600 mb-6">
+                      Start sharing your amazing adventures with the world!
+                    </p>
+                    <button 
+                      onClick={() => navigate("/NewExperience")}
+                      className="btn-primary"
+                    >
+                      Share Your First Experience
+                    </button>
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-20">
-              <div className="glass p-12 rounded-3xl max-w-md mx-auto">
-                <div className="text-6xl mb-4">📝</div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">No experiences yet</h3>
-                <p className="text-gray-600 mb-6">
-                  Start sharing your amazing adventures with the world!
-                </p>
-                <button 
-                  onClick={() => navigate("/NewExperience")}
-                  className="btn-primary"
-                >
-                  Share Your First Experience
-                </button>
-              </div>
-            </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {activeTab === 'liked-experiences' && (
+            <>
+              {loadingLiked ? (
+                <div className="text-center py-20">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                  <p className="mt-4 text-gray-600">Loading your liked experiences...</p>
+                </div>
+              ) : likedExperiences.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {likedExperiences.map((experience, index) => {
+                    const cardId = experience.id || `liked-${index}`;
+                    
+                    return (
+                      <div key={`${cardId}-${index}`} className="animate-fadeInUp" style={{animationDelay: `${index * 0.1}s`}}>
+                        <CustomCard
+                          id={cardId}
+                          imageUrls={experience.images?.length > 0 ? experience.images[0]?.imageUrl : ""}
+                          date={experience.date}
+                          title={experience.title}
+                          description={experience.description}
+                          location={experience.location}
+                          rating={experience.rating}
+                          user={{
+                            id: experience.user?.id,
+                            firstName: experience.user?.firstName,
+                            lastName: experience.user?.lastName,
+                            userName: experience.user?.userName,
+                            profileImage: experience.user?.profileImage
+                          }}
+                          likesCount={experience.likesCount}
+                          commentsCount={experience.commentsCount}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <div className="glass p-12 rounded-3xl max-w-md mx-auto">
+                    <div className="text-6xl mb-4">💖</div>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">No liked experiences yet</h3>
+                    <p className="text-gray-600 mb-6">
+                      Start exploring and liking amazing experiences from other users!
+                    </p>
+                    <button 
+                      onClick={() => navigate("/")}
+                      className="btn-primary"
+                    >
+                      Explore Experiences
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
