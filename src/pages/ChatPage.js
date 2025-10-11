@@ -482,8 +482,18 @@ const stopRecording = () => {
         })
         .then((res) => {
           console.log("Messages fetched successfully:", res.data);
+          console.log("Current user object:", user);
           console.log("Current user ID:", user?.id);
+          console.log("Current user ID alt:", user?.userId);
           console.log("Selected user ID:", selectedUser.id);
+          
+          // Log each message's IsFromCurrentUser value
+          if (res.data && res.data.length > 0) {
+            res.data.forEach((msg, index) => {
+              console.log(`Message ${index}: IsFromCurrentUser=${msg.IsFromCurrentUser}, senderId=${msg.senderId}`);
+            });
+          }
+          
           setMessages(res.data);
         })
         .catch((err) => {
