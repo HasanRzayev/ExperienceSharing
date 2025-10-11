@@ -14,7 +14,7 @@ const LikeButton = ({ experienceId }) => {
 
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/Likes/${experienceId}/status`,
+          `${process.env.REACT_APP_API_BASE_URL}/Like/${experienceId}/status`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setLiked(response.data.isLiked);
