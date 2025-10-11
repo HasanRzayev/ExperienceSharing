@@ -58,20 +58,32 @@ const ProfilePage = () => {
 
   // Function to fetch liked experiences
   const fetchLikedExperiences = async () => {
-    if (!token || !userData?.id) return;
+    if (!token || !userData?.id) {
+      console.log("❌ Cannot fetch liked experiences - missing token or userData");
+      console.log("Token:", !!token);
+      console.log("UserData:", userData);
+      return;
+    }
     
+    console.log("🔄 Fetching liked experiences for user:", userData.id);
     setLoadingLiked(true);
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
-      const response = await axios.get(
-        `${apiBaseUrl}/Likes/user/${userData.id}/liked-experiences?page=1&pageSize=50`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const url = `${apiBaseUrl}/Likes/user/${userData.id}/liked-experiences?page=1&pageSize=50`;
+      console.log("📡 API URL:", url);
+      
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      console.log("✅ Liked experiences response:", response.data);
+      console.log("📊 Data:", response.data.data);
+      console.log("📈 Total count:", response.data.totalCount);
+      
       setLikedExperiences(response.data.data || []);
     } catch (error) {
-      console.error("Error fetching liked experiences:", error);
+      console.error("❌ Error fetching liked experiences:", error);
+      console.error("❌ Error response:", error.response?.data);
       setLikedExperiences([]);
     } finally {
       setLoadingLiked(false);
