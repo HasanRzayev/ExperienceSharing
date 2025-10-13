@@ -5,7 +5,7 @@ import Cookies from "js-cookie";
 import LikeButton from "../components/LikeButton";
 import FollowButton from "../components/FollowButton";
 import { Carousel } from "flowbite-react";
-import { FaMapMarkerAlt, FaCalendarAlt, FaShare, FaWhatsapp, FaInstagram, FaTiktok, FaCopy, FaCheck, FaUsers, FaPaperPlane } from "react-icons/fa";
+import { FaMapMarkerAlt, FaCalendarAlt, FaShare, FaWhatsapp, FaInstagram, FaTiktok, FaCopy, FaCheck, FaUsers, FaPaperPlane, FaComment, FaHeart } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 const CardAbout = () => {
@@ -17,12 +17,77 @@ const CardAbout = () => {
   const [selectedFollowers, setSelectedFollowers] = useState([]);
   const [copied, setCopied] = useState(false);
   const [sending, setSending] = useState(false);
+  // Comments state
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [submittingComment, setSubmittingComment] = useState(false);
   const token = Cookies.get("token");
   const navigate = useNavigate();
 
   const handleUserNameClick = () => {
     if (post.user?.id) {
       navigate(`/profile/${post.user.id}`);
+    }
+  };
+
+  // Comments functions
+  const fetchComments = async () => {
+    if (!id) return;
+    
+    setLoadingComments(true);
+    try {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const response = await fetch(`${apiBaseUrl}/comments/experience/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setComments(data || []);
+      } else {
+        setComments([]);
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      setComments([]);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const handleSubmitComment = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim() || !token) return;
+
+    setSubmittingComment(true);
+    try {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const response = await fetch(`${apiBaseUrl}/comments`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: newComment.trim(),
+          experienceId: parseInt(id)
+        })
+      });
+
+      if (response.ok) {
+        setNewComment('');
+        fetchComments(); // Refresh comments
+      } else {
+        console.error('Failed to submit comment');
+      }
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+    } finally {
+      setSubmittingComment(false);
     }
   };
 
@@ -210,6 +275,7 @@ const CardAbout = () => {
     };
     if (id) {
       fetchPost();
+      fetchComments(); // Load comments when experience loads
     } else {
       console.error("CardAbout.js - No ID provided");
     }
@@ -575,6 +641,124 @@ const CardAbout = () => {
             </div>
           </div>
         )}
+
+        {/* Comments Section */}
+        <div className="mt-16 bg-white rounded-3xl shadow-lg p-8">
+          <div className="flex items-center gap-3 mb-8">
+            <FaComment className="text-2xl text-purple-600" />
+            <h2 className="text-2xl font-bold text-gray-800">Comments</h2>
+            <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+              {comments.length}
+            </span>
+          </div>
+
+          {/* Add Comment Form */}
+          {token ? (
+            <form onSubmit={handleSubmitComment} className="mb-8">
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Share your thoughts about this experience..."
+                    className="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                    rows={3}
+                    maxLength={500}
+                  />
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-sm text-gray-500">
+                      {newComment.length}/500 characters
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={!newComment.trim() || submittingComment}
+                  className="self-start px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {submittingComment ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Posting...
+                    </>
+                  ) : (
+                    <>
+                      <FaPaperPlane />
+                      Post Comment
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="mb-8 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200">
+              <div className="flex items-center gap-3">
+                <FaHeart className="text-purple-600" />
+                <p className="text-gray-700">
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="text-purple-600 hover:text-purple-700 font-medium underline"
+                  >
+                    Sign in
+                  </button>
+                  {' '}to share your thoughts about this experience
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Comments List */}
+          <div className="space-y-6">
+            {loadingComments ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                <span className="ml-3 text-gray-600">Loading comments...</span>
+              </div>
+            ) : comments.length > 0 ? (
+              comments.map((comment) => (
+                <div key={comment.id} className="bg-gray-50 rounded-2xl p-6 hover:bg-gray-100 transition-colors">
+                  <div className="flex items-start gap-4">
+                    <img
+                      src={comment.user?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"}
+                      alt={comment.user?.userName || "User"}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-semibold text-gray-800">
+                          {comment.user?.firstName && comment.user?.lastName 
+                            ? `${comment.user.firstName} ${comment.user.lastName}`
+                            : comment.user?.userName || 'Anonymous User'
+                          }
+                        </h4>
+                        <span className="text-sm text-gray-500">
+                          {comment.createdAt && new Date(comment.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-gray-700 leading-relaxed">
+                        {comment.content}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <FaComment className="text-4xl text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">No comments yet</h3>
+                <p className="text-gray-500">
+                  Be the first to share your thoughts about this experience!
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
