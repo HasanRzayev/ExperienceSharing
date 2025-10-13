@@ -2,7 +2,9 @@
   "name": "wanderly",
   "version": "0.1.0",
   "private": true,
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "scripts": {
     "start": "react-scripts start",
     "build": "set \"GENERATE_SOURCEMAP=false\" && react-scripts build",
@@ -37,7 +39,7 @@
     "axios": "^1.8.2",
     "cors": "^2.8.5",
     "emoji-mart": "^5.6.0",
-    "emoji-picker-react": "^4.12.2",
+    "emoji-picker-react": "^4.14.0",
     "express": "^5.1.0",
     "flowbite-react": "^0.8.0",
     "gif-picker-react": "^1.4.0",

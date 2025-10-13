@@ -5,8 +5,9 @@ import Cookies from "js-cookie";
 import LikeButton from "../components/LikeButton";
 import FollowButton from "../components/FollowButton";
 import { Carousel } from "flowbite-react";
-import { FaMapMarkerAlt, FaCalendarAlt, FaShare, FaWhatsapp, FaInstagram, FaTiktok, FaCopy, FaCheck, FaUsers, FaPaperPlane, FaComment, FaHeart } from "react-icons/fa";
+import { FaMapMarkerAlt, FaCalendarAlt, FaShare, FaWhatsapp, FaInstagram, FaTiktok, FaCopy, FaCheck, FaUsers, FaPaperPlane, FaComment, FaHeart, FaSmile, FaReply, FaThumbsUp, FaThumbsDown } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import EmojiPicker from 'emoji-picker-react';
 
 const CardAbout = () => {
   const { id } = useParams();
@@ -22,6 +23,9 @@ const CardAbout = () => {
   const [newComment, setNewComment] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
   const token = Cookies.get("token");
   const navigate = useNavigate();
 
@@ -79,6 +83,7 @@ const CardAbout = () => {
 
       if (response.ok) {
         setNewComment('');
+        setShowEmojiPicker(false);
         fetchComments(); // Refresh comments
       } else {
         console.error('Failed to submit comment');
@@ -88,6 +93,57 @@ const CardAbout = () => {
     } finally {
       setSubmittingComment(false);
     }
+  };
+
+  const handleReply = async (commentId) => {
+    if (!replyText.trim() || !token) return;
+
+    try {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const response = await fetch(`${apiBaseUrl}/Experiences/${id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: replyText.trim(),
+          parentCommentId: commentId
+        })
+      });
+
+      if (response.ok) {
+        setReplyText('');
+        setReplyingTo(null);
+        fetchComments();
+      }
+    } catch (error) {
+      console.error('Error submitting reply:', error);
+    }
+  };
+
+  const handleReaction = async (commentId, isLike) => {
+    if (!token) return;
+
+    try {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      await fetch(`${apiBaseUrl}/Experiences/comments/${commentId}/react`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ isLike })
+      });
+
+      fetchComments();
+    } catch (error) {
+      console.error('Error reacting to comment:', error);
+    }
+  };
+
+  const onEmojiClick = (emojiObject) => {
+    setNewComment(prev => prev + emojiObject.emoji);
   };
 
   // Share funksionallığı
@@ -655,7 +711,7 @@ const CardAbout = () => {
           {token ? (
             <form onSubmit={handleSubmitComment} className="mb-8">
               <div className="flex gap-4">
-                <div className="flex-1">
+                <div className="flex-1 relative">
                   <textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
@@ -665,10 +721,24 @@ const CardAbout = () => {
                     maxLength={500}
                   />
                   <div className="flex justify-between items-center mt-2">
-                    <span className="text-sm text-gray-500">
-                      {newComment.length}/500 characters
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                      >
+                        <FaSmile className="text-xl" />
+                      </button>
+                      <span className="text-sm text-gray-500">
+                        {newComment.length}/500
+                      </span>
+                    </div>
                   </div>
+                  {showEmojiPicker && (
+                    <div className="absolute bottom-full mb-2 z-10">
+                      <EmojiPicker onEmojiClick={onEmojiClick} />
+                    </div>
+                  )}
                 </div>
                 <button
                   type="submit"
@@ -683,7 +753,7 @@ const CardAbout = () => {
                   ) : (
                     <>
                       <FaPaperPlane />
-                      Post Comment
+                      Post
                     </>
                   )}
                 </button>
@@ -725,24 +795,105 @@ const CardAbout = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h4 className="font-semibold text-gray-800">
-                          {comment.user?.firstName && comment.user?.lastName 
-                            ? `${comment.user.firstName} ${comment.user.lastName}`
-                            : comment.user?.userName || 'Anonymous User'
-                          }
+                          {comment.user?.userName || 'Anonymous'}
                         </h4>
                         <span className="text-sm text-gray-500">
                           {comment.createdAt && new Date(comment.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
                             month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
+                            day: 'numeric'
                           })}
                         </span>
                       </div>
-                      <p className="text-gray-700 leading-relaxed">
+                      <p className="text-gray-700 leading-relaxed mb-3">
                         {comment.content}
                       </p>
+                      
+                      {/* Reaction and Reply Buttons */}
+                      {token && (
+                        <div className="flex items-center gap-4 text-sm">
+                          <button
+                            onClick={() => handleReaction(comment.id, true)}
+                            className="flex items-center gap-1 text-gray-600 hover:text-purple-600 transition-colors"
+                          >
+                            <FaThumbsUp />
+                            <span>{comment.likes || 0}</span>
+                          </button>
+                          <button
+                            onClick={() => handleReaction(comment.id, false)}
+                            className="flex items-center gap-1 text-gray-600 hover:text-red-600 transition-colors"
+                          >
+                            <FaThumbsDown />
+                            <span>{comment.dislikes || 0}</span>
+                          </button>
+                          <button
+                            onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                            className="flex items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors"
+                          >
+                            <FaReply />
+                            Reply
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Reply Form */}
+                      {replyingTo === comment.id && token && (
+                        <div className="mt-4 flex gap-2">
+                          <input
+                            type="text"
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            placeholder="Write a reply..."
+                            className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                          <button
+                            onClick={() => handleReply(comment.id)}
+                            disabled={!replyText.trim()}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            Send
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Replies */}
+                      {comment.replies && comment.replies.length > 0 && (
+                        <div className="mt-4 pl-6 border-l-2 border-purple-200 space-y-3">
+                          {comment.replies.map((reply) => (
+                            <div key={reply.id} className="bg-white rounded-xl p-4">
+                              <div className="flex items-center gap-2 mb-2">
+                                <img
+                                  src={reply.user?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"}
+                                  alt={reply.user?.userName}
+                                  className="w-6 h-6 rounded-full object-cover"
+                                />
+                                <span className="font-semibold text-sm">{reply.user?.userName}</span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(reply.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </span>
+                              </div>
+                              <p className="text-gray-700 text-sm">{reply.content}</p>
+                              {token && (
+                                <div className="flex items-center gap-3 mt-2 text-xs">
+                                  <button
+                                    onClick={() => handleReaction(reply.id, true)}
+                                    className="flex items-center gap-1 text-gray-600 hover:text-purple-600"
+                                  >
+                                    <FaThumbsUp />
+                                    <span>{reply.likes || 0}</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleReaction(reply.id, false)}
+                                    className="flex items-center gap-1 text-gray-600 hover:text-red-600"
+                                  >
+                                    <FaThumbsDown />
+                                    <span>{reply.dislikes || 0}</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
