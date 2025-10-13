@@ -34,11 +34,11 @@ const CardAbout = () => {
   // Comments functions
   const fetchComments = async () => {
     if (!id) return;
-    
+
     setLoadingComments(true);
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
-      const response = await fetch(`${apiBaseUrl}/comments/experience/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/Experiences/${id}/comments`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -66,15 +66,14 @@ const CardAbout = () => {
     setSubmittingComment(true);
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
-      const response = await fetch(`${apiBaseUrl}/comments`, {
+      const response = await fetch(`${apiBaseUrl}/Experiences/${id}/comments`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          content: newComment.trim(),
-          experienceId: parseInt(id)
+          content: newComment.trim()
         })
       });
 
