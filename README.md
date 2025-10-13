@@ -1,4 +1,14 @@
-# Getting Started with Create React App
+# 🌍 Wanderly
+
+**Share your adventures, explore new places, and connect with fellow travelers around the world.**
+
+Wanderly is a modern social platform for travelers and adventure seekers to share their experiences, discover new destinations, and connect with like-minded explorers.
+
+![React](https://img.shields.io/badge/React-18.2.0-blue)
+![Performance](https://img.shields.io/badge/Lighthouse-70+-green)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
+---
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 

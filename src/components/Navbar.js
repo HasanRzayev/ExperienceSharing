@@ -85,12 +85,12 @@ const NavbarComponent = () => {
             <img
               src="https://altcoinsbox.com/wp-content/uploads/2023/04/link-logo.png"
                   className="h-8 w-8 sm:h-10 sm:w-10 transition-smooth group-hover:scale-110"
-              alt="ExperienceShare Logo"
+              alt="Wanderly Logo"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
           </div>
               <span className="text-xl sm:text-2xl font-bold gradient-text">
-            ExperienceShare
+            Wanderly
           </span>
         </div>
           </div>

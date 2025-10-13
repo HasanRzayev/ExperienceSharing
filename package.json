@@ -1,5 +1,5 @@
 {
-  "name": "flowbite-react-template-cra",
+  "name": "wanderly",
   "version": "0.1.0",
   "private": true,
   "sideEffects": ["*.css"],
