@@ -4,19 +4,14 @@
   "description": "Share your adventures, explore new places, and connect with fellow travelers",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "https://res.cloudinary.com/dgwscraqf/image/upload/v1760353071/Gemini_Generated_Image_33kp1f33kp1f33kp_t9qw8a.png",
+      "sizes": "192x192",
+      "type": "image/png"
     },
     {
-      "src": "logo192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "logo512.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "src": "https://res.cloudinary.com/dgwscraqf/image/upload/v1760353071/Gemini_Generated_Image_33kp1f33kp1f33kp_t9qw8a.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ],
   "start_url": ".",
