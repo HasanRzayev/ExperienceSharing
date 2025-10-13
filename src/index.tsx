@@ -39,5 +39,5 @@ reportWebVitals((metric) => {
   }
 });
 
-// Register service worker for caching and offline support
-serviceWorkerRegistration.register();
+// Service worker disabled for now to reduce bundle size
+// serviceWorkerRegistration.register();

@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
-import Swal from "sweetalert2";
 import "../CSS/FollowButton.css";
+
+// Helper to dynamically import Swal
+const getSwal = async () => {
+  const { default: Swal } = await import('sweetalert2');
+  return Swal;
+};
 
 const FollowButton = ({ userId }) => {
   const [status, setStatus] = useState(""); // 'follow', 'requested', 'following'
@@ -27,6 +32,8 @@ const FollowButton = ({ userId }) => {
   }, [token, userId]);
 
   const handleFollowClick = async () => {
+    const Swal = await getSwal();
+    
     if (!token) {
       Swal.fire("Log in", "You must log in to perform this action.", "warning");
       window.location.href = "/login";
@@ -63,15 +70,14 @@ const FollowButton = ({ userId }) => {
         });
 
         if (result.isConfirmed) {
-          console.log("Sent FollowedId:", userId);
           await axios.post(
             `${process.env.REACT_APP_API_BASE_URL}/Followers/cancel-follow-request`,
             {
-              followedId: userId, // Sending only the followed user's ID
+              followedId: userId,
             },
             {
               headers: {
-                Authorization: `Bearer ${token}`, // Sending token in headers
+                Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
               },
             }

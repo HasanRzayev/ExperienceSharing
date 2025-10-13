@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import Swal from 'sweetalert2';
 import '../CSS/LikeButton.css';
 
 const LikeButton = ({ experienceId }) => {
@@ -39,6 +38,9 @@ const LikeButton = ({ experienceId }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setLiked(!liked);
+      
+      // Dynamic import of Swal to reduce initial bundle size
+      const { default: Swal } = await import('sweetalert2');
       Swal.fire(
         liked ? 'Unliked!' : 'Liked!',
         liked ? 'You have successfully unliked this experience.' : 'You have successfully liked this experience.',

@@ -2,6 +2,7 @@
   "name": "flowbite-react-template-cra",
   "version": "0.1.0",
   "private": true,
+  "sideEffects": ["*.css"],
   "scripts": {
     "start": "react-scripts start",
     "build": "set \"GENERATE_SOURCEMAP=false\" && react-scripts build",
