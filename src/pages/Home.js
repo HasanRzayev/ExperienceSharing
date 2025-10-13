@@ -1,6 +1,4 @@
-import NavbarComponent from "../components/Navbar"; 
-import FooterComponent from "../components/Footer";
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import CustomCard from "./Card";
 
 function Home() {
@@ -10,11 +8,16 @@ function Home() {
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const loadingRef = useRef(null);
+  
+  // Memoize API base URL
+  const apiBaseUrl = useMemo(() => 
+    process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api',
+    []
+  );
 
   const fetchPosts = useCallback(async (query, pageNumber) => {
     try {
       setLoading(true);
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
       const url = query 
         ? `${apiBaseUrl}/Experiences/search?query=${query}&page=${pageNumber}&pageSize=8`
         : `${apiBaseUrl}/Experiences?page=${pageNumber}&pageSize=8`;
@@ -23,8 +26,6 @@ function Home() {
       if (!response.ok) throw new Error("Network response was not ok");
       
       const data = await response.json();
-      console.log("Home.js - Fetched posts data:", data);
-      console.log("Home.js - First post user data:", data[0]?.user);
       
       if (pageNumber === 1) {
         setPosts(data);
@@ -42,7 +43,7 @@ function Home() {
         console.warn('Failed to fetch experiences, using empty array');
       }
     }
-  }, []);
+  }, [apiBaseUrl]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -168,4 +169,5 @@ function Home() {
   );
 }
 
-export default Home;
+// Memoize component to prevent unnecessary re-renders
+export default React.memo(Home);

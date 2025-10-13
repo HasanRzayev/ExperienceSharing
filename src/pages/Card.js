@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LikeButton from '../components/LikeButton';
 import Cookies from 'js-cookie';
@@ -12,7 +12,6 @@ const getUserIdFromToken = () => {
     
     // JWT token-ı decode etmək
     const payload = JSON.parse(atob(token.split('.')[1]));
-    console.log("Card.js - JWT payload:", payload);
     
     // User ID-ni tapmaq üçün müxtəlif sahələri yoxla
     const userId = payload.userId || 
@@ -20,10 +19,8 @@ const getUserIdFromToken = () => {
                    payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
                    payload.sub;
     
-    console.log("Card.js - Extracted user ID:", userId);
     return userId;
   } catch (error) {
-    console.error("Card.js - Error decoding JWT:", error);
     return null;
   }
 };
@@ -32,48 +29,24 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const { userData: currentUserData } = useAuth();
-  
-  console.log("Card.js - Received user data:", user);
-  console.log("Card.js - User firstName:", user?.firstName);
-  console.log("Card.js - User lastName:", user?.lastName);
-  console.log("Card.js - User userName:", user?.userName);
-  console.log("Card.js - User ID:", user?.id);
-  console.log("Card.js - Current user data:", currentUserData);
-  console.log("Card.js - Current user data keys:", currentUserData ? Object.keys(currentUserData) : 'No current user data');
-  console.log("Card.js - Current user data full object:", currentUserData);
-  console.log("Card.js - Current user ID:", currentUserData?.id);
-  console.log("Card.js - Current user userId:", currentUserData?.userId);
 
   const handleAboutClick = () => {
-    console.log("Card.js - handleAboutClick called");
-    console.log("Card.js - Card ID:", id);
-    console.log("Card.js - Card ID type:", typeof id);
-    console.log("Card.js - Card ID is valid?", !!id);
-    
     if (!id) {
-      console.error("Card ID is missing or undefined!");
       return;
     }
     
-    console.log("Card.js - Navigating to:", `/about/${id}`);
     navigate(`/about/${id}`);
   };
 
   const handleUserNameClick = () => {
-    console.log("Card.js - handleUserNameClick called");
-    console.log("Card.js - Card user:", user);
-    console.log("Card.js - Current user:", currentUserData);
-    
     // Əgər current user data yoxdursa, login-ə yönləndir
     if (!currentUserData) {
-      console.log("Card.js - No current user data, redirecting to login");
       navigate("/login");
       return;
     }
     
     // Əgər user data yoxdursa, UserProfilePage-ə yönləndir
     if (!user || !user.id) {
-      console.log("Card.js - No user data, redirecting to UserProfilePage");
       navigate(`/profile/${user?.id}`);
       return;
     }
@@ -82,18 +55,10 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
     const currentUserId = currentUserData.id || currentUserData.userId || getUserIdFromToken();
     const cardUserId = user.id;
     
-    console.log("Card.js - Current user ID:", currentUserId);
-    console.log("Card.js - Current user ID (from id):", currentUserData.id);
-    console.log("Card.js - Current user ID (from userId):", currentUserData.userId);
-    console.log("Card.js - Current user ID (from JWT):", getUserIdFromToken());
-    console.log("Card.js - Card user ID:", cardUserId);
-    
     // Əgər user özünün card-ına tıklayırsa, Profil.js aç
     if (currentUserId && cardUserId && currentUserId.toString() === cardUserId.toString()) {
-      console.log("Card.js - User clicked on their own card, navigating to Profil");
       navigate("/Profil");
     } else {
-      console.log("Card.js - User clicked on someone else's card, navigating to UserProfilePage");
       navigate(`/profile/${cardUserId}`);
     }
   };
@@ -109,7 +74,9 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
         <img 
           className={`w-full h-full object-cover transition-all duration-700 ${isHovered ? 'scale-110 opacity-80' : 'opacity-100'}`} 
           src={imageUrls || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"} 
-          alt={title} 
+          alt={title}
+          loading="lazy"
+          decoding="async"
         />
         
         {/* Gradient Overlay */}
@@ -161,6 +128,8 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
               src={user?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"}
               alt={user?.userName || "User"}
               className="w-8 h-8 rounded-full object-cover border-2 border-white shadow-md"
+              loading="lazy"
+              decoding="async"
             />
             <div>
               <p className="text-sm font-medium text-gray-800 cursor-pointer hover:text-purple-600 transition-colors" onClick={handleUserNameClick}>
@@ -191,4 +160,5 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
   );
 };
 
-export default CustomCard;
+// Use React.memo to prevent unnecessary re-renders
+export default memo(CustomCard);
