@@ -81,10 +81,11 @@ const NavbarComponent = () => {
           {/* Logo */}
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center space-x-3 group cursor-pointer" onClick={() => navigate("/")}>
-          <div className="relative">
+          <div className="relative h-12 w-12 sm:h-14 sm:w-14 overflow-hidden rounded-lg">
             <img
               src="https://res.cloudinary.com/dgwscraqf/image/upload/v1760353071/Gemini_Generated_Image_33kp1f33kp1f33kp_t9qw8a.png"
-              className="h-8 w-8 sm:h-10 sm:w-10 transition-smooth group-hover:scale-110 rounded-lg"
+              className="h-full w-full object-cover transition-smooth group-hover:scale-110"
+              style={{ objectPosition: 'center', transform: 'scale(2)' }}
               alt="Wanderly Logo"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
