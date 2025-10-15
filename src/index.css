@@ -206,6 +206,26 @@ body {
   }
 }
 
+.dark body {
+  background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+  color: #e2e8f0;
+}
+
+.dark .card-modern {
+  background: rgba(45, 55, 72, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .input-modern {
+  background: rgba(45, 55, 72, 0.9);
+  color: #e2e8f0;
+}
+
+.dark .glass {
+  background: rgba(45, 55, 72, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 /* Additional Utility Classes */
 .line-clamp-1 {
   overflow: hidden;

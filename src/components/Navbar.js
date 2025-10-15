@@ -101,19 +101,19 @@ const NavbarComponent = () => {
             <div className="ml-10 flex items-baseline space-x-8">
               <button
                 onClick={() => navigate("/")}
-                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Home
               </button>
               <button
                 onClick={() => navigate("/NewExperience")}
-                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Share Experience
               </button>
               <button
                 onClick={() => navigate("/ChatPage")}
-                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Chat
               </button>

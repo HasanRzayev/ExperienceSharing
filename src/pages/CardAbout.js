@@ -506,10 +506,10 @@ const CardAbout = () => {
         {/* Share Modal */}
         {showShareModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Share Experience</h3>
-                <p className="text-gray-600">Share this amazing experience with others</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Share Experience</h3>
+                <p className="text-gray-600 dark:text-gray-300">Share this amazing experience with others</p>
               </div>
 
               {/* Share Options */}
@@ -583,7 +583,7 @@ const CardAbout = () => {
               {/* Cancel Button */}
               <button
                 onClick={() => setShowShareModal(false)}
-                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-2xl font-semibold transition-all duration-200"
+                className="w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white py-3 rounded-2xl font-semibold transition-all duration-200"
               >
                 Cancel
               </button>
@@ -594,10 +594,10 @@ const CardAbout = () => {
         {/* Followers Modal */}
         {showFollowersModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl p-6 max-w-lg w-full mx-4 shadow-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-lg w-full mx-4 shadow-2xl max-h-[80vh] overflow-hidden flex flex-col">
               <div className="text-center mb-4">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Send to Contacts</h3>
-                <p className="text-gray-600">Select contacts to share this experience with</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Send to Contacts</h3>
+                <p className="text-gray-600 dark:text-gray-300">Select contacts to share this experience with</p>
               </div>
 
               {/* Followers List */}
@@ -671,14 +671,14 @@ const CardAbout = () => {
                     setShowFollowersModal(false);
                     setSelectedFollowers([]);
                   }}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-2xl font-semibold transition-all duration-200"
+                  className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white py-3 rounded-2xl font-semibold transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={sendToFollowers}
                   disabled={selectedFollowers.length === 0 || sending}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-400 text-white py-3 rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center"
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center"
                 >
                   {sending ? (
                     <>
@@ -716,7 +716,7 @@ const CardAbout = () => {
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Share your thoughts about this experience..."
-                    className="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                    className="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-600"
                     rows={3}
                     maxLength={500}
                   />

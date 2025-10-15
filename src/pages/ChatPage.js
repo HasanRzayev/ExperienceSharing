@@ -467,49 +467,29 @@ const stopRecording = () => {
   useEffect(() => {
     if (!selectedUser) return;
     
-    const fetchMessages = () => {
+    const fetchMessages = async () => {
       console.log("Fetching messages for user:", selectedUser.id);
-      console.log("Selected user object:", selectedUser);
       
       if (!selectedUser.id) {
         console.error("Selected user ID is undefined");
         return;
       }
     
-      axios
-        .get(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api'}/Messages/conversation/${selectedUser.id}`, {
-          headers: { Authorization: `Bearer ${Cookies.get("token")}` },
-        })
-        .then((res) => {
-          console.log("Messages fetched successfully:", res.data);
-          console.log("Current user object:", user);
-          console.log("Current user ID:", user?.id);
-          console.log("Current user ID alt:", user?.userId);
-          console.log("Selected user ID:", selectedUser.id);
-          
-          // Log each message's IsFromCurrentUser value
-          if (res.data && res.data.length > 0) {
-            res.data.forEach((msg, index) => {
-              console.log(`Message ${index}: IsFromCurrentUser=${msg.IsFromCurrentUser}, senderId=${msg.senderId}`);
-            });
-          }
-          
-          setMessages(res.data);
-        })
-        .catch((err) => {
-          console.error("Error fetching messages:", err);
-          if (err.response) {
-            console.error("Server responded with:", err.response.status, err.response.data);
-            console.error("Full error response:", JSON.stringify(err.response.data, null, 2));
-          } else if (err.request) {
-            console.error("No response received:", err.request);
-          } else {
-            console.error("Request setup error:", err.message);
-          }
-        });
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api'}/Messages/conversation/${selectedUser.id}`, 
+          { headers: { Authorization: `Bearer ${Cookies.get("token")}` } }
+        );
+        
+        setMessages(response.data || []);
+        setIsInitialLoad(true); // Reset initial load for new conversation
+      } catch (err) {
+        console.error("Error fetching messages:", err);
+        setMessages([]);
+      }
     };
     
-    // Only fetch messages once when user is selected, not on interval
+    // Fetch messages when user is selected
     fetchMessages();
   }, [selectedUser]);
 
@@ -675,13 +655,19 @@ const [previousMessageCount, setPreviousMessageCount] = useState(0);
 // Auto scroll when messages change
 useEffect(() => {
   if (isInitialLoad && messages.length > 0) {
-    // First load: scroll to bottom instantly without smooth animation
+    // First load: scroll to bottom instantly
     scrollToBottom(false);
     setIsInitialLoad(false);
     setPreviousMessageCount(messages.length);
   } else if (!isInitialLoad && messages.length > previousMessageCount) {
-    // New message received: scroll smoothly
-    scrollToBottom(true);
+    // New message: only scroll if user is already near bottom
+    const messageContainer = messagesEndRef.current?.parentElement;
+    if (messageContainer) {
+      const isNearBottom = messageContainer.scrollHeight - messageContainer.scrollTop - messageContainer.clientHeight < 100;
+      if (isNearBottom) {
+        scrollToBottom(true);
+      }
+    }
     setPreviousMessageCount(messages.length);
   }
 }, [messages, isInitialLoad, previousMessageCount]);

@@ -349,19 +349,19 @@ const NewExperience = () => {
               {/* Image Preview */}
               {images.length > 0 && (
                 <div className="mt-6">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Selected Images ({images.length})</h4>
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Selected Images ({images.length})</h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {images.map((image, index) => (
                       <div key={index} className="relative group">
                         <img 
                           src={URL.createObjectURL(image)} 
                           alt="Preview" 
-                          className="w-full h-32 object-cover rounded-lg shadow-md group-hover:shadow-lg transition-shadow" 
+                          className="w-full h-32 object-cover rounded-lg shadow-md group-hover:shadow-lg transition-shadow border-2 border-gray-200 dark:border-gray-700" 
                         />
                         <button
                           type="button"
                           onClick={() => handleImageRemove(index)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 text-sm hover:bg-red-600 transition-colors shadow-lg"
+                          className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 text-sm transition-colors shadow-lg"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

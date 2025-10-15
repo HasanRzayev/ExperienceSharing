@@ -104,7 +104,7 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
       {/* Content */}
       <div className="p-6">
         <div className="flex items-start justify-between mb-3">
-          <h3 className="text-xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors duration-300 line-clamp-2">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-purple-600 transition-colors duration-300 line-clamp-2">
             {title}
           </h3>
           <div className="flex items-center ml-2">
