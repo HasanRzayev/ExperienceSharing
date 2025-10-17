@@ -98,24 +98,33 @@ const NavbarComponent = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-8">
+            <div className="ml-10 flex items-baseline space-x-6">
               <button
                 onClick={() => navigate("/")}
                 className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
-                Home
+                Axın
+              </button>
+              <button
+                onClick={() => navigate("/explore")}
+                className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Kəşf Et
               </button>
               <button
                 onClick={() => navigate("/NewExperience")}
                 className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
-                Share Experience
+                Paylaş
               </button>
               <button
                 onClick={() => navigate("/ChatPage")}
                 className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
-                Chat
+                Mesajlar
               </button>
             </div>
           </div>
@@ -257,19 +266,28 @@ const NavbarComponent = () => {
               onClick={() => handleMenuClick("/")}
               className="text-gray-700 hover:text-purple-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
         >
-          Home
+          Axın
+            </button>
+            <button
+              onClick={() => handleMenuClick("/explore")}
+              className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-base font-medium w-full text-left flex items-center gap-2"
+        >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              Kəşf Et
             </button>
             <button
               onClick={() => handleMenuClick("/NewExperience")}
               className="text-gray-700 hover:text-purple-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
         >
-          Share Experience
+          Paylaş
             </button>
             <button
               onClick={() => handleMenuClick("/ChatPage")}
               className="text-gray-700 hover:text-purple-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
         >
-          Chat
+          Mesajlar
             </button>
             
             {isLoggedIn ? (

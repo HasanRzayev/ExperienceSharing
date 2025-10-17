@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import CustomCard from "./Card";
+import Cookies from "js-cookie";
+import { FaUsers, FaHeart, FaComment } from "react-icons/fa";
 
 function Home() {
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
   const loadingRef = useRef(null);
   
   // Memoize API base URL
@@ -15,15 +16,29 @@ function Home() {
     []
   );
 
-  const fetchPosts = useCallback(async (query, pageNumber) => {
+  const fetchPosts = useCallback(async (pageNumber) => {
     try {
       setLoading(true);
-      const url = query 
-        ? `${apiBaseUrl}/Experiences/search?query=${query}&page=${pageNumber}&pageSize=8`
-        : `${apiBaseUrl}/Experiences?page=${pageNumber}&pageSize=8`;
+      const token = Cookies.get("token");
       
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Network response was not ok");
+      if (!token) {
+        console.warn("No token found, user might not be logged in");
+        setLoading(false);
+        return;
+      }
+
+      const url = `${apiBaseUrl}/Experiences/following-feed?page=${pageNumber}&pageSize=10`;
+      
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          console.warn("Unauthorized - redirecting to login");
+        }
+        throw new Error("Network response was not ok");
+      }
       
       const data = await response.json();
       
@@ -36,11 +51,10 @@ function Home() {
       setHasMore(data.length > 0);
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching following feed:", error);
       setLoading(false);
-      // Don't show error to user, just log it
       if (error.name !== 'AbortError') {
-        console.warn('Failed to fetch experiences, using empty array');
+        console.warn('Failed to fetch following feed');
       }
     }
   }, [apiBaseUrl]);
@@ -63,104 +77,122 @@ function Home() {
   }, [hasMore, loading]);
 
   useEffect(() => {
-    if (page === 1) {
-      fetchPosts(searchQuery, page);
-    } else {
-      fetchPosts(searchQuery, page);
-    }
-  }, [page, searchQuery]);
-
-  useEffect(() => {
-    setPage(1);
-    setPosts([]);
-  }, [searchQuery]);
+    fetchPosts(page);
+  }, [page, fetchPosts]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 opacity-10"></div>
-        <div className="relative container mx-auto px-6 py-16">
-          <div className="text-center mb-12 animate-fadeInUp">
-            <h1 className="text-5xl md:text-7xl font-bold gradient-text mb-6">
-              Discover Amazing
-              <br />
-              <span className="text-6xl md:text-8xl">Experiences</span>
-            </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              Share your adventures, explore new places, and connect with fellow travelers around the world
-            </p>
+    <main className="min-h-screen bg-gray-50">
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-3">
+            <FaUsers className="text-3xl text-indigo-600" />
+            <h1 className="text-3xl font-bold text-gray-800">Axın</h1>
           </div>
-          
-          {/* Search Input */}
-          <div className="w-full max-w-4xl mx-auto mb-16">
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
-              <div className="relative glass p-2 rounded-2xl">
-                <input
-                  type="text"
-                  placeholder="🔍 Search experiences, places, or people..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="input-modern w-full text-lg py-4 pl-6 pr-16 border-0 bg-transparent placeholder-gray-500 focus:placeholder-gray-400"
-                />
-                <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+          <p className="text-gray-600">İzlədiyiniz insanların son paylaşımları</p>
+        </div>
+
+        {/* Posts Feed - 1 Column */}
+        <div className="space-y-6">
+          {posts.map((post, index) => (
+            <div key={post.id} className="animate-fadeInUp" style={{animationDelay: `${index * 0.05}s`}}>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                {/* User Header */}
+                <div className="flex items-center gap-3 p-4 border-b border-gray-100">
+                  <img
+                    src={post.user?.profileImage || "https://via.placeholder.com/40"}
+                    alt={post.user?.userName}
+                    className="w-10 h-10 rounded-full object-cover border-2 border-indigo-100"
+                  />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-800">{post.user?.userName}</h3>
+                    <p className="text-sm text-gray-500">{post.location}</p>
                   </div>
+                  <span className="text-xs text-gray-400">
+                    {new Date(post.date).toLocaleDateString('az-AZ', { day: 'numeric', month: 'short' })}
+                  </span>
+                </div>
+
+                {/* Post Image */}
+                {post.imageUrls?.length > 0 && (
+                  <img
+                    src={post.imageUrls[0]?.url}
+                    alt={post.title}
+                    className="w-full h-96 object-cover"
+                  />
+                )}
+
+                {/* Post Content */}
+                <div className="p-4">
+                  <h2 className="text-xl font-bold text-gray-800 mb-2">{post.title}</h2>
+                  <p className="text-gray-600 mb-3 line-clamp-3">{post.description}</p>
+                  
+                  {/* Stats */}
+                  <div className="flex items-center gap-6 text-gray-500 text-sm mb-3">
+                    <div className="flex items-center gap-1">
+                      <FaHeart className="text-red-500" />
+                      <span>{post.likes || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <FaComment className="text-blue-500" />
+                      <span>{post.commentsCount || 0}</span>
+                    </div>
+                    {post.rating && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-yellow-500">★</span>
+                        <span>{post.rating}/5</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Tags */}
+                  {post.tagsName?.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {post.tagsName.slice(0, 3).map((tag, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-indigo-50 text-indigo-600 text-xs rounded-full">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* View Button */}
+                  <button 
+                    onClick={() => window.location.href = `/card/${post.id}`}
+                    className="mt-4 w-full py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-semibold hover:from-indigo-600 hover:to-purple-600 transition-all duration-300"
+                  >
+                    Ətraflı Bax
+                  </button>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Experiences Grid */}
-      <div className="container mx-auto px-6 pb-20">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">Featured Experiences</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Discover incredible stories and adventures shared by our community
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {posts.map((post, index) => (
-            <div key={post.id} className="animate-fadeInUp" style={{animationDelay: `${index * 0.1}s`}}>
-              <CustomCard
-                id={post.id}
-                imageUrls={post.imageUrls?.length > 0 ? post.imageUrls[0]?.url : ""}
-                date={post.date}
-                title={post.title}
-                description={post.description}
-                location={post.location}
-                rating={post.rating}
-                user={post.user}
-              />
             </div>
           ))}
         </div>
 
         {/* Loading Indicator */}
         <div ref={loadingRef} className="text-center py-8">
-          {loading && <div className="loader">Loading...</div>}
+          {loading && (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            </div>
+          )}
           {!hasMore && posts.length > 0 && (
-            <p className="text-gray-600">No more experiences to load</p>
+            <p className="text-gray-500 text-sm">Bütün postlar yükləndi</p>
           )}
           {posts.length === 0 && !loading && (
-            <div className="glass p-12 rounded-3xl max-w-md mx-auto">
-              <div className="text-6xl mb-4">🌍</div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">No experiences found</h3>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+              <FaUsers className="text-6xl text-gray-300 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">Heç bir post yoxdur</h3>
               <p className="text-gray-600 mb-6">
-                {searchQuery ? "Try adjusting your search terms" : "Be the first to share an experience!"}
+                İzlədiyiniz insanların hələ paylaşımı yoxdur.<br/>
+                Yeni insanları izləməyə başlayın!
               </p>
-              {!searchQuery && (
-                <button className="btn-primary">
-                  Share Your First Experience
-                </button>
-              )}
+              <a 
+                href="/explore" 
+                className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-semibold hover:from-indigo-600 hover:to-purple-600 transition-all duration-300"
+              >
+                Kəşf Et
+              </a>
             </div>
           )}
         </div>
@@ -169,5 +201,4 @@ function Home() {
   );
 }
 
-// Memoize component to prevent unnecessary re-renders
-export default React.memo(Home);
+export default Home;

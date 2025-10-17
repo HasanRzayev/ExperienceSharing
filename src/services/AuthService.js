@@ -42,17 +42,14 @@ const register = async (firstName, lastName, email, password, country, profileIm
       profileImage: profileImage ? URL.createObjectURL(profileImage) : null
     };
     
-    return { ...response.data, userData };
+    return { success: true, ...response.data, userData };
   } catch (error) {
-    swal({
-      title: "Error!",
-      text: "Kullanıcı eklenirken bir hata oluştu",
-      icon: "error",
-      timer: 3000,
-      button: false
-    });
-    throw error.response.data;
-    console.log(error.response.data)
+    console.log('Register error:', error.response?.data);
+    // Backend-dən gələn xəta mesajını əldə et
+    const errorMessage = error.response?.data?.message || error.response?.data || 'Qeydiyyat zamanı xəta baş verdi';
+    
+    // sweetalert-i silək, error mesajını frontend-də göstərəcəyik
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -77,18 +74,40 @@ const login = async (email, password) => {
 
     // For login, we'll fetch user data from the API
     // For now, return the response data
-    return response.data;
+    return { success: true, ...response.data };
   } catch (error) {
     console.error('Giriş hatası:', error.response?.data || error.message);
-    swal({
-      title: "Error!",
-      text: "Giriş sırasında bir hata oluştu",
-      icon: "error",
-      timer: 3000,
-      button: false
-    });
-    throw error.response?.data || error.message;
+    // Backend-dən gələn xəta mesajını əldə et
+    const errorMessage = error.response?.data?.message || error.response?.data || 'Giriş zamanı xəta baş verdi. Email və ya parol səhvdir.';
+    
+    // sweetalert-i silək, error mesajını frontend-də göstərəcəyik
+    return { success: false, error: errorMessage };
   }
 };
 
-export { register, login };
+const googleLogin = async (googleToken) => {
+  try {
+    const response = await axios.post(`${API_URL}/google-login`, {
+      googleToken: googleToken
+    });
+
+    if (response.data.token) {
+      swal({
+        title: "Success!",
+        text: "Google ilə giriş uğurlu oldu!",
+        icon: "success",
+        timer: 3000,
+        button: false
+      });
+      Cookies.set('token', response.data.token, { expires: 1 });
+    }
+
+    return { success: true, ...response.data };
+  } catch (error) {
+    console.error('Google login error:', error.response?.data || error.message);
+    const errorMessage = error.response?.data?.message || error.response?.data || 'Google ilə giriş zamanı xəta baş verdi';
+    return { success: false, error: errorMessage };
+  }
+};
+
+export { register, login, googleLogin };

@@ -142,6 +142,50 @@ const CardAbout = () => {
     }
   };
 
+  // Komment silmə funksiyası
+  const handleDeleteComment = async (commentId) => {
+    if (!token) return;
+    
+    if (!window.confirm('Are you sure you want to delete this comment?')) {
+      return;
+    }
+
+    try {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const response = await fetch(`${apiBaseUrl}/Experiences/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        fetchComments(); // Refresh comments after deletion
+        alert('Comment deleted successfully!');
+      } else {
+        alert('Failed to delete comment. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      alert('Error deleting comment. Please try again.');
+    }
+  };
+
+  // Current user ID-ni əldə etmək
+  const getCurrentUserId = () => {
+    try {
+      if (!token) return null;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || 
+             payload.userId || 
+             payload.id || 
+             payload.sub;
+    } catch (error) {
+      return null;
+    }
+  };
+
   const onEmojiClick = (emojiObject) => {
     setNewComment(prev => prev + emojiObject.emoji);
   };
@@ -473,14 +517,42 @@ const CardAbout = () => {
               <div className="mb-8">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Tags</h3>
                 <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-medium shadow-md hover:shadow-lg transition-shadow"
-                    >
-                      #{tag.tagName || tag.name || tag}
-                    </span>
-                  ))}
+                  {post.tags.map((tag, index) => {
+                    // Tag-ı parse et - əgər JSON string-dirsə
+                    let tagName = tag.tagName || tag.name || tag;
+                    
+                    // Əgər tag JSON string kimi görünürsə, parse et
+                    if (typeof tagName === 'string' && (tagName.startsWith('[') || tagName.startsWith('"'))) {
+                      try {
+                        // Çoxlu JSON.stringify olunmuş tag-ı parse et
+                        let parsed = tagName;
+                        while (typeof parsed === 'string' && (parsed.startsWith('[') || parsed.startsWith('"'))) {
+                          parsed = JSON.parse(parsed);
+                          if (Array.isArray(parsed) && parsed.length > 0) {
+                            parsed = parsed[0];
+                          }
+                        }
+                        tagName = parsed;
+                      } catch (e) {
+                        // Parse xətası olarsa, original-ı saxla
+                        console.error('Tag parse error:', e);
+                      }
+                    }
+                    
+                    // Əgər hələ də səhv formatdadırsa, göstərmə
+                    if (typeof tagName !== 'string' || tagName.includes('\\') || tagName.includes('[')) {
+                      return null;
+                    }
+                    
+                    return (
+                      <span
+                        key={index}
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-medium shadow-md hover:shadow-lg transition-shadow"
+                      >
+                        #{tagName}
+                      </span>
+                    );
+                  }).filter(Boolean)}
                 </div>
               </div>
             )}
@@ -784,120 +856,158 @@ const CardAbout = () => {
                 <span className="ml-3 text-gray-600">Loading comments...</span>
               </div>
             ) : comments.length > 0 ? (
-              comments.map((comment) => (
-                <div key={comment.id} className="bg-gray-50 rounded-2xl p-6 hover:bg-gray-100 transition-colors">
-                  <div className="flex items-start gap-4">
-                    <img
-                      src={comment.user?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"}
-                      alt={comment.user?.userName || "User"}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-semibold text-gray-800">
-                          {comment.user?.userName || 'Anonymous'}
-                        </h4>
-                        <span className="text-sm text-gray-500">
-                          {comment.createdAt && new Date(comment.createdAt).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </span>
-                      </div>
-                      <p className="text-gray-700 leading-relaxed mb-3">
-                        {comment.content}
-                      </p>
-                      
-                      {/* Reaction and Reply Buttons */}
-                      {token && (
-                        <div className="flex items-center gap-4 text-sm">
-                          <button
-                            onClick={() => handleReaction(comment.id, true)}
-                            className="flex items-center gap-1 text-gray-600 hover:text-purple-600 transition-colors"
-                          >
-                            <FaThumbsUp />
-                            <span>{comment.likes || 0}</span>
-                          </button>
-                          <button
-                            onClick={() => handleReaction(comment.id, false)}
-                            className="flex items-center gap-1 text-gray-600 hover:text-red-600 transition-colors"
-                          >
-                            <FaThumbsDown />
-                            <span>{comment.dislikes || 0}</span>
-                          </button>
-                          <button
-                            onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                            className="flex items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors"
-                          >
-                            <FaReply />
-                            Reply
-                          </button>
-                        </div>
-                      )}
+              comments.map((comment) => {
+                const currentUserId = getCurrentUserId();
+                const isPostOwner = post.user?.id && currentUserId && post.user.id.toString() === currentUserId.toString();
+                const isCommentOwner = comment.userId && currentUserId && comment.userId.toString() === currentUserId.toString();
+                const canDeleteComment = isPostOwner || isCommentOwner;
 
-                      {/* Reply Form */}
-                      {replyingTo === comment.id && token && (
-                        <div className="mt-4 flex gap-2">
-                          <input
-                            type="text"
-                            value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
-                            placeholder="Write a reply..."
-                            className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          />
-                          <button
-                            onClick={() => handleReply(comment.id)}
-                            disabled={!replyText.trim()}
-                            className="px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                          >
-                            Send
-                          </button>
+                return (
+                  <div key={comment.id} className="bg-gray-50 rounded-2xl p-6 hover:bg-gray-100 transition-colors">
+                    <div className="flex items-start gap-4">
+                      <img
+                        src={comment.user?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"}
+                        alt={comment.user?.userName || "User"}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold text-gray-800">
+                              {comment.user?.userName || 'Anonymous'}
+                            </h4>
+                            <span className="text-sm text-gray-500">
+                              {comment.createdAt && new Date(comment.createdAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </span>
+                          </div>
+                          {canDeleteComment && (
+                            <button
+                              onClick={() => handleDeleteComment(comment.id)}
+                              className="text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                              title="Delete comment"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          )}
                         </div>
-                      )}
+                        <p className="text-gray-700 leading-relaxed mb-3">
+                          {comment.content}
+                        </p>
+                        
+                        {/* Reaction and Reply Buttons */}
+                        {token && (
+                          <div className="flex items-center gap-4 text-sm">
+                            <button
+                              onClick={() => handleReaction(comment.id, true)}
+                              className="flex items-center gap-1 text-gray-600 hover:text-purple-600 transition-colors"
+                            >
+                              <FaThumbsUp />
+                              <span>{comment.likes || 0}</span>
+                            </button>
+                            <button
+                              onClick={() => handleReaction(comment.id, false)}
+                              className="flex items-center gap-1 text-gray-600 hover:text-red-600 transition-colors"
+                            >
+                              <FaThumbsDown />
+                              <span>{comment.dislikes || 0}</span>
+                            </button>
+                            <button
+                              onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                              className="flex items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors"
+                            >
+                              <FaReply />
+                              Reply
+                            </button>
+                          </div>
+                        )}
 
-                      {/* Replies */}
-                      {comment.replies && comment.replies.length > 0 && (
-                        <div className="mt-4 pl-6 border-l-2 border-purple-200 space-y-3">
-                          {comment.replies.map((reply) => (
-                            <div key={reply.id} className="bg-white rounded-xl p-4">
-                              <div className="flex items-center gap-2 mb-2">
-                                <img
-                                  src={reply.user?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"}
-                                  alt={reply.user?.userName}
-                                  className="w-6 h-6 rounded-full object-cover"
-                                />
-                                <span className="font-semibold text-sm">{reply.user?.userName}</span>
-                                <span className="text-xs text-gray-500">
-                                  {new Date(reply.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                </span>
-                              </div>
-                              <p className="text-gray-700 text-sm">{reply.content}</p>
-                              {token && (
-                                <div className="flex items-center gap-3 mt-2 text-xs">
-                                  <button
-                                    onClick={() => handleReaction(reply.id, true)}
-                                    className="flex items-center gap-1 text-gray-600 hover:text-purple-600"
-                                  >
-                                    <FaThumbsUp />
-                                    <span>{reply.likes || 0}</span>
-                                  </button>
-                                  <button
-                                    onClick={() => handleReaction(reply.id, false)}
-                                    className="flex items-center gap-1 text-gray-600 hover:text-red-600"
-                                  >
-                                    <FaThumbsDown />
-                                    <span>{reply.dislikes || 0}</span>
-                                  </button>
+                        {/* Reply Form */}
+                        {replyingTo === comment.id && token && (
+                          <div className="mt-4 flex gap-2">
+                            <input
+                              type="text"
+                              value={replyText}
+                              onChange={(e) => setReplyText(e.target.value)}
+                              placeholder="Write a reply..."
+                              className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
+                            <button
+                              onClick={() => handleReply(comment.id)}
+                              disabled={!replyText.trim()}
+                              className="px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              Send
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Replies */}
+                        {comment.replies && comment.replies.length > 0 && (
+                          <div className="mt-4 pl-6 border-l-2 border-purple-200 space-y-3">
+                            {comment.replies.map((reply) => {
+                              const isReplyOwner = reply.userId && currentUserId && reply.userId.toString() === currentUserId.toString();
+                              const canDeleteReply = isPostOwner || isReplyOwner;
+
+                              return (
+                                <div key={reply.id} className="bg-white rounded-xl p-4">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <img
+                                        src={reply.user?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"}
+                                        alt={reply.user?.userName}
+                                        className="w-6 h-6 rounded-full object-cover"
+                                      />
+                                      <span className="font-semibold text-sm">{reply.user?.userName}</span>
+                                      <span className="text-xs text-gray-500">
+                                        {new Date(reply.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                      </span>
+                                    </div>
+                                    {canDeleteReply && (
+                                      <button
+                                        onClick={() => handleDeleteComment(reply.id)}
+                                        className="text-red-600 hover:text-red-700 p-1 rounded-lg hover:bg-red-50 transition-colors"
+                                        title="Delete reply"
+                                      >
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                      </button>
+                                    )}
+                                  </div>
+                                  <p className="text-gray-700 text-sm">{reply.content}</p>
+                                  {token && (
+                                    <div className="flex items-center gap-3 mt-2 text-xs">
+                                      <button
+                                        onClick={() => handleReaction(reply.id, true)}
+                                        className="flex items-center gap-1 text-gray-600 hover:text-purple-600"
+                                      >
+                                        <FaThumbsUp />
+                                        <span>{reply.likes || 0}</span>
+                                      </button>
+                                      <button
+                                        onClick={() => handleReaction(reply.id, false)}
+                                        className="flex items-center gap-1 text-gray-600 hover:text-red-600"
+                                      >
+                                        <FaThumbsDown />
+                                        <span>{reply.dislikes || 0}</span>
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-center py-12">
                 <FaComment className="text-4xl text-gray-300 mx-auto mb-4" />

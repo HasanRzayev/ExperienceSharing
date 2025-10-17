@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import swal from 'sweetalert';
 import { FileInput, Label } from "flowbite-react";
 import AIModerationService from '../services/AIModerationService';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const NewExperience = () => {
+  const { id } = useParams(); // URL-dən id-ni oxuyuruq
+  const navigate = useNavigate();
   const [tags, setTags] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [images, setImages] = useState([]);
@@ -16,6 +19,7 @@ const NewExperience = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [moderationResults, setModerationResults] = useState(null);
+  const [existingImages, setExistingImages] = useState([]); // Köhnə şəkillər
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && inputValue.trim()) {
@@ -55,6 +59,60 @@ const NewExperience = () => {
     setImages([...images, ...files]); // Add dropped files to the image array
   };
 
+  // Əgər id varsa, experience məlumatlarını gətir
+  useEffect(() => {
+    if (id) {
+      const fetchExperience = async () => {
+        try {
+          const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+          const response = await axios.get(`${apiBaseUrl}/Experiences/${id}`);
+          const data = response.data;
+          
+          setTitle(data.title || '');
+          setDescription(data.description || '');
+          setLocation(data.location || '');
+          setDate(data.date ? data.date.split('T')[0] : ''); // Format date for input
+          
+          // Tag-ları parse et
+          const parsedTags = (data.tags || []).map(t => {
+            let tagName = t.tagName || t.name || t;
+            
+            // Əgər JSON string-dirsə, parse et
+            if (typeof tagName === 'string' && (tagName.startsWith('[') || tagName.startsWith('"'))) {
+              try {
+                let parsed = tagName;
+                while (typeof parsed === 'string' && (parsed.startsWith('[') || parsed.startsWith('"'))) {
+                  parsed = JSON.parse(parsed);
+                  if (Array.isArray(parsed) && parsed.length > 0) {
+                    parsed = parsed[0];
+                  }
+                }
+                tagName = parsed;
+              } catch (e) {
+                console.error('Tag parse error:', e);
+              }
+            }
+            
+            return tagName;
+          }).filter(tag => tag && typeof tag === 'string' && !tag.includes('\\') && !tag.includes('['));
+          
+          setTags(parsedTags);
+          setExistingImages(data.imageUrls || []);
+        } catch (error) {
+          console.error('Error fetching experience:', error);
+          swal({
+            title: "Error!",
+            text: "Failed to load experience data",
+            icon: "error",
+            button: "OK"
+          });
+        }
+      };
+      
+      fetchExperience();
+    }
+  }, [id]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
   
@@ -64,8 +122,8 @@ const NewExperience = () => {
       return;
     }
   
-    // Ən azı bir şəkil əlavə olunubmu?
-    if (images.length === 0) {
+    // Ən azı bir şəkil əlavə olunubmu? (Edit mode-da köhnə şəkillər də sayılır)
+    if (images.length === 0 && (!id || existingImages.length === 0)) {
       setError("Ən azı 1 şəkil əlavə edin!");
       return;
     }
@@ -81,49 +139,61 @@ const NewExperience = () => {
     setModerationResults(null);
 
     try {
-      // AI Moderation Check
-      console.log("Starting AI moderation...");
-      const moderationResults = await AIModerationService.performCompleteModeration(
-        title.trim(),
-        description.trim(),
-        location.trim(),
-        tags.filter(tag => tag.trim()),
-        images
-      );
+      // AI Moderation Check - yalnız yeni post yaradarkən
+      if (!id) {
+        console.log("Starting AI moderation...");
+        try {
+          const moderationResults = await AIModerationService.performCompleteModeration(
+            title.trim(),
+            description.trim(),
+            location.trim(),
+            tags.filter(tag => tag.trim()),
+            images
+          );
 
-      setModerationResults(moderationResults);
+          setModerationResults(moderationResults);
 
-      if (!moderationResults.overallApproved) {
-        let errorMessage = "Content moderation failed:\n";
-        
-        if (!moderationResults.textModeration.isAppropriate) {
-          errorMessage += `Text: ${moderationResults.textModeration.reasons.join(', ')}\n`;
-        }
-        
-        if (moderationResults.imageModeration) {
-          moderationResults.imageModeration.forEach((img, index) => {
-            if (!img.isAppropriate) {
-              errorMessage += `Image ${index + 1}: ${img.reasons.join(', ')}\n`;
+          if (!moderationResults.overallApproved) {
+            let errorMessage = "Content moderation failed:\n";
+            
+            if (!moderationResults.textModeration.isAppropriate) {
+              errorMessage += `Text: ${moderationResults.textModeration.reasons.join(', ')}\n`;
             }
-          });
-        }
-        
-        if (moderationResults.relevanceCheck && !moderationResults.relevanceCheck.isRelevant) {
-          errorMessage += `Relevance: ${moderationResults.relevanceCheck.reasons.join(', ')}\n`;
-        }
+            
+            if (moderationResults.imageModeration) {
+              moderationResults.imageModeration.forEach((img, index) => {
+                if (!img.isAppropriate) {
+                  errorMessage += `Image ${index + 1}: ${img.reasons.join(', ')}\n`;
+                }
+              });
+            }
+            
+            if (moderationResults.relevanceCheck && !moderationResults.relevanceCheck.isRelevant) {
+              errorMessage += `Relevance: ${moderationResults.relevanceCheck.reasons.join(', ')}\n`;
+            }
 
-        swal({
-          title: "Content Not Approved",
-          text: errorMessage,
-          icon: "warning",
-          button: "OK"
-        });
-        setIsLoading(false);
-        return;
+            swal({
+              title: "Content Not Approved",
+              text: errorMessage,
+              icon: "warning",
+              button: "OK"
+            });
+            setIsLoading(false);
+            return;
+          }
+
+          console.log("AI moderation passed, uploading experience...");
+        } catch (moderationError) {
+          console.error("AI Moderation Error:", moderationError);
+          // AI moderation xətası varsa, yenə də davam et (API açarı işləməyə bilər)
+          console.log("AI moderation failed, continuing without moderation...");
+        }
+      } else {
+        // Edit mode - AI moderation skip edilir
+        console.log("Edit mode - skipping AI moderation...");
       }
 
-      // If moderation passes, proceed with upload
-      console.log("AI moderation passed, uploading experience...");
+      // Proceed with upload
       
       const token = Cookies.get("token");
       const formData = new FormData();
@@ -131,29 +201,49 @@ const NewExperience = () => {
       formData.append("Description", description.trim());
       formData.append("Location", location.trim());
       formData.append("Date", date.trim());
-      formData.append("Tags", JSON.stringify(tags.filter(tag => tag.trim())));
+      
+      // Tag-ları ayrı-ayrı append et (JSON.stringify istifadə etmə!)
+      tags.filter(tag => tag.trim()).forEach((tag) => {
+        formData.append("Tags", tag.trim());
+      });
     
       images.forEach((image) => {
         formData.append("Images", image);
       });
     
-      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/Experiences`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-        withCredentials: true,
-      });
+      let response;
+      if (id) {
+        // Edit mode - PUT request
+        response = await axios.put(`${process.env.REACT_APP_API_BASE_URL}/Experiences/${id}`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        });
+      } else {
+        // Create mode - POST request
+        response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/Experiences`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        });
+      }
 
       // Success - clear form and show success message
       clearForm();
       swal({
         title: "Success!",
-        text: "Experience added successfully after AI moderation",
+        text: id ? "Experience updated successfully!" : "Experience added successfully after AI moderation",
         icon: "success",
         timer: 3000,
         button: false,
       });
+      
+      // Navigate back to profile after success
+      navigate('/Profil');
     } catch (error) {
       console.error("Submit error:", error);
       swal({
@@ -173,9 +263,11 @@ const NewExperience = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 py-12">
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold gradient-text mb-4">Share Your Experience</h1>
+          <h1 className="text-4xl font-bold gradient-text mb-4">
+            {id ? 'Edit Your Experience' : 'Share Your Experience'}
+          </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Inspire others with your amazing adventures and create lasting memories
+            {id ? 'Update your experience details' : 'Inspire others with your amazing adventures and create lasting memories'}
           </p>
         </div>
 
@@ -346,17 +438,43 @@ const NewExperience = () => {
                 </Label>
               </div>
 
-              {/* Image Preview */}
+              {/* Existing Images (Edit mode) */}
+              {id && existingImages.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Current Images ({existingImages.length})</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {existingImages.map((image, index) => (
+                      <div key={index} className="relative group">
+                        <img 
+                          src={image.url || image} 
+                          alt="Existing" 
+                          className="w-full h-32 object-cover rounded-lg shadow-md group-hover:shadow-lg transition-shadow border-2 border-blue-300" 
+                        />
+                        <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded-md text-xs font-medium">
+                          Current
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">
+                    💡 Upload new images below to replace current ones
+                  </p>
+                </div>
+              )}
+
+              {/* New Image Preview */}
               {images.length > 0 && (
                 <div className="mt-6">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Selected Images ({images.length})</h4>
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
+                    {id ? 'New Images to Upload' : 'Selected Images'} ({images.length})
+                  </h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {images.map((image, index) => (
                       <div key={index} className="relative group">
                         <img 
                           src={URL.createObjectURL(image)} 
                           alt="Preview" 
-                          className="w-full h-32 object-cover rounded-lg shadow-md group-hover:shadow-lg transition-shadow border-2 border-gray-200 dark:border-gray-700" 
+                          className="w-full h-32 object-cover rounded-lg shadow-md group-hover:shadow-lg transition-shadow border-2 border-green-300" 
                         />
                         <button
                           type="button"

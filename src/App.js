@@ -1,14 +1,18 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import React, { useState, useEffect, createContext, useContext, lazy, Suspense } from "react";
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 // Lazy load all components for better performance
 const Home = lazy(() => import("./pages/Home"));
+const Explore = lazy(() => import("./pages/Explore"));
 const NavbarComponent = lazy(() => import("./components/Navbar"));
 const FooterComponent = lazy(() => import("./components/Footer"));
 const CardAbout = lazy(() => import('./pages/CardAbout'));
 const Login = lazy(() => import("./pages/Login"));
 const SignUp = lazy(() => import("./pages/SignUp"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const ProfilePage = lazy(() => import("./pages/Profil"));
 const NewExperience = lazy(() => import("./pages/NewExperience"));
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
@@ -107,9 +111,12 @@ export default function App() {
     fetchUserData
   };
 
+  const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || "680043772059-av648urt1kjqrqucf47q43tm908egorb.apps.googleusercontent.com";
+
   return (
-    <AuthContext.Provider value={authValue}>
-      <Router>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <AuthContext.Provider value={authValue}>
+        <Router>
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
             {/* Admin Routes - No Navbar/Footer */}
@@ -134,10 +141,14 @@ export default function App() {
                 <NavbarComponent />
                 <Routes>
                   <Route path="/" element={<Home />} />
+                  <Route path="/explore" element={<Explore />} />
                   <Route path="/about/:id" element={<CardAbout />} />
+                  <Route path="/card/:id" element={<CardAbout />} />
                   <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
-                  <Route path="/chatpage" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ChatPage /></ProtectedRoute>} />
                   <Route path="/signup" element={isLoggedIn ? <Navigate to="/" /> : <SignUp />} />
+                  <Route path="/forgot-password" element={isLoggedIn ? <Navigate to="/" /> : <ForgotPassword />} />
+                  <Route path="/reset-password" element={isLoggedIn ? <Navigate to="/" /> : <ResetPassword />} />
+                  <Route path="/chatpage" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ChatPage /></ProtectedRoute>} />
                   <Route path="/Profil" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ProfilePage /></ProtectedRoute>} />
                   <Route path="/Notification" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Notification /></ProtectedRoute>} />
                   <Route path="/Settings" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Settings /></ProtectedRoute>} />
@@ -145,14 +156,16 @@ export default function App() {
                   <Route path="/Following" element={<ProtectedRoute isLoggedIn={isLoggedIn}><FollowingPage /></ProtectedRoute>} />
                   <Route path="/profile/:userId" element={<UserProfilePage />} />
                   <Route path="/NewExperience" element={<ProtectedRoute isLoggedIn={isLoggedIn}><NewExperience /></ProtectedRoute>} />
+                  <Route path="/edit-experience/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn}><NewExperience /></ProtectedRoute>} />
                 </Routes>
                 <FooterComponent />
               </>
             } />
           </Routes>
         </Suspense>
-      </Router>
-    </AuthContext.Provider>
+        </Router>
+      </AuthContext.Provider>
+    </GoogleOAuthProvider>
   );
 }
 

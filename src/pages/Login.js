@@ -1,18 +1,24 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login, register } from '../services/AuthService.js';
+import { login, register, googleLogin } from '../services/AuthService.js';
 import { useAuth } from '../App';
+import { GoogleLogin } from '@react-oauth/google';
+import Cookies from 'js-cookie';
 
 function Login({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
   const { handleLogin } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await login(email, password);
+    setError(''); // Əvvəlki xətaları təmizlə
+    
+    const response = await login(email, password);
+    
+    if (response.success) {
       // Call the onLogin prop to update parent state
       if (onLogin) {
         onLogin(response.userData || null);
@@ -20,9 +26,35 @@ function Login({ onLogin }) {
       // Also call the context handleLogin (will fetch user data from API)
       handleLogin(response.userData || null);
       navigate('/');
-    } catch (error) {
-      console.error(error);
+    } else {
+      // Xəta mesajını göstər
+      setError(response.error || 'Giriş zamanı xəta baş verdi');
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setError('');
+      const response = await googleLogin(credentialResponse.credential);
+      
+      if (response.success) {
+        Cookies.set('token', response.token);
+        if (onLogin) {
+          onLogin(response.userData || null);
+        }
+        handleLogin(response.userData || null);
+        navigate('/');
+      } else {
+        setError(response.error || 'Google ilə giriş zamanı xəta baş verdi');
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+      setError('Google ilə giriş zamanı xəta baş verdi');
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google ilə giriş uğursuz oldu');
   };
 
   return (
@@ -98,8 +130,19 @@ function Login({ onLogin }) {
                       <input type="checkbox" className="rounded border-gray-300 text-purple-600 focus:ring-purple-500" />
                       <span className="ml-2 text-sm text-gray-600">Remember me</span>
                     </label>
-                    <a href="#" className="text-sm text-purple-600 hover:text-purple-500">Forgot password?</a>
+                    <a href="/forgot-password" className="text-sm text-purple-600 hover:text-purple-500">Forgot password?</a>
                   </div>
+
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+                      <div className="flex items-center">
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                        <span className="font-medium">{error}</span>
+                      </div>
+                    </div>
+                  )}
 
                   <button 
                     type="submit" 
@@ -108,6 +151,27 @@ function Login({ onLogin }) {
                     Sign In
                   </button>
                 </form>
+
+                <div className="mt-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-center">
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={handleGoogleError}
+                      text="signin_with"
+                      size="large"
+                      width="350"
+                    />
+                  </div>
+                </div>
 
                 <div className="mt-8 text-center">
                   <p className="text-gray-600">

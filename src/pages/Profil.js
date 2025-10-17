@@ -11,6 +11,7 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('my-experiences'); // New state for tab management
   const [likedExperiences, setLikedExperiences] = useState([]);
   const [loadingLiked, setLoadingLiked] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const token = Cookies.get("token");
   const navigate = useNavigate();
 
@@ -54,7 +55,7 @@ const ProfilePage = () => {
 
     fetchUserData();
     fetchFollowData();
-  }, [token]);
+  }, [token, refreshKey]);
 
   // Function to fetch liked experiences
   const fetchLikedExperiences = async () => {
@@ -100,6 +101,28 @@ const ProfilePage = () => {
     } finally {
       setLoadingLiked(false);
     }
+  };
+
+  // Delete Experience funksiyası
+  const handleDeleteExperience = async (experienceId) => {
+    try {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      await axios.delete(`${apiBaseUrl}/Experiences/${experienceId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Səhifəni yenilə
+      setRefreshKey(prev => prev + 1);
+      alert('Experience deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting experience:', error);
+      alert('Failed to delete experience. Please try again.');
+    }
+  };
+
+  // Edit Experience funksiyası - NewExperience səhifəsinə yönləndir
+  const handleEditExperience = (experienceId) => {
+    navigate(`/edit-experience/${experienceId}`);
   };
 
   // Fetch liked experiences when tab changes to liked
@@ -322,9 +345,11 @@ const ProfilePage = () => {
                     console.log("Profil.js - User userName:", post.user?.userName);
                     console.log("Profil.js - All post keys:", Object.keys(post));
                     
-                    // Müvəqqəti həll: userId istifadə et
-                    const cardId = post.id || post.userId || `temp-${index}`;
+                    // Backend-dən Id böyük hərflə gəlir
+                    const cardId = post.id || post.Id || post.userId || `temp-${index}`;
                     console.log("Profil.js - Using cardId:", cardId);
+                    console.log("Profil.js - post.id:", post.id);
+                    console.log("Profil.js - post.Id:", post.Id);
                     
                     return (
                       <div key={`${cardId}-${index}`} className="animate-fadeInUp" style={{animationDelay: `${index * 0.1}s`}}>
@@ -337,6 +362,9 @@ const ProfilePage = () => {
                           location={post.location}
                           rating={post.rating}
                           user={userData}
+                          isOwner={true}
+                          onDelete={handleDeleteExperience}
+                          onEdit={handleEditExperience}
                         />
                       </div>
                     );

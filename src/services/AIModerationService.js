@@ -4,8 +4,10 @@ const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
 
 // Check if API key is available
-if (!GEMINI_API_KEY || GEMINI_API_KEY === 'AIzaSyDyBjXiCHfap6Q6P3gFUeDjwKDxbZhMGSk') {
-  console.warn('⚠️ Gemini API key not found! Please add REACT_APP_GEMINI_API_KEY to your .env file');
+const MOCK_MODE = !GEMINI_API_KEY || GEMINI_API_KEY === 'AIzaSyDyBjXiCHfap6Q6P3gFUeDjwKDxbZhMGSk' || GEMINI_API_KEY === 'your_gemini_api_key_here';
+
+if (MOCK_MODE) {
+  console.warn('⚠️ Gemini API key not found or invalid! Using mock moderation. Please add REACT_APP_GEMINI_API_KEY to your .env file');
 }
 
 class AIModerationService {
@@ -13,8 +15,8 @@ class AIModerationService {
   static async moderateText(text) {
     try {
       // Check if API key is available
-      if (!GEMINI_API_KEY || GEMINI_API_KEY === 'your_gemini_api_key_here') {
-        console.log('🔧 Using mock moderation (API key not configured)');
+      if (MOCK_MODE) {
+        console.log('🔧 Using mock text moderation (API key not configured)');
         return {
           isAppropriate: true,
           confidence: 0.8,
@@ -81,7 +83,7 @@ Only respond with the JSON object, no additional text.`;
   static async moderateImage(imageFile) {
     try {
       // Check if API key is available
-      if (!GEMINI_API_KEY || GEMINI_API_KEY === 'your_gemini_api_key_here') {
+      if (MOCK_MODE) {
         console.log('🔧 Using mock image moderation (API key not configured)');
         return {
           isAppropriate: true,
@@ -155,7 +157,7 @@ Only respond with the JSON object, no additional text.`;
   static async checkContentRelevance(text, imageFiles) {
     try {
       // Check if API key is available
-      if (!GEMINI_API_KEY || GEMINI_API_KEY === 'your_gemini_api_key_here') {
+      if (MOCK_MODE) {
         console.log('🔧 Using mock relevance check (API key not configured)');
         return {
           isRelevant: true,
