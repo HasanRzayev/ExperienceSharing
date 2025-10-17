@@ -9,17 +9,17 @@ import EmojiPicker from "emoji-picker-react";
 
 import MicRecorder from "mic-recorder-to-mp3";
 export async function uploadFile(file) {
-  console.log("Fayl tipi yoxlanır:", file);
+  console.log("Checking file type:", file);
 
-  // Əgər file bir URL-dirsə və GIF-dirsə, onu birbaşa qaytar
+  // If file is a URL and is a GIF, return it directly
   if (typeof file === "string" && file.startsWith("http")) {
-      console.log("GIF aşkarlandı, birbaşa API-yə göndərilir:", file);
+      console.log("GIF detected, sending directly to API:", file);
       return file;
   }
 
-  // Faylın tipini yoxlayıb, lazım gələrsə düzəldirik
+  // Check file type and fix if necessary
   if (!file.type) {
-      console.warn("Faylın tipi məlum deyil, audio/wav olaraq təyin edilir.");
+      console.warn("File type unknown, setting as audio/wav.");
       file = new File([file], file.name || "recorded-audio.wav", { type: "audio/wav" });
   }
 
@@ -41,9 +41,9 @@ export async function uploadFile(file) {
   } else if (fileType === "video") {
       cloudinaryEndpoint += "video/upload";
   } else if (fileType === "audio") {
-      cloudinaryEndpoint += "raw/upload"; // Cloudinary-də səs faylları "raw" kimi saxlanır
+      cloudinaryEndpoint += "raw/upload"; // Audio files stored as "raw" in Cloudinary
   } else {
-      console.error("Dəstəklənməyən fayl növü:", fileType);
+      console.error("Unsupported file type:", fileType);
       return null;
   }
 
@@ -54,13 +54,13 @@ export async function uploadFile(file) {
       });
 
       if (!response.ok) {
-          throw new Error("Fayl yüklənmədi!");
+          throw new Error("File upload failed!");
       }
 
       const data = await response.json();
-      return data.secure_url; // Yüklənmiş faylın linkini qaytar
+      return data.secure_url; // Return uploaded file link
   } catch (error) {
-      console.error("Fayl yükləmə xətası:", error);
+      console.error("File upload error:", error);
       return null;
   }
 }
@@ -109,7 +109,7 @@ const ChatPage = () => {
       console.log("Giphy Trending GIFs:", response.data);
       setGifs(response.data.data);
     } catch (error) {
-      console.error("GIF-ləri yükləmək mümkün olmadı:", error);
+      console.error("Failed to load GIFs:", error);
     }
   };
   
@@ -129,7 +129,7 @@ const ChatPage = () => {
       console.log("Giphy Search GIFs:", response.data);
       setGifs(response.data.data);
     } catch (error) {
-      console.error("GIF axtarmaq mümkün olmadı:", error);
+      console.error("Failed to search GIFs:", error);
     }
   };
   const startRecording = () => {
@@ -137,11 +137,11 @@ const ChatPage = () => {
 
     recorder.start()
         .then(() => setIsRecording(true))
-        .catch((e) => console.error("Yazmağa başlamaq alınmadı:", e));
+        .catch((e) => console.error("Failed to start recording:", e));
 };
 const stopRecording = () => {
   if (!recorder) {
-      console.error("Recorder obyekti undefined-dır.");
+      console.error("Recorder object is undefined.");
       return;
   }
 
@@ -150,45 +150,46 @@ const stopRecording = () => {
   recorder.getMp3()
       .then(([buffer, blob]) => {
           if (!blob) {
-              console.error("Blob yaradılmadı.");
+              console.error("Blob not created.");
               return;
           }
 
           const blobURL = URL.createObjectURL(blob);
           setBlobURL(blobURL);
           setIsRecording(false);
-          // Blob faylı, file kimi yaradıb ad və type təyin edirik
+          // Create Blob as File with name and type
           const audioFile = new File([blob], "recorded-audio.wav", { type: "audio/wav" });
 
-          // Birbaşa `sendMessage` çağırırıq (upload içində işləyəcək)
+          // Call sendMessage directly (will upload inside)
           sendMessage("", audioFile);
       })
-      .catch((e) => console.error("Yazmanı dayandırmaq alınmadı:", e));
+      .catch((e) => console.error("Failed to stop recording:", e));
 };
 
   const handleGifClick = (gifUrl) => {
-    sendMessage("", gifUrl); // Seçilmiş GIF-i mesaj kimi göndər
+    sendMessage("", gifUrl); // Send selected GIF as message
     setShowGifPicker(false);
   };
   const handleEmojiClick = (emojiData) => {
     setNewMessage((prevText) => prevText + emojiData.emoji); // ✔️
-    // setShowPicker(false); // Seçildikdən sonra bağlanmasın - istifadəçi çoxlu emoji seçə bilər
+    // setShowPicker(false); // Don't close after selection - user can select multiple emojis
   };
 
-  // Mesajlara tıklamaq funksiyası
+  // Handle message click - Navigate to experience detail or open media
   const handleMessageClick = (message) => {
-    // Əgər mesaj experience share tipindədirsə və experience ID varsa
+    // If message is experience share type and has experience ID
     if (message.messageType === 'experience_share' && message.content) {
-      // Content-dən experience linkini çıxar
-      const experienceMatch = message.content.match(/\/about\/(\d+)/);
+      // Extract experience link from content - support both /about/ and /card/ formats
+      const experienceMatch = message.content.match(/\/(about|card)\/(\d+)/);
       if (experienceMatch) {
-        const experienceId = experienceMatch[1];
-        navigate(`/about/${experienceId}`);
+        const experienceId = experienceMatch[2];
+        navigate(`/card/${experienceId}`); // Always navigate to /card/ for consistency
+        return;
       }
     }
-    // Əgər media varsa və image/video-dursa, böyütmək üçün modal aç
+    // If media exists and is image/video, could open modal
     else if (message.mediaUrl && (message.mediaType === 'image' || message.mediaType === 'video')) {
-      // Bu hissədə media modal əlavə edə bilərik
+      // You can add media modal here
       console.log('Media clicked:', message.mediaUrl);
     }
   };
@@ -197,8 +198,8 @@ const stopRecording = () => {
         setRecorder(newRecorder);
 
         navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(() => console.log("Mikrofona icazə verildi"))
-            .catch(() => console.log("Mikrofona giriş alınmadı"));
+            .then(() => console.log("Microphone permission granted"))
+            .catch(() => console.log("Microphone access denied"));
     console.log("Fetching user profile...");
     setUserLoading(true);
   
@@ -399,12 +400,12 @@ const stopRecording = () => {
       })
       .catch((err) => {
         console.error("❌ Connection failed: ", err);
-        // Backend işləmirsə, bağlantı cəhdini dayandır
+        // Stop connection attempt if backend is not running
         if (err.message.includes("404") || err.message.includes("Not Found") || err.message.includes("Failed to fetch")) {
-          console.log("🔴 Backend SignalR endpoint tapılmadı. Backend serveri işlədildiyindən əmin olun.");
+          console.log("🔴 Backend SignalR endpoint not found. Make sure backend server is running.");
           return;
         }
-        // Digər xətalar üçün yenidən cəhd et
+        // Retry for other errors
         setTimeout(() => {
           newConnection.start();
         }, 5000);
@@ -498,7 +499,7 @@ const stopRecording = () => {
       const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      return response.data; // API'den dönen medya URL'si
+      return response.data; // Media URL returned from API
     } catch (error) {
       console.error("File upload error:", error);
       return null;
@@ -508,25 +509,25 @@ const stopRecording = () => {
     // Bağlantı yoxlanması əlavə edin
     if (!connection || connection.state !== "Connected") {
       console.error("❌ SignalR connection is not established");
-      alert("Chat bağlantısı yoxdur. Zəhmət olmasa səhifəni yeniləyin.");
+      alert("Chat connection is not established. Please refresh the page.");
       return;
     }
 
     if (!selectedUser) {
-        console.error("İstifadəçi seçilməyib!");
-        alert("Zəhmət olmasa bir istifadəçi seçin.");
+        console.error("No user selected!");
+        alert("Please select a user.");
         return;
     }
 
     if (!user) {
-        console.error("Giriş edən istifadəçi tapılmadı!");
-        alert("İstifadəçi məlumatları yüklənmədi. Zəhmət olmasa səhifəni yeniləyin.");
+        console.error("Logged in user not found!");
+        alert("User data not loaded. Please refresh the page.");
         return;
     }
 
     if (userLoading) {
-        console.error("İstifadəçi məlumatları hələ yüklənir!");
-        alert("İstifadəçi məlumatları yüklənir. Zəhmət olmasa gözləyin.");
+        console.error("User data still loading!");
+        alert("User data is loading. Please wait.");
         return;
     }
 
@@ -540,8 +541,8 @@ const stopRecording = () => {
     const userId = user?.id || user?.userId || user?.user_id || user;
     
     if (!userId) {
-        console.error("İstifadəçi ID-si tapılmadı!", user);
-        alert("İstifadəçi ID-si məlum deyil. Zəhmət olmasa yenidən giriş edin.");
+        console.error("User ID not found!", user);
+        alert("User ID is unknown. Please login again.");
         return;
     }
     
@@ -553,12 +554,12 @@ const stopRecording = () => {
     if (file) {
         fileUrl = await uploadFile(file);
         if (!fileUrl) {
-            console.error("Fayl yüklənmədi, mesaj göndərilmir.");
+            console.error("File upload failed, message not sent.");
             return;
         }
-        console.log("Yüklənmiş fayl linki:", fileUrl);
+        console.log("Uploaded file link:", fileUrl);
 
-        // Əgər file varsa və adı məlumdursa, uzantıya görə mediaType təyin et
+        // If file exists and has name, set mediaType based on extension
         if (file?.name) {
           console.log(file.name)
             const fileExtension = file.name.split('.').pop().toLowerCase();
@@ -588,30 +589,30 @@ const stopRecording = () => {
         timestamp: new Date().toISOString()
     };
 
-    console.log("Mesaj JSON:", messageData);
+    console.log("Message JSON:", messageData);
     console.log("User object when sending:", user);
     console.log("User ID when sending:", user?.id);
     console.log("User ID alt when sending:", user?.userId);
 
     try {
-        // Bağlantı vəziyyətini yenidən yoxla
+        // Check connection status again
         if (connection.state === "Connected") {
           console.log("🚀 Sending message via SignalR:", messageData);
           await connection.invoke("SendMessage", messageData);
-          console.log("✅ Mesaj uğurla göndərildi:", messageData);
+          console.log("✅ Message sent successfully:", messageData);
 
           // Clear input fields after sending
-          setNewMessage(""); // Mesaj göndərildikdən sonra inputu təmizlə
-          setFile(null); // Fayl seçimini sıfırla
-          setFilePreview(null); // Fayl preview-ni də təmizlə
+          setNewMessage(""); // Clear input after sending message
+          setFile(null); // Reset file selection
+          setFilePreview(null); // Clear file preview
         } else {
-          console.error("❌ Bağlantı hazır deyil:", connection.state);
-          alert("Bağlantı problemi var. Zəhmət olmasa səhifəni yeniləyin.");
+          console.error("❌ Connection not ready:", connection.state);
+          alert("Connection problem. Please refresh the page.");
         }
     } catch (error) {
-        console.error("❌ Server xətası:", error?.message || error);
+        console.error("❌ Server error:", error?.message || error);
         console.error("❌ Full error:", error);
-        alert("Mesaj göndərilmədi. Zəhmət olmasa yenidən cəhd edin.");
+          alert("Message failed to send. Please try again.");
     }
 }
 
@@ -752,7 +753,7 @@ useEffect(() => {
           )}
         </div>
 
-        {/* Mesajlar */}
+        {/* Messages */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-transparent to-gray-900 to-opacity-10">
           {userLoading ? (
             <div className="flex items-center justify-center h-full">
@@ -789,7 +790,7 @@ useEffect(() => {
               return (
                 <div key={index} className={`flex items-end space-x-3 ${isMyMessage ? "justify-end" : "justify-start"}`}>
                   
-                  {/* Əgər mesaj göndərən user deyilsə, profil şəkli göstərilir */}
+                  {/* Profile picture if message is not from current user */}
                   {!isMyMessage && (
                     <img
                       src={msg.senderProfileImage || selectedUser?.profileImage || "https://via.placeholder.com/40"}
@@ -798,7 +799,7 @@ useEffect(() => {
                     />
                   )}
 
-                  {/* Mesaj qutusu */}
+                  {/* Message bubble */}
                   <div className={`max-w-md ${isMyMessage ? "order-first" : ""}`}>
                     {!isMyMessage && msg.senderName && (
                       <div className="text-xs font-semibold text-gray-300 mb-1 ml-2">
@@ -849,7 +850,7 @@ useEffect(() => {
                     </div>
                   </div>
 
-                  {/* Mənim mesajım üçün profil şəkli */}
+                  {/* Profile picture for my messages */}
                   {isMyMessage && (
                     <div className="w-10 h-10 rounded-full border-2 border-white border-opacity-30 shadow-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
                       {typeof user === 'object' && user?.profileImage ? (
@@ -937,7 +938,7 @@ useEffect(() => {
           </div>
         )}
 
-        {/* Mesaj Göndərmə */}
+        {/* Send Message */}
         <div className="p-6 bg-gradient-to-r from-gray-800 to-gray-900 flex items-center space-x-4">
           {/* Media Upload Button */}
           <div className="relative">
@@ -946,7 +947,7 @@ useEffect(() => {
                 file ? "bg-green-500 bg-opacity-50" : ""
               }`}
               onClick={() => setDropdownOpen(!isDropdownOpen)}
-              title={file ? "Fayl seçildi" : "Media əlavə et"}
+              title={file ? "File selected" : "Add media"}
             >
               <span className="text-xl">{isDropdownOpen ? "✖" : file ? "📎" : "➕"}</span>
             </button>
@@ -982,12 +983,12 @@ useEffect(() => {
           <input type="file" id="video-upload" accept="video/*" className="hidden" onChange={handleFileChange} />
           <input type="file" id="audio-upload" accept="audio/*" className="hidden" onChange={handleFileChange} />
 
-          {/* Mesaj Input */}
+          {/* Message Input */}
           <div className="flex-1 relative">
             <input
               type="text"
               className="w-full p-4 glass rounded-xl outline-none text-white placeholder-gray-300 focus:shadow-hover transition-smooth"
-              placeholder={file ? `Mesaj yazın və ${file.name} göndərin...` : "Type a message..."}
+              placeholder={file ? `Type a message and send ${file.name}...` : "Type a message..."}
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && sendMessage(newMessage, file)}
@@ -1005,7 +1006,7 @@ useEffect(() => {
             className={`p-3 glass rounded-full hover:shadow-hover transition-smooth text-white focus:outline-none ${
               showPicker ? "bg-purple-500 bg-opacity-50" : ""
             }`}
-            title={showPicker ? "Emoji panelini bağla" : "Emoji əlavə et"}
+            title={showPicker ? "Close emoji picker" : "Add emoji"}
           >
             <span className="text-xl">😊</span>
           </button>

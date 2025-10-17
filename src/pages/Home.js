@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import CustomCard from "./Card";
 import Cookies from "js-cookie";
-import { FaUsers, FaHeart, FaComment } from "react-icons/fa";
+import { FaUsers, FaHeart, FaComment, FaShare, FaPaperPlane, FaSmile, FaMapMarkerAlt } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import LikeButton from "../components/LikeButton";
+import EmojiPicker from 'emoji-picker-react';
 
 function Home() {
   const [posts, setPosts] = useState([]);
@@ -9,8 +11,18 @@ function Home() {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const loadingRef = useRef(null);
+  const navigate = useNavigate();
   
-  // Memoize API base URL
+  // Comment states
+  const [expandedComments, setExpandedComments] = useState({});
+  const [commentTexts, setCommentTexts] = useState({});
+  const [showEmojiPicker, setShowEmojiPicker] = useState({});
+  const [submittingComment, setSubmittingComment] = useState({});
+  
+  // Share modal state
+  const [showShareModal, setShowShareModal] = useState(null);
+  const [copied, setCopied] = useState(false);
+  
   const apiBaseUrl = useMemo(() => 
     process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api',
     []
@@ -59,6 +71,57 @@ function Home() {
     }
   }, [apiBaseUrl]);
 
+  const toggleComments = (postId) => {
+    setExpandedComments(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  };
+
+  const handleSubmitComment = async (postId, e) => {
+    e?.preventDefault();
+    const commentText = commentTexts[postId];
+    if (!commentText?.trim()) return;
+
+    setSubmittingComment(prev => ({ ...prev, [postId]: true }));
+    
+    try {
+      const token = Cookies.get("token");
+      const response = await fetch(`${apiBaseUrl}/Experiences/${postId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: commentText.trim() })
+      });
+
+      if (response.ok) {
+        setCommentTexts(prev => ({ ...prev, [postId]: '' }));
+        setShowEmojiPicker(prev => ({ ...prev, [postId]: false }));
+        // Refresh posts to get updated comment count
+        fetchPosts(1);
+        setPage(1);
+      }
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+    } finally {
+      setSubmittingComment(prev => ({ ...prev, [postId]: false }));
+    }
+  };
+
+  const handleShare = (post) => {
+    setShowShareModal(post);
+    setCopied(false);
+  };
+
+  const copyLink = (postId) => {
+    const link = `${window.location.origin}/card/${postId}`;
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -81,90 +144,194 @@ function Home() {
   }, [page, fetchPosts]);
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-3">
             <FaUsers className="text-3xl text-indigo-600" />
-            <h1 className="text-3xl font-bold text-gray-800">Axın</h1>
+            <h1 className="text-3xl font-bold text-gray-800">Feed</h1>
           </div>
-          <p className="text-gray-600">İzlədiyiniz insanların son paylaşımları</p>
+          <p className="text-gray-600">Latest posts from people you follow</p>
         </div>
 
-        {/* Posts Feed - 1 Column */}
+        {/* Posts Feed */}
         <div className="space-y-6">
           {posts.map((post, index) => (
             <div key={post.id} className="animate-fadeInUp" style={{animationDelay: `${index * 0.05}s`}}>
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-300">
+              <article className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300">
                 {/* User Header */}
                 <div className="flex items-center gap-3 p-4 border-b border-gray-100">
                   <img
                     src={post.user?.profileImage || "https://via.placeholder.com/40"}
                     alt={post.user?.userName}
-                    className="w-10 h-10 rounded-full object-cover border-2 border-indigo-100"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-indigo-100 cursor-pointer hover:border-indigo-400 transition-colors"
+                    onClick={() => navigate(`/profile/${post.user?.id}`)}
                   />
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800">{post.user?.userName}</h3>
-                    <p className="text-sm text-gray-500">{post.location}</p>
+                    <h3 
+                      className="font-bold text-gray-800 hover:text-indigo-600 cursor-pointer transition-colors"
+                      onClick={() => navigate(`/profile/${post.user?.id}`)}
+                    >
+                      {post.user?.userName}
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <FaMapMarkerAlt className="text-xs" />
+                      <span>{post.location}</span>
+                      <span>•</span>
+                      <span>{new Date(post.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>
+                    </div>
                   </div>
-                  <span className="text-xs text-gray-400">
-                    {new Date(post.date).toLocaleDateString('az-AZ', { day: 'numeric', month: 'short' })}
-                  </span>
+                  {post.rating && (
+                    <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1 rounded-full">
+                      <span className="text-yellow-500 font-bold">★</span>
+                      <span className="font-bold text-gray-700">{post.rating}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Post Image */}
                 {post.imageUrls?.length > 0 && (
-                  <img
-                    src={post.imageUrls[0]?.url}
-                    alt={post.title}
-                    className="w-full h-96 object-cover"
-                  />
+                  <div 
+                    className="relative h-96 bg-gray-100 cursor-pointer group"
+                    onClick={() => navigate(`/card/${post.id}`)}
+                  >
+                    <img
+                      src={post.imageUrls[0]?.url}
+                      alt={post.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    {post.imageUrls.length > 1 && (
+                      <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                        1/{post.imageUrls.length}
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {/* Post Content */}
                 <div className="p-4">
-                  <h2 className="text-xl font-bold text-gray-800 mb-2">{post.title}</h2>
-                  <p className="text-gray-600 mb-3 line-clamp-3">{post.description}</p>
+                  <h2 
+                    className="text-2xl font-bold text-gray-900 mb-2 cursor-pointer hover:text-indigo-600 transition-colors"
+                    onClick={() => navigate(`/card/${post.id}`)}
+                  >
+                    {post.title}
+                  </h2>
+                  <p className="text-gray-700 mb-4 line-clamp-3 leading-relaxed">
+                    {post.description}
+                  </p>
                   
-                  {/* Stats */}
-                  <div className="flex items-center gap-6 text-gray-500 text-sm mb-3">
-                    <div className="flex items-center gap-1">
-                      <FaHeart className="text-red-500" />
-                      <span>{post.likes || 0}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <FaComment className="text-blue-500" />
-                      <span>{post.commentsCount || 0}</span>
-                    </div>
-                    {post.rating && (
-                      <div className="flex items-center gap-1">
-                        <span className="text-yellow-500">★</span>
-                        <span>{post.rating}/5</span>
-                      </div>
-                    )}
-                  </div>
-
                   {/* Tags */}
                   {post.tagsName?.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mb-4">
                       {post.tagsName.slice(0, 3).map((tag, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-indigo-50 text-indigo-600 text-xs rounded-full">
+                        <span key={idx} className="px-3 py-1 bg-indigo-50 text-indigo-600 text-sm rounded-full font-medium hover:bg-indigo-100 transition-colors cursor-pointer">
                           #{tag}
                         </span>
                       ))}
+                      {post.tagsName.length > 3 && (
+                        <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full font-medium">
+                          +{post.tagsName.length - 3} more
+                        </span>
+                      )}
                     </div>
                   )}
 
-                  {/* View Button */}
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+                    {/* Like Button */}
+                    <div className="flex-1">
+                      <LikeButton experienceId={post.id} initialLikes={post.likes} />
+                    </div>
+
+                    {/* Comment Button */}
+                    <button
+                      onClick={() => toggleComments(post.id)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+                        expandedComments[post.id]
+                          ? 'bg-blue-100 text-blue-600'
+                          : 'bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-600'
+                      }`}
+                    >
+                      <FaComment />
+                      <span>{post.commentsCount || 0}</span>
+                    </button>
+
+                    {/* Share Button */}
+                    <button
+                      onClick={() => handleShare(post)}
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-semibold hover:bg-purple-50 hover:text-purple-600 transition-all"
+                    >
+                      <FaShare />
+                      <span>Share</span>
+                    </button>
+                  </div>
+
+                  {/* Comment Section */}
+                  {expandedComments[post.id] && (
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      {/* Comment Input */}
+                      <form onSubmit={(e) => handleSubmitComment(post.id, e)} className="mb-4">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={commentTexts[post.id] || ''}
+                            onChange={(e) => setCommentTexts(prev => ({ ...prev, [post.id]: e.target.value }))}
+                            placeholder="Write a comment..."
+                            className="w-full pl-4 pr-24 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                          />
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setShowEmojiPicker(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
+                              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                              <FaSmile className="text-gray-500" />
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={!commentTexts[post.id]?.trim() || submittingComment[post.id]}
+                              className="p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            >
+                              <FaPaperPlane />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {/* Emoji Picker */}
+                        {showEmojiPicker[post.id] && (
+                          <div className="absolute z-50 mt-2">
+                            <EmojiPicker
+                              onEmojiClick={(emojiData) => {
+                                setCommentTexts(prev => ({
+                                  ...prev,
+                                  [post.id]: (prev[post.id] || '') + emojiData.emoji
+                                }));
+                              }}
+                            />
+                          </div>
+                        )}
+                      </form>
+
+                      {/* View All Comments Link */}
+                      <button
+                        onClick={() => navigate(`/card/${post.id}`)}
+                        className="text-indigo-600 hover:text-indigo-700 font-semibold text-sm hover:underline"
+                      >
+                        View all {post.commentsCount || 0} comments
+                      </button>
+                    </div>
+                  )}
+
+                  {/* View Details Button */}
                   <button 
-                    onClick={() => window.location.href = `/card/${post.id}`}
-                    className="mt-4 w-full py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-semibold hover:from-indigo-600 hover:to-purple-600 transition-all duration-300"
+                    onClick={() => navigate(`/card/${post.id}`)}
+                    className="mt-4 w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02]"
                   >
-                    Ətraflı Bax
+                    View Details
                   </button>
                 </div>
-              </div>
+              </article>
             </div>
           ))}
         </div>
@@ -177,26 +344,108 @@ function Home() {
             </div>
           )}
           {!hasMore && posts.length > 0 && (
-            <p className="text-gray-500 text-sm">Bütün postlar yükləndi</p>
+            <p className="text-gray-500 text-sm bg-white rounded-lg px-6 py-3 inline-block shadow-sm">
+              ✨ All posts loaded
+            </p>
           )}
           {posts.length === 0 && !loading && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
               <FaUsers className="text-6xl text-gray-300 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">Heç bir post yoxdur</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">No Posts Yet</h3>
               <p className="text-gray-600 mb-6">
-                İzlədiyiniz insanların hələ paylaşımı yoxdur.<br/>
-                Yeni insanları izləməyə başlayın!
+                People you follow haven't shared anything yet.<br/>
+                Start following more people or explore new content!
               </p>
-              <a 
-                href="/explore" 
-                className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-semibold hover:from-indigo-600 hover:to-purple-600 transition-all duration-300"
+              <button
+                onClick={() => navigate("/explore")}
+                className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg"
               >
-                Kəşf Et
-              </a>
+                Explore Now
+              </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowShareModal(null)}
+        >
+          <div 
+            className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 transform transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <FaShare className="text-3xl text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">Share Experience</h3>
+              <p className="text-gray-600">{showShareModal.title}</p>
+            </div>
+
+            {/* Share Options */}
+            <div className="space-y-3 mb-6">
+              {/* Copy Link */}
+              <button
+                onClick={() => copyLink(showShareModal.id)}
+                className={`w-full flex items-center gap-4 p-4 rounded-xl font-semibold transition-all ${
+                  copied
+                    ? 'bg-green-50 text-green-600 border-2 border-green-300'
+                    : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border-2 border-transparent'
+                }`}
+              >
+                {copied ? <FaCheck className="text-2xl" /> : <FaShare className="text-2xl text-gray-600" />}
+                <span className="flex-1 text-left">{copied ? 'Link Copied!' : 'Copy Link'}</span>
+              </button>
+
+              {/* WhatsApp */}
+              <a
+                href={`https://wa.me/?text=Check out this amazing experience: ${showShareModal.title} - ${window.location.origin}/card/${showShareModal.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center gap-4 p-4 rounded-xl bg-green-50 hover:bg-green-100 border-2 border-transparent hover:border-green-300 font-semibold text-green-600 transition-all"
+              >
+                <FaShare className="text-2xl" />
+                <span className="flex-1 text-left">Share on WhatsApp</span>
+              </a>
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setShowShareModal(null)}
+              className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-bold transition-all"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fadeInUp {
+          animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .line-clamp-3 {
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
     </main>
   );
 }

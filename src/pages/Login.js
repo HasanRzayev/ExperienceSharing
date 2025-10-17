@@ -28,7 +28,7 @@ function Login({ onLogin }) {
       navigate('/');
     } else {
       // Xəta mesajını göstər
-      setError(response.error || 'Giriş zamanı xəta baş verdi');
+      setError(response.error || 'An error occurred during login');
     }
   };
 

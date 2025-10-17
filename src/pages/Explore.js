@@ -78,9 +78,9 @@ function Explore() {
   }, [activeFilter, searchQuery]);
 
   const filters = [
-    { id: "newest", label: "Ən Yeni", icon: FaClock, color: "from-blue-500 to-cyan-500" },
-    { id: "popular", label: "Ən Populyar", icon: FaFire, color: "from-orange-500 to-red-500" },
-    { id: "toprated", label: "Ən Yüksək Reytinq", icon: FaStar, color: "from-yellow-500 to-amber-500" }
+    { id: "newest", label: "Newest", icon: FaClock, color: "from-blue-500 to-cyan-500" },
+    { id: "popular", label: "Most Popular", icon: FaFire, color: "from-orange-500 to-red-500" },
+    { id: "toprated", label: "Top Rated", icon: FaStar, color: "from-yellow-500 to-amber-500" }
   ];
 
   return (
@@ -89,9 +89,9 @@ function Explore() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           {/* Header */}
           <div className="mb-4">
-            <h1 className="text-3xl font-bold text-gray-800 mb-1">Kəşf Et</h1>
+            <h1 className="text-3xl font-bold text-gray-800 mb-1">Explore</h1>
             <p className="text-gray-600 text-sm">
-              {totalCount > 0 ? `${totalCount} təcrübə tapıldı` : 'Yeni təcrübələr kəşf edin'}
+              {totalCount > 0 ? `${totalCount} experiences found` : 'Discover new experiences'}
             </p>
           </div>
 
@@ -102,7 +102,7 @@ function Explore() {
             </div>
             <input
               type="text"
-              placeholder="İstifadəçi, başlıq, yer və ya etiket axtar..."
+              placeholder="Search users, titles, locations, or tags..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
@@ -266,26 +266,26 @@ function Explore() {
           )}
           {!hasMore && posts.length > 0 && (
             <div className="text-gray-500 text-sm bg-white rounded-lg p-4 inline-block shadow-sm">
-              ✨ Bütün postlar yükləndi
+              ✨ All posts loaded
             </div>
           )}
           {posts.length === 0 && !loading && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 max-w-md mx-auto">
               <div className="text-6xl mb-4">🔍</div>
               <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                {searchQuery ? "Nəticə tapılmadı" : "Heç bir post yoxdur"}
+                {searchQuery ? "No Results Found" : "No Posts Yet"}
               </h3>
               <p className="text-gray-600 mb-6">
                 {searchQuery 
-                  ? "Axtarış sorğunuzu dəyişdirməyi cəhd edin" 
-                  : "İlk paylaşımı siz edin!"}
+                  ? "Try adjusting your search query" 
+                  : "Be the first to share an experience!"}
               </p>
               {!searchQuery && (
                 <a 
                   href="/new-experience" 
                   className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-semibold hover:from-indigo-600 hover:to-purple-600 transition-all duration-300"
                 >
-                  Təcrübənizi Paylaşın
+                  Share Your Experience
                 </a>
               )}
             </div>

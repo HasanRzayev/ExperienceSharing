@@ -30,7 +30,7 @@ function SignUp() {
       navigate('/');
     } else {
       // Xəta mesajını göstər
-      setError(response.error || 'Qeydiyyat zamanı xəta baş verdi');
+      setError(response.error || 'An error occurred during registration');
     }
   };
 
@@ -44,16 +44,16 @@ function SignUp() {
         handleLogin(response.userData || null);
         navigate('/');
       } else {
-        setError(response.error || 'Google ilə qeydiyyat zamanı xəta baş verdi');
+        setError(response.error || 'An error occurred during Google registration');
       }
     } catch (error) {
       console.error('Google signup error:', error);
-      setError('Google ilə qeydiyyat zamanı xəta baş verdi');
+      setError('An error occurred during Google registration');
     }
   };
 
   const handleGoogleError = () => {
-    setError('Google ilə qeydiyyat uğursuz oldu');
+    setError('Google registration failed');
   };
 
   return (
