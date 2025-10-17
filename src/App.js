@@ -6,6 +6,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 // Lazy load all components for better performance
 const Home = lazy(() => import("./pages/Home"));
 const Explore = lazy(() => import("./pages/Explore"));
+const TravelGuide = lazy(() => import("./pages/TravelGuide"));
 const NavbarComponent = lazy(() => import("./components/Navbar"));
 const FooterComponent = lazy(() => import("./components/Footer"));
 const CardAbout = lazy(() => import('./pages/CardAbout'));
@@ -142,6 +143,7 @@ export default function App() {
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/explore" element={<Explore />} />
+                  <Route path="/travel-guide" element={<TravelGuide />} />
                   <Route path="/about/:id" element={<CardAbout />} />
                   <Route path="/card/:id" element={<CardAbout />} />
                   <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />

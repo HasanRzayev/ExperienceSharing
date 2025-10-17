@@ -103,7 +103,7 @@ const NavbarComponent = () => {
                 onClick={() => navigate("/")}
                 className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
-                Axın
+                Feed
               </button>
               <button
                 onClick={() => navigate("/explore")}
@@ -112,19 +112,28 @@ const NavbarComponent = () => {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                Kəşf Et
+                Explore
+              </button>
+              <button
+                onClick={() => navigate("/travel-guide")}
+                className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                AI Guide
               </button>
               <button
                 onClick={() => navigate("/NewExperience")}
                 className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
-                Paylaş
+                Share
               </button>
               <button
                 onClick={() => navigate("/ChatPage")}
                 className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
-                Mesajlar
+                Messages
               </button>
             </div>
           </div>
@@ -266,7 +275,7 @@ const NavbarComponent = () => {
               onClick={() => handleMenuClick("/")}
               className="text-gray-700 hover:text-purple-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
         >
-          Axın
+          Feed
             </button>
             <button
               onClick={() => handleMenuClick("/explore")}
@@ -275,19 +284,28 @@ const NavbarComponent = () => {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              Kəşf Et
+              Explore
+            </button>
+            <button
+              onClick={() => handleMenuClick("/travel-guide")}
+              className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-base font-medium w-full text-left flex items-center gap-2"
+        >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 013.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              AI Guide
             </button>
             <button
               onClick={() => handleMenuClick("/NewExperience")}
               className="text-gray-700 hover:text-purple-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
         >
-          Paylaş
+          Share
             </button>
             <button
               onClick={() => handleMenuClick("/ChatPage")}
               className="text-gray-700 hover:text-purple-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
         >
-          Mesajlar
+          Messages
             </button>
             
             {isLoggedIn ? (
