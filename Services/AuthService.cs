@@ -13,6 +13,7 @@ using ExperienceProject.Data;
 using ExperienceProject.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using BCrypt.Net;
 
 namespace ExperienceProject.Services
@@ -22,11 +23,13 @@ namespace ExperienceProject.Services
         private readonly ApplicationDbContext _context;
         private readonly JwtHelper _jwtHelper;
         private readonly Cloudinary _cloudinary;
+        private readonly IConfiguration _configuration;
 
-        public AuthService(ApplicationDbContext context, JwtHelper jwtHelper)
+        public AuthService(ApplicationDbContext context, JwtHelper jwtHelper, IConfiguration configuration)
         {
             _context = context;
             _jwtHelper = jwtHelper;
+            _configuration = configuration;
 
             Account account = new Account(
                 "dj997ctyw",
@@ -185,16 +188,29 @@ namespace ExperienceProject.Services
         // Email göndərmə funksiyası
         public async Task SendPasswordResetEmailAsync(string toEmail, string resetLink)
         {
-            // SMTP konfiqurasiyası - environment variables-dan oxu
-            var smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? "smtp.gmail.com";
-            var smtpPort = int.Parse(Environment.GetEnvironmentVariable("SMTP_PORT") ?? "587");
-            var smtpUsername = Environment.GetEnvironmentVariable("SMTP_USERNAME");
-            var smtpPassword = Environment.GetEnvironmentVariable("SMTP_PASSWORD");
-            var fromEmail = Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") ?? smtpUsername;
+            // SMTP konfiqurasiyası - əvvəl environment variables, sonra appsettings-dən oxu
+            var smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") 
+                ?? _configuration["EmailSettings:SmtpHost"] 
+                ?? "smtp.gmail.com";
+            
+            var smtpPortStr = Environment.GetEnvironmentVariable("SMTP_PORT") 
+                ?? _configuration["EmailSettings:SmtpPort"]?.ToString() 
+                ?? "587";
+            var smtpPort = int.Parse(smtpPortStr);
+            
+            var smtpUsername = Environment.GetEnvironmentVariable("SMTP_USERNAME") 
+                ?? _configuration["EmailSettings:Username"];
+            
+            var smtpPassword = Environment.GetEnvironmentVariable("SMTP_PASSWORD") 
+                ?? _configuration["EmailSettings:Password"];
+            
+            var fromEmail = Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") 
+                ?? _configuration["EmailSettings:FromEmail"] 
+                ?? smtpUsername;
 
             if (string.IsNullOrEmpty(smtpUsername) || string.IsNullOrEmpty(smtpPassword))
             {
-                throw new Exception("SMTP konfiqurasiyası tapılmadı. SMTP_USERNAME və SMTP_PASSWORD environment variables təyin edin.");
+                throw new Exception("SMTP konfiqurasiyası tapılmadı. Environment variables və ya appsettings.json-da EmailSettings təyin edin.");
             }
 
             var mailMessage = new MailMessage
