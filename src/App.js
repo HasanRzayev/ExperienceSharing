@@ -31,6 +31,23 @@ const AdminComments = lazy(() => import('./pages/admin/AdminComments'));
 const AdminLikes = lazy(() => import('./pages/admin/AdminLikes'));
 const AdminFollows = lazy(() => import('./pages/admin/AdminFollows'));
 
+// Footer Pages
+const AboutUs = lazy(() => import('./pages/footer/AboutUs'));
+const HowItWorks = lazy(() => import('./pages/footer/HowItWorks'));
+const Featured = lazy(() => import('./pages/footer/Featured'));
+const TravelTips = lazy(() => import('./pages/footer/TravelTips'));
+const CommunityGuidelines = lazy(() => import('./pages/footer/CommunityGuidelines'));
+const HelpCenter = lazy(() => import('./pages/footer/HelpCenter'));
+const ContactUs = lazy(() => import('./pages/footer/ContactUs'));
+const ReportIssue = lazy(() => import('./pages/footer/ReportIssue'));
+const FAQ = lazy(() => import('./pages/footer/FAQ'));
+const SafetyTips = lazy(() => import('./pages/footer/SafetyTips'));
+const PrivacyPolicy = lazy(() => import('./pages/footer/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./pages/footer/TermsOfService'));
+const CookiePolicy = lazy(() => import('./pages/footer/CookiePolicy'));
+const ContentPolicy = lazy(() => import('./pages/footer/ContentPolicy'));
+const DMCA = lazy(() => import('./pages/footer/DMCA'));
+
 // Loading component
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
@@ -159,6 +176,23 @@ export default function App() {
                   <Route path="/profile/:userId" element={<UserProfilePage />} />
                   <Route path="/NewExperience" element={<ProtectedRoute isLoggedIn={isLoggedIn}><NewExperience /></ProtectedRoute>} />
                   <Route path="/edit-experience/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn}><NewExperience /></ProtectedRoute>} />
+                  
+                  {/* Footer Pages */}
+                  <Route path="/about" element={<AboutUs />} />
+                  <Route path="/how-it-works" element={<HowItWorks />} />
+                  <Route path="/featured" element={<Featured />} />
+                  <Route path="/travel-tips" element={<TravelTips />} />
+                  <Route path="/guidelines" element={<CommunityGuidelines />} />
+                  <Route path="/help" element={<HelpCenter />} />
+                  <Route path="/contact" element={<ContactUs />} />
+                  <Route path="/report" element={<ReportIssue />} />
+                  <Route path="/faq" element={<FAQ />} />
+                  <Route path="/safety" element={<SafetyTips />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<TermsOfService />} />
+                  <Route path="/cookies" element={<CookiePolicy />} />
+                  <Route path="/content-policy" element={<ContentPolicy />} />
+                  <Route path="/dmca" element={<DMCA />} />
                 </Routes>
                 <FooterComponent />
               </>

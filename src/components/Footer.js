@@ -1,5 +1,6 @@
 import { Footer } from "flowbite-react";
-import { BsDribbble, BsFacebook, BsGithub, BsInstagram, BsTwitter } from "react-icons/bs";
+import { BsGithub, BsLinkedin, BsTelegram } from "react-icons/bs";
+import { Link } from "react-router-dom";
 
 const FooterComponent = () => {
     return (
@@ -20,17 +21,14 @@ const FooterComponent = () => {
                   Connect with travelers worldwide and share your amazing experiences. Discover new places, create lasting memories, and inspire others.
                 </p>
                 <div className="flex space-x-4">
-                  <a href="#" className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors">
-                    <BsFacebook className="w-5 h-5" />
-                  </a>
-                  <a href="#" className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors">
-                    <BsInstagram className="w-5 h-5" />
-                  </a>
-                  <a href="#" className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors">
-                    <BsTwitter className="w-5 h-5" />
-                  </a>
-                  <a href="#" className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors">
+                  <a href="https://github.com/HasanRzayev" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors" title="GitHub">
                     <BsGithub className="w-5 h-5" />
+                  </a>
+                  <a href="https://t.me/hasanrzayev" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors" title="Telegram">
+                    <BsTelegram className="w-5 h-5" />
+                  </a>
+                  <a href="https://www.linkedin.com/in/HasanRzayev/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors" title="LinkedIn">
+                    <BsLinkedin className="w-5 h-5" />
                   </a>
                 </div>
               </div>
@@ -39,11 +37,11 @@ const FooterComponent = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-6">Quick Links</h3>
                 <ul className="space-y-3">
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">About Us</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">How It Works</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Featured Experiences</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Travel Tips</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Community Guidelines</a></li>
+                  <li><Link to="/about" className="text-gray-300 hover:text-white transition-colors">About Us</Link></li>
+                  <li><Link to="/how-it-works" className="text-gray-300 hover:text-white transition-colors">How It Works</Link></li>
+                  <li><Link to="/featured" className="text-gray-300 hover:text-white transition-colors">Featured Experiences</Link></li>
+                  <li><Link to="/travel-tips" className="text-gray-300 hover:text-white transition-colors">Travel Tips</Link></li>
+                  <li><Link to="/guidelines" className="text-gray-300 hover:text-white transition-colors">Community Guidelines</Link></li>
                 </ul>
               </div>
 
@@ -51,11 +49,11 @@ const FooterComponent = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-6">Support</h3>
                 <ul className="space-y-3">
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Help Center</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Contact Us</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Report Issue</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">FAQ</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Safety Tips</a></li>
+                  <li><Link to="/help" className="text-gray-300 hover:text-white transition-colors">Help Center</Link></li>
+                  <li><Link to="/contact" className="text-gray-300 hover:text-white transition-colors">Contact Us</Link></li>
+                  <li><Link to="/report" className="text-gray-300 hover:text-white transition-colors">Report Issue</Link></li>
+                  <li><Link to="/faq" className="text-gray-300 hover:text-white transition-colors">FAQ</Link></li>
+                  <li><Link to="/safety" className="text-gray-300 hover:text-white transition-colors">Safety Tips</Link></li>
                 </ul>
               </div>
 
@@ -63,11 +61,11 @@ const FooterComponent = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-6">Legal</h3>
                 <ul className="space-y-3">
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Terms of Service</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Cookie Policy</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Content Guidelines</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">DMCA</a></li>
+                  <li><Link to="/privacy" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</Link></li>
+                  <li><Link to="/terms" className="text-gray-300 hover:text-white transition-colors">Terms of Service</Link></li>
+                  <li><Link to="/cookies" className="text-gray-300 hover:text-white transition-colors">Cookie Policy</Link></li>
+                  <li><Link to="/content-policy" className="text-gray-300 hover:text-white transition-colors">Content Guidelines</Link></li>
+                  <li><Link to="/dmca" className="text-gray-300 hover:text-white transition-colors">DMCA</Link></li>
                 </ul>
               </div>
             </div>
