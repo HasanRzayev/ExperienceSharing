@@ -44,11 +44,11 @@ function AdminLogin() {
           console.log('Token saved to cookie:', data.token);
           
           // Create admin user object for context (use email from login form)
+          // Note: DB has no role column, admin is identified by email
           const adminUser = {
             id: 'admin',
             userName: 'admin',
             email: email, // Use the email from login form
-            role: 'admin',
             profileImage: 'https://via.placeholder.com/150'
           };
           handleLogin(adminUser);
@@ -102,13 +102,13 @@ function AdminLogin() {
                 </label>
                 <input 
                   type="email" 
-                  placeholder="Admin Email" 
+                  placeholder="admin@wanderly.com" 
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
                   required 
                   className="input-modern w-full" 
                 />
-                <p className="text-xs text-gray-500 mt-1">Enter your admin email address</p>
+                <p className="text-xs text-gray-500 mt-1">Use: admin@wanderly.com</p>
               </div>
               
               <div>

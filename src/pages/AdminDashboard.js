@@ -17,8 +17,8 @@ function AdminDashboard() {
   const { userData, handleLogout } = useAuth();
 
   useEffect(() => {
-    // Check if user is admin (only check role, not email)
-    if (!userData || userData.role !== 'admin') {
+    // Check if user is admin (check email since DB has no role column)
+    if (!userData || userData.email !== 'admin@wanderly.com') {
       navigate('/admin-login');
       return;
     }

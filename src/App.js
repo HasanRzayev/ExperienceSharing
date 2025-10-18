@@ -214,8 +214,8 @@ function AdminRoute({ isLoggedIn, userData, children }) {
     return <Navigate to="/admin-login" replace />;
   }
   
-  // Only check role, not email (works with any admin email from backend)
-  if (!userData || userData.role !== 'admin') {
+  // Check email since DB has no role column
+  if (!userData || userData.email !== 'admin@wanderly.com') {
     return <Navigate to="/admin-login" replace />;
   }
   
