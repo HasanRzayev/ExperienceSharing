@@ -182,7 +182,7 @@ namespace ExperienceProject.Controllers
         [HttpPost("admin-login")]
         public async Task<IActionResult> AdminLogin([FromBody] LoginDto userDto)
         {
-            if (userDto.Email.ToLower() != "admin@admin")
+            if (userDto.Email.ToLower() != "admin@wanderly.com")
             {
                 return Unauthorized("Only admin can log in.");
             }
