@@ -18,7 +18,7 @@ function AdminDashboard() {
 
   useEffect(() => {
     // Check if user is admin
-    if (!userData || (userData.role !== 'admin' && userData.email !== 'admin@admin')) {
+    if (!userData || (userData.role !== 'admin' && userData.email !== 'admin@wanderly.com')) {
       navigate('/admin-login');
       return;
     }
