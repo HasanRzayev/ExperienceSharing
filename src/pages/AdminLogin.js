@@ -108,7 +108,7 @@ function AdminLogin() {
                   required 
                   className="input-modern w-full" 
                 />
-                <p className="text-xs text-gray-500 mt-1">Use admin@wanderly.com to access</p>
+                <p className="text-xs text-gray-500 mt-1">Default: admin@wanderly.com</p>
               </div>
               
               <div>
