@@ -70,6 +70,7 @@ export async function uploadFile(file) {
 const ChatPage = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(""); // Search query state
   
   // Debug: users state-ini yoxla
   useEffect(() => {
@@ -177,18 +178,28 @@ const stopRecording = () => {
 
   // Handle message click - Navigate to experience detail or open media
   const handleMessageClick = (message) => {
-    // If message is experience share type and has experience ID
-    if (message.messageType === 'experience_share' && message.content) {
+    console.log('Message clicked:', message);
+    console.log('Message type:', message.messageType);
+    console.log('Message content:', message.content);
+    
+    // Check if message content has experience URL (works even if messageType is not set)
+    if (message.content) {
       // Extract experience link from content - support both /about/ and /card/ formats
       const experienceMatch = message.content.match(/\/(about|card)\/(\d+)/);
+      console.log('Experience match:', experienceMatch);
+      
       if (experienceMatch) {
         const experienceId = experienceMatch[2];
+        console.log('Navigating to card:', experienceId);
         navigate(`/card/${experienceId}`); // Always navigate to /card/ for consistency
         return;
+      } else {
+        console.log('No URL found in content');
       }
     }
+    
     // If media exists and is image/video, could open modal
-    else if (message.mediaUrl && (message.mediaType === 'image' || message.mediaType === 'video')) {
+    if (message.mediaUrl && (message.mediaType === 'image' || message.mediaType === 'video')) {
       // You can add media modal here
       console.log('Media clicked:', message.mediaUrl);
     }
@@ -605,6 +616,11 @@ const stopRecording = () => {
           setNewMessage(""); // Clear input after sending message
           setFile(null); // Reset file selection
           setFilePreview(null); // Clear file preview
+          
+          // Scroll to bottom after sending message
+          setTimeout(() => {
+            scrollToBottom(true);
+          }, 100);
         } else {
           console.error("❌ Connection not ready:", connection.state);
           alert("Connection problem. Please refresh the page.");
@@ -657,30 +673,70 @@ const [previousMessageCount, setPreviousMessageCount] = useState(0);
 useEffect(() => {
   if (isInitialLoad && messages.length > 0) {
     // First load: scroll to bottom instantly
-    scrollToBottom(false);
+    setTimeout(() => {
+      scrollToBottom(false);
+    }, 100);
     setIsInitialLoad(false);
     setPreviousMessageCount(messages.length);
   } else if (!isInitialLoad && messages.length > previousMessageCount) {
-    // New message: only scroll if user is already near bottom
-    const messageContainer = messagesEndRef.current?.parentElement;
-    if (messageContainer) {
-      const isNearBottom = messageContainer.scrollHeight - messageContainer.scrollTop - messageContainer.clientHeight < 100;
-      if (isNearBottom) {
-        scrollToBottom(true);
-      }
-    }
+    // New message: always scroll to bottom (with smooth animation)
+    setTimeout(() => {
+      scrollToBottom(true);
+    }, 100);
     setPreviousMessageCount(messages.length);
   }
 }, [messages, isInitialLoad, previousMessageCount]);
 
+// Filter users based on search query
+const filteredUsers = users.filter(user => 
+  (user.username?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+  (user.Username?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+  (user.firstName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+  (user.lastName?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+);
+
   return (
     <div className="h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex overflow-hidden">
       {/* SOL PANEL */}
-      <div className="w-1/4 glass m-4 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
-        <div className="p-6 flex-1 overflow-y-auto">
-          <h2 className="text-2xl font-bold mb-6 gradient-text">💬 Chats</h2>
+      <div className="w-1/4 glass m-4 rounded-2xl overflow-hidden shadow-2xl flex flex-col" style={{ height: 'calc(100vh - 2rem)' }}>
+        {/* Header with title */}
+        <div className="p-6 border-b border-white border-opacity-10">
+          <h2 className="text-2xl font-bold mb-4 gradient-text">💬 Chats</h2>
+          
+          {/* Search Input */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-3 pl-10 glass rounded-xl outline-none text-white placeholder-gray-300 focus:shadow-hover transition-smooth"
+            />
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 text-xl">
+              🔍
+            </span>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-white text-xl"
+              >
+                ✖
+              </button>
+            )}
+          </div>
+        </div>
+        
+        {/* Users List - Scrollable */}
+        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
           <div className="space-y-3">
-        {users.map((user, index) => {
+        {filteredUsers.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-300">
+              {searchQuery ? 'No users found' : 'No contacts yet'}
+            </p>
+          </div>
+        ) : (
+          filteredUsers.map((user, index) => {
           console.log('Rendering user:', user);
           return (
           <div
@@ -727,15 +783,16 @@ useEffect(() => {
                 </div>
               </div>
             );
-          })}
+          })
+        )}
           </div>
         </div>
       </div>
 
       {/* SAĞ PANEL */}
-      <div className="w-3/4 glass m-4 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-screen max-h-screen">
+      <div className="w-3/4 glass my-4 mr-4 rounded-2xl overflow-hidden shadow-2xl flex flex-col" style={{ height: 'calc(100vh - 2rem)' }}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 text-center">
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 text-center flex-shrink-0">
           {selectedUser ? (
             <div className="flex items-center justify-center space-x-4">
               <img
@@ -753,8 +810,8 @@ useEffect(() => {
           )}
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-transparent to-gray-900 to-opacity-10">
+        {/* Messages - Scrollable Area */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-transparent to-gray-900 to-opacity-10 custom-scrollbar">
           {userLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
@@ -813,14 +870,14 @@ useEffect(() => {
                           ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white ml-auto" 
                           : "bg-white bg-opacity-20 backdrop-blur-sm text-white mr-auto"
                       } ${
-                        (msg.messageType === 'experience_share' && msg.content?.includes('/about/')) ||
+                        (msg.content?.includes('/about/') || msg.content?.includes('/card/')) ||
                         (msg.mediaUrl && (msg.mediaType === 'image' || msg.mediaType === 'video'))
                           ? "cursor-pointer hover:shadow-xl hover:scale-105" 
                           : ""
                       }`}
                       onClick={() => handleMessageClick(msg)}
                       title={
-                        msg.messageType === 'experience_share' && msg.content?.includes('/about/')
+                        (msg.content?.includes('/about/') || msg.content?.includes('/card/'))
                           ? "Click to view experience"
                           : msg.mediaUrl && (msg.mediaType === 'image' || msg.mediaType === 'video')
                           ? "Click to view media"
@@ -897,7 +954,7 @@ useEffect(() => {
 
         {/* Fayl Preview */}
         {filePreview && (
-          <div className="p-4 bg-gradient-to-r from-gray-800 to-gray-900 border-t border-gray-700">
+          <div className="p-4 bg-gradient-to-r from-gray-800 to-gray-900 border-t border-gray-700 flex-shrink-0">
             <div className="flex items-center space-x-3 p-3 glass rounded-xl">
               <div className="flex-shrink-0">
                 {filePreview.type.startsWith('image/') ? (
@@ -939,7 +996,7 @@ useEffect(() => {
         )}
 
         {/* Send Message */}
-        <div className="p-6 bg-gradient-to-r from-gray-800 to-gray-900 flex items-center space-x-4">
+        <div className="p-6 bg-gradient-to-r from-gray-800 to-gray-900 flex items-center space-x-4 flex-shrink-0">
           {/* Media Upload Button */}
           <div className="relative">
             <button
@@ -1012,18 +1069,18 @@ useEffect(() => {
           </button>
           {showPicker && (
             <div className="absolute bottom-16 right-4 z-20">
-              <div className="glass rounded-xl p-2 shadow-2xl">
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="text-white font-semibold text-sm">Emoji seçin</h4>
-                  <button
-                    onClick={() => setShowPicker(false)}
-                    className="text-gray-400 hover:text-white text-sm"
-                  >
-                    ✖
-                  </button>
-                </div>
-                <EmojiPicker onEmojiClick={handleEmojiClick} />
+            <div className="glass rounded-xl p-2 shadow-2xl">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="text-white font-semibold text-sm">Choose Emoji</h4>
+                <button
+                  onClick={() => setShowPicker(false)}
+                  className="text-gray-400 hover:text-white text-sm"
+                >
+                  ✖
+                </button>
               </div>
+              <EmojiPicker onEmojiClick={handleEmojiClick} />
+            </div>
             </div>
           )}
 
@@ -1087,6 +1144,32 @@ useEffect(() => {
 };
 
 export default ChatPage;
+
+// Add custom scrollbar styles
+const styleSheet = document.createElement("style");
+styleSheet.textContent = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #9333EA 0%, #4F46E5 100%);
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #A855F7 0%, #6366F1 100%);
+  }
+`;
+if (!document.head.querySelector('style[data-scrollbar]')) {
+  styleSheet.setAttribute('data-scrollbar', 'true');
+  document.head.appendChild(styleSheet);
+}
 
 
 

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Cookies from "js-cookie";
-import { FaUsers, FaHeart, FaComment, FaShare, FaPaperPlane, FaSmile, FaMapMarkerAlt, FaCheck } from "react-icons/fa";
+import { FaUsers, FaHeart, FaComment, FaShare, FaPaperPlane, FaSmile, FaMapMarkerAlt, FaCheck, FaWhatsapp, FaInstagram, FaTiktok, FaCopy } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import LikeButton from "../components/LikeButton";
 import EmojiPicker from 'emoji-picker-react';
+import axios from "axios";
 
 function Home() {
   const [posts, setPosts] = useState([]);
@@ -21,7 +22,11 @@ function Home() {
   
   // Share modal state
   const [showShareModal, setShowShareModal] = useState(null);
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [followers, setFollowers] = useState([]);
+  const [selectedFollowers, setSelectedFollowers] = useState([]);
   const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
   
   const apiBaseUrl = useMemo(() => 
     process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api',
@@ -120,6 +125,100 @@ function Home() {
     navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const getShareUrl = () => {
+    if (!showShareModal) return '';
+    return `${window.location.origin}/card/${showShareModal.id}`;
+  };
+
+  const getShareText = () => {
+    if (!showShareModal) return '';
+    return `Check out this amazing experience: "${showShareModal.title}" by ${showShareModal.user?.firstName} ${showShareModal.user?.lastName}`;
+  };
+
+  const handleSocialShare = (platform) => {
+    const url = getShareUrl();
+    const text = getShareText();
+    
+    switch (platform) {
+      case 'whatsapp':
+        window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`, '_blank');
+        break;
+      case 'instagram':
+        window.open(`https://www.instagram.com/`, '_blank');
+        break;
+      case 'tiktok':
+        window.open(`https://www.tiktok.com/`, '_blank');
+        break;
+      case 'copy':
+        copyLink(showShareModal.id);
+        break;
+      case 'native':
+        if (navigator.share) {
+          navigator.share({
+            title: showShareModal.title,
+            text: text,
+            url: url
+          });
+        }
+        break;
+      default:
+        break;
+    }
+  };
+
+  const fetchFollowers = async () => {
+    try {
+      const token = Cookies.get("token");
+      const response = await axios.get(`${apiBaseUrl}/Followers/messaging-contacts`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setFollowers(response.data || []);
+    } catch (error) {
+      console.error('Error fetching followers:', error);
+      setFollowers([]);
+    }
+  };
+
+  const toggleFollower = (followerId) => {
+    setSelectedFollowers((prev) =>
+      prev.includes(followerId)
+        ? prev.filter((id) => id !== followerId)
+        : [...prev, followerId]
+    );
+  };
+
+  const sendToFollowers = async () => {
+    if (selectedFollowers.length === 0) return;
+    
+    setSending(true);
+    try {
+      const token = Cookies.get("token");
+      const url = getShareUrl();
+      const text = getShareText();
+      
+      for (const followerId of selectedFollowers) {
+        await axios.post(`${apiBaseUrl}/Messages`, {
+          receiverId: followerId,
+          content: `${text}\n\n🔗 ${url}`,
+          messageType: 'experience_share'
+        }, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      }
+      
+      alert(`Experience shared with ${selectedFollowers.length} contact(s)!`);
+      setShowFollowersModal(false);
+      setSelectedFollowers([]);
+      setShowShareModal(null);
+    } catch (error) {
+      console.error('Error sending to followers:', error);
+      alert('Error sending messages. Please try again.');
+    } finally {
+      setSending(false);
+    }
   };
 
   useEffect(() => {
@@ -369,56 +468,178 @@ function Home() {
 
       {/* Share Modal */}
       {showShareModal && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={() => setShowShareModal(null)}
-        >
-          <div 
-            className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 transform transition-all"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <FaShare className="text-3xl text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">Share Experience</h3>
-              <p className="text-gray-600">{showShareModal.title}</p>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Share Experience</h3>
+              <p className="text-gray-600 dark:text-gray-300">{showShareModal.title}</p>
             </div>
 
             {/* Share Options */}
-            <div className="space-y-3 mb-6">
-              {/* Copy Link */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {/* Send to Contacts */}
               <button
-                onClick={() => copyLink(showShareModal.id)}
-                className={`w-full flex items-center gap-4 p-4 rounded-xl font-semibold transition-all ${
-                  copied
-                    ? 'bg-green-50 text-green-600 border-2 border-green-300'
-                    : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border-2 border-transparent'
-                }`}
+                onClick={() => {
+                  setShowShareModal(showShareModal);
+                  fetchFollowers();
+                  setShowFollowersModal(true);
+                }}
+                className="flex flex-col items-center p-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg col-span-2"
               >
-                {copied ? <FaCheck className="text-2xl" /> : <FaShare className="text-2xl text-gray-600" />}
-                <span className="flex-1 text-left">{copied ? 'Link Copied!' : 'Copy Link'}</span>
+                <FaUsers className="text-3xl mb-2" />
+                <span className="font-semibold">Send to Contacts</span>
+              </button>
+              
+              {/* WhatsApp */}
+              <button
+                onClick={() => handleSocialShare('whatsapp')}
+                className="flex flex-col items-center p-4 bg-green-500 hover:bg-green-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
+              >
+                <FaWhatsapp className="text-3xl mb-2" />
+                <span className="font-semibold">WhatsApp</span>
               </button>
 
-              {/* WhatsApp */}
-              <a
-                href={`https://wa.me/?text=Check out this amazing experience: ${showShareModal.title} - ${window.location.origin}/card/${showShareModal.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center gap-4 p-4 rounded-xl bg-green-50 hover:bg-green-100 border-2 border-transparent hover:border-green-300 font-semibold text-green-600 transition-all"
+              {/* Instagram */}
+              <button
+                onClick={() => handleSocialShare('instagram')}
+                className="flex flex-col items-center p-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
               >
-                <FaShare className="text-2xl" />
-                <span className="flex-1 text-left">Share on WhatsApp</span>
-              </a>
+                <FaInstagram className="text-3xl mb-2" />
+                <span className="font-semibold">Instagram</span>
+              </button>
+
+              {/* TikTok */}
+              <button
+                onClick={() => handleSocialShare('tiktok')}
+                className="flex flex-col items-center p-4 bg-black hover:bg-gray-800 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
+              >
+                <FaTiktok className="text-3xl mb-2" />
+                <span className="font-semibold">TikTok</span>
+              </button>
+
+              {/* Copy Link */}
+              <button
+                onClick={() => handleSocialShare('copy')}
+                className="flex flex-col items-center p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
+              >
+                {copied ? (
+                  <FaCheck className="text-3xl mb-2" />
+                ) : (
+                  <FaCopy className="text-3xl mb-2" />
+                )}
+                <span className="font-semibold">
+                  {copied ? 'Copied!' : 'Copy Link'}
+                </span>
+              </button>
             </div>
 
-            {/* Close Button */}
+            {/* Native Share (if available) */}
+            {navigator.share && (
+              <button
+                onClick={() => handleSocialShare('native')}
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-4 rounded-2xl font-semibold text-lg transition-all duration-200 hover:scale-105 shadow-lg mb-4"
+              >
+                <FaShare className="inline mr-2" />
+                Share via Device
+              </button>
+            )}
+
+            {/* Cancel Button */}
             <button
               onClick={() => setShowShareModal(null)}
-              className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-bold transition-all"
+              className="w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white py-3 rounded-2xl font-semibold transition-all duration-200"
             >
-              Close
+              Cancel
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Followers Modal */}
+      {showFollowersModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-lg w-full mx-4 shadow-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="text-center mb-4">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Send to Contacts</h3>
+              <p className="text-gray-600 dark:text-gray-300">Select contacts to share this experience with</p>
+            </div>
+
+            {/* Followers List */}
+            <div className="flex-1 overflow-y-auto mb-4">
+              {followers.length > 0 ? (
+                <div className="space-y-3">
+                  {followers.map((follower) => (
+                    <div
+                      key={follower.id}
+                      className={`flex items-center p-3 rounded-xl border-2 transition-all cursor-pointer ${
+                        selectedFollowers.includes(follower.id)
+                          ? 'border-purple-500 bg-purple-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => toggleFollower(follower.id)}
+                    >
+                      <img
+                        src={follower.profileImage || 'https://via.placeholder.com/40'}
+                        alt={follower.username}
+                        className="w-12 h-12 rounded-full object-cover mr-3"
+                      />
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900">
+                          {follower.username}
+                        </p>
+                        {follower.firstName && (
+                          <p className="text-sm text-gray-500">
+                            {follower.firstName} {follower.lastName}
+                          </p>
+                        )}
+                      </div>
+                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                        selectedFollowers.includes(follower.id)
+                          ? 'bg-purple-500 border-purple-500'
+                          : 'border-gray-300'
+                      }`}>
+                        {selectedFollowers.includes(follower.id) && (
+                          <FaCheck className="text-white text-sm" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <FaUsers className="text-4xl text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No contacts found</p>
+                  <p className="text-sm text-gray-400">Start following people or have people follow you to share experiences!</p>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowFollowersModal(false);
+                  setSelectedFollowers([]);
+                }}
+                className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white py-3 rounded-2xl font-semibold transition-all duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={sendToFollowers}
+                disabled={selectedFollowers.length === 0 || sending}
+                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center"
+              >
+                {sending ? (
+                  <span>Sending...</span>
+                ) : (
+                  <>
+                    <FaPaperPlane className="mr-2" />
+                    Send ({selectedFollowers.length})
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
