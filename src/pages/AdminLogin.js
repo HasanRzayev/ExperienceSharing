@@ -47,14 +47,14 @@ function AdminLogin() {
           const adminUser = {
             id: 'admin',
             userName: 'admin',
-            email: 'admin@wanderly.com',
+            email: 'admin@admin',
             role: 'admin',
             profileImage: 'https://via.placeholder.com/150'
           };
           handleLogin(adminUser);
           navigate('/admin');
         } else {
-          alert('Admin access required. Please use admin@wanderly.com email.');
+          alert('Admin access required. Please use admin@admin email.');
         }
       } else {
         let errorMessage = 'Invalid admin credentials';
@@ -102,13 +102,13 @@ function AdminLogin() {
                 </label>
                 <input 
                   type="email" 
-                  placeholder="admin@wanderly.com" 
+                  placeholder="admin@admin" 
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
                   required 
                   className="input-modern w-full" 
                 />
-                <p className="text-xs text-gray-500 mt-1">Default: admin@wanderly.com</p>
+                <p className="text-xs text-gray-500 mt-1">Use: admin@admin</p>
               </div>
               
               <div>
