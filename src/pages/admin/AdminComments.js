@@ -23,7 +23,7 @@ function AdminComments() {
   const pageSize = 1000; // Show ALL comments at once
 
   useEffect(() => {
-    if (!userData || (userData.role !== 'admin' && userData.email !== 'admin@admin')) {
+    if (!userData || userData.email !== 'admin@wanderly.com') {
       navigate('/admin-login');
       return;
     }
