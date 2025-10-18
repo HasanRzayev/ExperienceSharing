@@ -5,7 +5,7 @@ import { useAuth } from '../App';
 import Cookies from 'js-cookie';
 
 function AdminLogin() {
-  const [email, setEmail] = useState('admin@wanderly.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
