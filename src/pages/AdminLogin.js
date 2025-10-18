@@ -5,7 +5,7 @@ import { useAuth } from '../App';
 import Cookies from 'js-cookie';
 
 function AdminLogin() {
-  const [email, setEmail] = useState('admin@admin');
+  const [email, setEmail] = useState('admin@wanderly.com');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -47,14 +47,14 @@ function AdminLogin() {
           const adminUser = {
             id: 'admin',
             userName: 'admin',
-            email: 'admin@admin',
+            email: 'admin@wanderly.com',
             role: 'admin',
             profileImage: 'https://via.placeholder.com/150'
           };
           handleLogin(adminUser);
           navigate('/admin');
         } else {
-          alert('Admin access required. Please use admin@admin email.');
+          alert('Admin access required. Please use admin@wanderly.com email.');
         }
       } else {
         let errorMessage = 'Invalid admin credentials';
@@ -102,13 +102,13 @@ function AdminLogin() {
                 </label>
                 <input 
                   type="email" 
-                  placeholder="admin@admin" 
+                  placeholder="admin@wanderly.com" 
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
                   required 
                   className="input-modern w-full" 
                 />
-                <p className="text-xs text-gray-500 mt-1">Default admin email</p>
+                <p className="text-xs text-gray-500 mt-1">Use admin@wanderly.com to access</p>
               </div>
               
               <div>
