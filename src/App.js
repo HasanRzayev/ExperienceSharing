@@ -32,6 +32,7 @@ const AdminComments = lazy(() => import('./pages/admin/AdminComments'));
 const AdminLikes = lazy(() => import('./pages/admin/AdminLikes'));
 const AdminFollows = lazy(() => import('./pages/admin/AdminFollows'));
 const TripPlanner = lazy(() => import('./pages/TripPlanner'));
+const TripDetail = lazy(() => import('./pages/TripDetail'));
 const Events = lazy(() => import('./pages/Events'));
 
 // Footer Pages
@@ -189,6 +190,7 @@ export default function App() {
                   <Route path="/chatpage" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ChatPage /></ProtectedRoute>} />
                   <Route path="/Profil" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ProfilePage /></ProtectedRoute>} />
                   <Route path="/trip-planner" element={<ProtectedRoute isLoggedIn={isLoggedIn}><TripPlanner /></ProtectedRoute>} />
+                  <Route path="/trip/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn}><TripDetail /></ProtectedRoute>} />
                   <Route path="/events" element={<Events />} />
                   <Route path="/Notification" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Notification /></ProtectedRoute>} />
                   <Route path="/Settings" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Settings /></ProtectedRoute>} />
