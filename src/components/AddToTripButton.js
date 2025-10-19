@@ -53,24 +53,31 @@ const AddToTripButton = ({ experienceId, onClose, renderAsMenuItem = false }) =>
       window.location.href = '/login';
       return;
     }
-    console.log('Opening Add to Trip modal...');
+    console.log('Opening Add to Trip modal...', 'Current showModal:', showModal);
     setShowModal(true);
+    console.log('setShowModal(true) called');
     fetchTrips();
-    // Close parent menu
-    if (onClose) {
-      onClose();
-    }
+    // NOTE: We DON'T call onClose() here because it would unmount this component
+    // The modal click handler should close the parent menu instead
   };
 
   // Render modal using Portal (renders outside component tree)
   const renderModal = () => {
-    if (!showModal) return null;
+    console.log('renderModal called, showModal:', showModal);
+    if (!showModal) {
+      console.log('Modal not showing - showModal is false');
+      return null;
+    }
     
+    console.log('Rendering modal with Portal...');
     const modalJSX = (
       <>
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-[9999]"
-          onClick={() => setShowModal(false)}
+          onClick={() => {
+            setShowModal(false);
+            if (onClose) onClose();
+          }}
         />
         <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
