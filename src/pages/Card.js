@@ -1,6 +1,7 @@
 import React, { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LikeButton from '../components/LikeButton';
+import AddToTripButton from '../components/AddToTripButton';
 import Cookies from 'js-cookie';
 import { useAuth } from '../App';
 
@@ -96,8 +97,9 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
-        {/* Like Button */}
+        {/* Like and Add to Trip Buttons */}
         <div className="absolute top-4 right-4 z-10 flex gap-2">
+          <AddToTripButton experienceId={id} />
           <LikeButton experienceId={id} />
           
           {/* Edit və Delete düymələri - yalnız owner üçün */}
