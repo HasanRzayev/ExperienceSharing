@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent';
 
 // Check if API key is available
 const MOCK_MODE = !GEMINI_API_KEY || GEMINI_API_KEY === 'AIzaSyDyBjXiCHfap6Q6P3gFUeDjwKDxbZhMGSk' || GEMINI_API_KEY === 'your_gemini_api_key_here';
