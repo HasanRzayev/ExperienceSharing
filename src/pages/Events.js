@@ -5,9 +5,10 @@ import Cookies from 'js-cookie';
 
 const Events = () => {
   const [events, setEvents] = useState([]);
+  const [allEvents, setAllEvents] = useState([]); // Store all events
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [filter, setFilter] = useState('all'); // all, going, interested
+  const [filter, setFilter] = useState('all'); // all, going, interested, my
   const [showAllEvents, setShowAllEvents] = useState(false); // Toggle for debugging
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -32,6 +33,10 @@ const Events = () => {
     fetchEvents();
   }, [showAllEvents]);
 
+  useEffect(() => {
+    applyFilter();
+  }, [filter, allEvents]);
+
   const fetchEvents = async () => {
     try {
       setLoading(true);
@@ -53,7 +58,9 @@ const Events = () => {
       console.log('Events data:', eventsData);
       console.log('Events array length:', eventsData.length);
       
-      setEvents(Array.isArray(eventsData) ? eventsData : []);
+      const eventsArray = Array.isArray(eventsData) ? eventsData : [];
+      setAllEvents(eventsArray);
+      setEvents(eventsArray);
     } catch (error) {
       console.error('❌ Error fetching events:', error);
       console.error('❌ Error response:', error.response?.data);
@@ -65,7 +72,50 @@ const Events = () => {
     }
   };
 
-  const handleRSVP = async (eventId, status) => {
+  const applyFilter = () => {
+    const userId = getUserIdFromToken();
+    
+    if (filter === 'all') {
+      setEvents(allEvents);
+    } else if (filter === 'going') {
+      const filtered = allEvents.filter(event => 
+        event.attendees?.some(a => a.userId === parseInt(userId) && a.status === 'Going')
+      );
+      setEvents(filtered);
+    } else if (filter === 'interested') {
+      const filtered = allEvents.filter(event => 
+        event.attendees?.some(a => a.userId === parseInt(userId) && a.status === 'Interested')
+      );
+      setEvents(filtered);
+    } else if (filter === 'my') {
+      const filtered = allEvents.filter(event => 
+        event.createdByUserId === parseInt(userId)
+      );
+      setEvents(filtered);
+    }
+  };
+
+  const getUserIdFromToken = () => {
+    try {
+      const token = Cookies.get("token");
+      if (!token) return null;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || payload.sub;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const getMyRSVP = (event) => {
+    const userId = getUserIdFromToken();
+    if (!userId || !event.attendees) return null;
+    const myAttendance = event.attendees.find(a => a.userId === parseInt(userId));
+    return myAttendance?.status || null;
+  };
+
+  const handleRSVP = async (eventId, status, e) => {
+    if (e) e.stopPropagation();
+    
     try {
       if (!token) {
         navigate('/login');
@@ -164,27 +214,60 @@ const Events = () => {
             )}
           </div>
           
-          {/* Toggle for upcoming/all events */}
-          <div className="flex gap-3 items-center">
+          {/* Filter Tabs */}
+          <div className="flex flex-wrap gap-3 items-center">
             <button
-              onClick={() => setShowAllEvents(false)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                !showAllEvents 
-                  ? 'bg-purple-600 text-white' 
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+              onClick={() => setFilter('all')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                filter === 'all' 
+                  ? 'bg-purple-600 text-white shadow-lg' 
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
               }`}
             >
-              Upcoming Events
+              All Events
             </button>
+            
+            {token && (
+              <>
+                <button
+                  onClick={() => setFilter('going')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                    filter === 'going' 
+                      ? 'bg-green-500 text-white shadow-lg' 
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
+                  }`}
+                >
+                  <span>✓</span> Going
+                </button>
+                <button
+                  onClick={() => setFilter('interested')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                    filter === 'interested' 
+                      ? 'bg-yellow-500 text-white shadow-lg' 
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
+                  }`}
+                >
+                  <span>?</span> Interested
+                </button>
+                <button
+                  onClick={() => setFilter('my')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                    filter === 'my' 
+                      ? 'bg-blue-500 text-white shadow-lg' 
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
+                  }`}
+                >
+                  <span>👑</span> My Events
+                </button>
+              </>
+            )}
+            
+            {/* Debug toggle */}
             <button
-              onClick={() => setShowAllEvents(true)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                showAllEvents 
-                  ? 'bg-purple-600 text-white' 
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-              }`}
+              onClick={() => setShowAllEvents(!showAllEvents)}
+              className="ml-auto px-3 py-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
             >
-              All Events ({events.length})
+              {showAllEvents ? 'All Time' : 'Upcoming Only'}
             </button>
           </div>
         </div>
@@ -193,7 +276,8 @@ const Events = () => {
           {events.map((event) => (
             <div
               key={event.id}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all"
+              onClick={() => navigate(`/event/${event.id}`)}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all cursor-pointer group"
             >
               <div className="h-48 bg-gradient-to-br from-purple-400 to-blue-500 relative">
                 {event.coverImage && (
@@ -240,18 +324,46 @@ const Events = () => {
                 </div>
 
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => handleRSVP(event.id, 'Going')}
-                    className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors text-sm"
-                  >
-                    Going
-                  </button>
-                  <button
-                    onClick={() => handleRSVP(event.id, 'Interested')}
-                    className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm"
-                  >
-                    Interested
-                  </button>
+                  {token ? (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRSVP(event.id, 'Going', e);
+                        }}
+                        className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                          getMyRSVP(event) === 'Going'
+                            ? 'bg-green-500 text-white shadow-lg scale-105'
+                            : 'bg-purple-600 text-white hover:bg-purple-700'
+                        }`}
+                      >
+                        {getMyRSVP(event) === 'Going' ? '✓ Going' : 'Going'}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRSVP(event.id, 'Interested', e);
+                        }}
+                        className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                          getMyRSVP(event) === 'Interested'
+                            ? 'bg-yellow-500 text-white shadow-lg scale-105'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        {getMyRSVP(event) === 'Interested' ? '✓ Interested' : 'Interested'}
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate('/login');
+                      }}
+                      className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors text-sm"
+                    >
+                      Login to RSVP
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
