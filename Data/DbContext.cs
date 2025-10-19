@@ -146,6 +146,84 @@ namespace ExperienceProject.Data
                 .WithMany(u => u.Notifications)
                 .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // ExperienceCollaborator relationships (fix cascade delete conflict)
+            modelBuilder.Entity<ExperienceCollaborator>()
+                .HasOne(ec => ec.Experience)
+                .WithMany()
+                .HasForeignKey(ec => ec.ExperienceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ExperienceCollaborator>()
+                .HasOne(ec => ec.User)
+                .WithMany()
+                .HasForeignKey(ec => ec.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // EventAttendees relationships (fix cascade delete conflict)
+            modelBuilder.Entity<EventAttendee>()
+                .HasOne(ea => ea.Event)
+                .WithMany(e => e.Attendees)
+                .HasForeignKey(ea => ea.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<EventAttendee>()
+                .HasOne(ea => ea.User)
+                .WithMany()
+                .HasForeignKey(ea => ea.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // GroupMembers relationships (fix cascade delete conflict)
+            modelBuilder.Entity<GroupMember>()
+                .HasOne(gm => gm.GroupChat)
+                .WithMany(gc => gc.Members)
+                .HasForeignKey(gm => gm.GroupChatId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<GroupMember>()
+                .HasOne(gm => gm.User)
+                .WithMany()
+                .HasForeignKey(gm => gm.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // GroupMessages relationships (fix cascade delete conflict)
+            modelBuilder.Entity<GroupMessage>()
+                .HasOne(gm => gm.GroupChat)
+                .WithMany(gc => gc.Messages)
+                .HasForeignKey(gm => gm.GroupChatId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<GroupMessage>()
+                .HasOne(gm => gm.Sender)
+                .WithMany()
+                .HasForeignKey(gm => gm.SenderId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // TripCollaborator relationships (fix cascade delete conflict)
+            modelBuilder.Entity<TripCollaborator>()
+                .HasOne(tc => tc.Trip)
+                .WithMany(t => t.TripCollaborators)
+                .HasForeignKey(tc => tc.TripId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TripCollaborator>()
+                .HasOne(tc => tc.User)
+                .WithMany()
+                .HasForeignKey(tc => tc.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // TripExperiences relationships (fix cascade delete conflict)
+            modelBuilder.Entity<TripExperience>()
+                .HasOne(te => te.Trip)
+                .WithMany(t => t.TripExperiences)
+                .HasForeignKey(te => te.TripId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TripExperience>()
+                .HasOne(te => te.Experience)
+                .WithMany()
+                .HasForeignKey(te => te.ExperienceId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
 
         }
