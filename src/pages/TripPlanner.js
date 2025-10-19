@@ -46,9 +46,21 @@ const TripPlanner = () => {
     e.preventDefault();
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
-      await axios.post(`${apiBaseUrl}/Trip`, newTrip, {
-        headers: { Authorization: `Bearer ${token}` }
+      
+      // Format dates to ISO string
+      const tripData = {
+        ...newTrip,
+        startDate: new Date(newTrip.startDate).toISOString(),
+        endDate: new Date(newTrip.endDate).toISOString()
+      };
+      
+      await axios.post(`${apiBaseUrl}/Trip`, tripData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
+      
       setShowCreateModal(false);
       setNewTrip({
         title: '',
@@ -60,9 +72,12 @@ const TripPlanner = () => {
         currency: 'USD'
       });
       fetchTrips();
+      
+      alert('Trip created successfully!');
     } catch (error) {
       console.error('Error creating trip:', error);
-      alert('Failed to create trip');
+      console.error('Error details:', error.response?.data);
+      alert('Failed to create trip: ' + (error.response?.data?.title || 'Please check all fields'));
     }
   };
 
