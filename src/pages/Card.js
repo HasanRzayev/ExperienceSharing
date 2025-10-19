@@ -98,7 +98,7 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
         {/* Like and Add to Trip Buttons */}
-        <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <div className="absolute top-4 right-4 z-20 flex gap-2">
           <AddToTripButton experienceId={id} />
           <LikeButton experienceId={id} />
           

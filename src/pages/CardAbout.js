@@ -437,16 +437,17 @@ const CardAbout = () => {
       </div>
 
       {/* Şəkil Karuseli */}
-          <div className="relative h-64 sm:h-80 xl:h-96 2xl:h-[32rem]">
+          <div className="relative h-64 sm:h-80 xl:h-96 2xl:h-[32rem] bg-gray-900">
             <Carousel className="rounded-none">
           {post.imageUrls && post.imageUrls.length > 0 ? (
             post.imageUrls.map((image, index) => (
-              <img
-                key={index}
-                    className="w-full h-full object-cover"
-                src={image.url}
-                alt={`Slide ${index}`}
-              />
+              <div key={index} className="flex items-center justify-center w-full h-full bg-gray-900">
+                <img
+                      className="max-w-full max-h-full object-contain"
+                  src={image.url}
+                  alt={`Slide ${index}`}
+                />
+              </div>
             ))
           ) : (
                 <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">

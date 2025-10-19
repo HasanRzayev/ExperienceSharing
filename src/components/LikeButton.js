@@ -41,11 +41,20 @@ const LikeButton = ({ experienceId }) => {
       
       // Dynamic import of Swal to reduce initial bundle size
       const { default: Swal } = await import('sweetalert2');
-      Swal.fire(
-        liked ? 'Unliked!' : 'Liked!',
-        liked ? 'You have successfully unliked this experience.' : 'You have successfully liked this experience.',
-        'success'
-      );
+      Swal.fire({
+        title: liked ? 'Bəyənmə geri alındı!' : 'Bəyənildi!',
+        text: liked ? 'Bu təcrübəni artıq bəyənmirsiniz.' : 'Bu təcrübəni bəyəndiniz!',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false,
+        background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+        color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
+        customClass: {
+          popup: 'rounded-2xl shadow-2xl',
+          title: 'text-lg font-bold',
+          htmlContainer: 'text-sm'
+        }
+      });
     } catch (error) {
       console.error('Error liking/unliking experience:', error);
     }
