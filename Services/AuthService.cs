@@ -104,6 +104,20 @@ namespace ExperienceProject.Services
     await _context.SaveChangesAsync();
 
     var token = _jwtHelper.GenerateJwtToken(user.Id, user.Email);
+    
+    // Welcome email göndər (async olaraq, registration-a təsir etməsin)
+    _ = Task.Run(async () =>
+    {
+        try
+        {
+            await SendWelcomeEmailAsync(email, firstName, lastName);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Welcome email error: {ex.Message}");
+        }
+    });
+    
     return (true, token, "Kayıt başarılı.");
 }
 
@@ -270,6 +284,134 @@ namespace ExperienceProject.Services
             }
         }
 
+        // Welcome Email göndərmə funksiyası
+        public async Task SendWelcomeEmailAsync(string toEmail, string firstName, string lastName)
+        {
+            // SMTP konfiqurasiyası
+            var smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") 
+                ?? _configuration["EmailSettings:SmtpHost"] 
+                ?? "smtp.gmail.com";
+            
+            var smtpPortStr = Environment.GetEnvironmentVariable("SMTP_PORT") 
+                ?? _configuration["EmailSettings:SmtpPort"]?.ToString() 
+                ?? "587";
+            var smtpPort = int.Parse(smtpPortStr);
+            
+            var smtpUsername = Environment.GetEnvironmentVariable("SMTP_USERNAME") 
+                ?? _configuration["EmailSettings:Username"];
+            
+            var smtpPassword = Environment.GetEnvironmentVariable("SMTP_PASSWORD") 
+                ?? _configuration["EmailSettings:Password"];
+            
+            var fromEmail = Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") 
+                ?? _configuration["EmailSettings:FromEmail"] 
+                ?? smtpUsername;
+
+            if (string.IsNullOrEmpty(smtpUsername) || string.IsNullOrEmpty(smtpPassword))
+            {
+                // SMTP konfiqurasiyası tapılmadıqda xəta atmaq əvəzinə sadəcə log yazırıq
+                Console.WriteLine("SMTP konfiqurasiyası tapılmadı. Welcome email göndərilmədi.");
+                return;
+            }
+
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress(fromEmail, "Experience Sharing"),
+                Subject = "Welcome to Experience Sharing! 🎉",
+                Body = $@"
+                    <html>
+                    <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 0;'>
+                        <div style='max-width: 600px; margin: 40px auto; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
+                            <!-- Header with gradient -->
+                            <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center;'>
+                                <h1 style='color: white; margin: 0; font-size: 32px;'>
+                                    Welcome to Experience Sharing! 🌍
+                                </h1>
+                            </div>
+                            
+                            <!-- Content -->
+                            <div style='padding: 40px 30px;'>
+                                <h2 style='color: #7C3AED; margin-top: 0;'>
+                                    Hello {firstName} {lastName}! 👋
+                                </h2>
+                                
+                                <p style='font-size: 16px; color: #555;'>
+                                    Thank you for joining our community! We're excited to have you here.
+                                </p>
+                                
+                                <p style='font-size: 16px; color: #555;'>
+                                    Experience Sharing is a platform where you can share your travel experiences, 
+                                    discover new places, and connect with fellow travelers from around the world.
+                                </p>
+                                
+                                <!-- Features -->
+                                <div style='background: #f8f9fa; border-left: 4px solid #7C3AED; padding: 20px; margin: 30px 0; border-radius: 8px;'>
+                                    <h3 style='color: #7C3AED; margin-top: 0;'>What you can do:</h3>
+                                    <ul style='color: #555; padding-left: 20px;'>
+                                        <li style='margin: 10px 0;'>📸 Share your travel experiences with photos and stories</li>
+                                        <li style='margin: 10px 0;'>🗺️ Discover new destinations recommended by AI</li>
+                                        <li style='margin: 10px 0;'>💬 Connect with other travelers and share tips</li>
+                                        <li style='margin: 10px 0;'>❤️ Like and comment on experiences</li>
+                                        <li style='margin: 10px 0;'>🌟 Follow travelers and stay updated</li>
+                                    </ul>
+                                </div>
+                                
+                                <!-- CTA Button -->
+                                <div style='text-align: center; margin: 40px 0;'>
+                                    <a href='https://experience-sharing.vercel.app' 
+                                       style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                              color: white; 
+                                              padding: 15px 40px; 
+                                              text-decoration: none; 
+                                              border-radius: 8px; 
+                                              font-weight: bold;
+                                              font-size: 16px;
+                                              display: inline-block;
+                                              box-shadow: 0 4px 6px rgba(102, 126, 234, 0.4);'>
+                                        Start Exploring 🚀
+                                    </a>
+                                </div>
+                                
+                                <p style='color: #666; font-size: 14px; text-align: center;'>
+                                    Have questions? Feel free to reach out to us anytime!
+                                </p>
+                            </div>
+                            
+                            <!-- Footer -->
+                            <div style='background: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #eee;'>
+                                <p style='color: #999; font-size: 12px; margin: 5px 0;'>
+                                    © 2025 Experience Sharing. All rights reserved.
+                                </p>
+                                <p style='color: #999; font-size: 12px; margin: 5px 0;'>
+                                    📧 wanderly.project@gmail.com
+                                </p>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                ",
+                IsBodyHtml = true
+            };
+
+            mailMessage.To.Add(toEmail);
+
+            try
+            {
+                using (var smtpClient = new SmtpClient(smtpHost, smtpPort))
+                {
+                    smtpClient.EnableSsl = true;
+                    smtpClient.Credentials = new NetworkCredential(smtpUsername, smtpPassword);
+                    await smtpClient.SendMailAsync(mailMessage);
+                    Console.WriteLine($"Welcome email sent successfully to {toEmail}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Welcome email göndərmə xətası: {ex.Message}");
+                // Xəta olsa da registration-a mane olmayaq
+            }
+        }
+
         // Google OAuth Login
         public async Task<(bool success, string token, string message)> GoogleLoginAsync(string googleToken)
         {
@@ -303,6 +445,19 @@ namespace ExperienceProject.Services
 
                     _context.Users.Add(user);
                     await _context.SaveChangesAsync();
+                    
+                    // Welcome email göndər (yeni istifadəçi üçün)
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await SendWelcomeEmailAsync(user.Email, user.FirstName, user.LastName);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Welcome email error: {ex.Message}");
+                        }
+                    });
                 }
                 else
                 {

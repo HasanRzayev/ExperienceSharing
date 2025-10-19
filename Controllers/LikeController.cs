@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ExperienceProject.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Like")]
     [ApiController]
     public class LikesController : ControllerBase
     {
@@ -88,6 +88,44 @@ namespace ExperienceProject.Controllers
 
             var isLiked = await _context.Likes.AnyAsync(l => l.UserId == userId.Value && l.ExperienceId == id);
             return Ok(new { isLiked });
+        }
+
+        [HttpGet("user/{userId}/liked-experiences")]
+        public async Task<IActionResult> GetUserLikedExperiences(int userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+        {
+            try
+            {
+                Console.WriteLine($"Fetching liked experiences for user {userId}, page {page}, pageSize {pageSize}");
+                
+                var likedExperiences = await _context.Likes
+                    .Where(l => l.UserId == userId)
+                    .Include(l => l.Experience)
+                        .ThenInclude(e => e.User)
+                    .Include(l => l.Experience)
+                        .ThenInclude(e => e.ImageUrls)
+                    .OrderByDescending(l => l.Id)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(l => l.Experience)
+                    .ToListAsync();
+
+                var totalCount = await _context.Likes.CountAsync(l => l.UserId == userId);
+
+                Console.WriteLine($"Found {likedExperiences.Count} liked experiences for user {userId}");
+
+                return Ok(new
+                {
+                    experiences = likedExperiences,
+                    totalCount,
+                    totalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+                    currentPage = page
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching liked experiences: {ex.Message}");
+                return StatusCode(500, new { message = "Failed to fetch liked experiences", details = ex.Message });
+            }
         }
 
         private int? GetUserIdFromToken()

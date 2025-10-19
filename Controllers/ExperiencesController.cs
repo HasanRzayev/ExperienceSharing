@@ -740,6 +740,129 @@ public async Task<ActionResult<ExperienceModel>> PostExperienceWithCook([FromFor
             });
         }
 
+        // Get user's draft experiences
+        [HttpGet("drafts")]
+        public async Task<IActionResult> GetDrafts()
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "User ID not found in token" });
+                }
+
+                var drafts = await _context.Experiences
+                    .Where(e => e.UserId == userId.Value && e.IsDraft == true)
+                    .Include(e => e.ImageUrls)
+                    .OrderByDescending(e => e.Date)
+                    .ToListAsync();
+
+                return Ok(drafts);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching drafts: {ex.Message}");
+                return StatusCode(500, new { error = "Failed to fetch drafts" });
+            }
+        }
+
+        // Save as draft
+        [HttpPost("save-draft")]
+        public async Task<IActionResult> SaveDraft([FromForm] ExperienceProject.Dto.CreateExperienceDto dto)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "User ID not found in token" });
+                }
+
+                var experience = new ExperienceModel
+                {
+                    Title = dto.Title ?? "Untitled Draft",
+                    Description = dto.Description ?? "",
+                    Location = dto.Location ?? "",
+                    Rating = dto.Rating,
+                    Date = DateTime.UtcNow,
+                    UserId = userId.Value,
+                    IsDraft = true,
+                    ScheduledPublishDate = dto.ScheduledPublishDate
+                };
+
+                _context.Experiences.Add(experience);
+                await _context.SaveChangesAsync();
+
+                // Upload images if provided
+                if (dto.Images != null && dto.Images.Count > 0)
+                {
+                    foreach (var image in dto.Images)
+                    {
+                        var uploadParams = new ImageUploadParams
+                        {
+                            File = new FileDescription(image.FileName, image.OpenReadStream()),
+                            Folder = "experiences"
+                        };
+
+                        var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+                        var experienceImage = new ExperienceImage
+                        {
+                            Url = uploadResult.SecureUrl.ToString(),
+                            ExperienceId = experience.Id
+                        };
+
+                        _context.ExperienceImages.Add(experienceImage);
+                    }
+                    await _context.SaveChangesAsync();
+                }
+
+                return Ok(experience);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving draft: {ex.Message}");
+                return StatusCode(500, new { error = "Failed to save draft" });
+            }
+        }
+
+        // Publish draft
+        [HttpPost("{id}/publish")]
+        public async Task<IActionResult> PublishDraft(int id)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "User ID not found in token" });
+                }
+
+                var experience = await _context.Experiences.FindAsync(id);
+                if (experience == null)
+                {
+                    return NotFound(new { error = "Experience not found" });
+                }
+
+                if (experience.UserId != userId.Value)
+                {
+                    return Forbid();
+                }
+
+                experience.IsDraft = false;
+                experience.Date = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                return Ok(experience);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error publishing draft: {ex.Message}");
+                return StatusCode(500, new { error = "Failed to publish draft" });
+            }
+        }
+
         private bool ExperienceExists(int id)
         {
             return _context.Experiences.Any(e => e.Id == id);

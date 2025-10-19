@@ -13,10 +13,14 @@ namespace ExperienceProject.Models
         public string Description { get; set; }
         public string Location { get; set; }
         public List<ExperienceImage>? ImageUrls { get; set; }
+        public string? VideoUrl { get; set; } // For video experiences
+        public string? VideoThumbnail { get; set; } // Video thumbnail
         public int UserId { get; set; }
         public User? User { get; set; }
         public DateTime Date { get; set; }
         public double Rating { get; set; } = 0;
+        public bool IsDraft { get; set; } = false; // For draft experiences
+        public DateTime? ScheduledPublishDate { get; set; } // For scheduled posts
 
         public ICollection<ExperienceTag> ExperienceTags { get; set; }
 

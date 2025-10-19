@@ -25,7 +25,17 @@ namespace ExperienceProject.Data
 
         public DbSet<ExperienceTag> ExperienceTags { get; set; } // Eklenen DbSet
         public DbSet<Comment> Comments { get; set; }
-        public DbSet<CommentReaction> CommentReactions { get; set; } // 🔹 Yeni əlavə  
+        public DbSet<CommentReaction> CommentReactions { get; set; } // 🔹 Yeni əlavə
+        public DbSet<Trip> Trips { get; set; } // Trip Planner
+        public DbSet<TripExperience> TripExperiences { get; set; }
+        public DbSet<TripCollaborator> TripCollaborators { get; set; }
+        public DbSet<GroupChat> GroupChats { get; set; } // Group Chats
+        public DbSet<GroupMember> GroupMembers { get; set; }
+        public DbSet<GroupMessage> GroupMessages { get; set; }
+        public DbSet<MessageReaction> MessageReactions { get; set; }
+        public DbSet<ExperienceCollaborator> ExperienceCollaborators { get; set; } // Collaborative Experiences
+        public DbSet<Event> Events { get; set; } // Events & Meetups
+        public DbSet<EventAttendee> EventAttendees { get; set; }  
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -11,6 +11,11 @@ public class ExperienceDto
         public DateTime Date { get; set; }
         public List<IFormFile>? Images  { get; set; }   
         public List<string>? Tags { get; set; } // Change from string to List<string>
-
-
+        public double Rating { get; set; }
+        public DateTime? ScheduledPublishDate { get; set; } // For scheduled posts
     }
+
+// Alias for CreateExperienceDto
+public class CreateExperienceDto : ExperienceDto
+{
+}
