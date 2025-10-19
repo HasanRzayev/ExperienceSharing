@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const AddToTripButton = ({ experienceId }) => {
+const AddToTripButton = ({ experienceId, onClose, renderAsMenuItem = false }) => {
   const [showModal, setShowModal] = useState(false);
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -54,8 +54,31 @@ const AddToTripButton = ({ experienceId }) => {
     }
     setShowModal(true);
     fetchTrips();
+    if (onClose) onClose();
   };
 
+  // Render as menu item
+  if (renderAsMenuItem) {
+    return (
+      <>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            openModal();
+          }}
+          className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-3 text-gray-700 dark:text-gray-300"
+        >
+          <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span className="font-medium">Add to Trip</span>
+        </button>
+        {renderModal()}
+      </>
+    );
+  }
+
+  // Render as floating button
   return (
     <>
       <button
@@ -70,9 +93,12 @@ const AddToTripButton = ({ experienceId }) => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
       </button>
-
-      {/* Modal */}
-      {showModal && (
+      {renderModal()}
+    </>
+  );
+  
+  function renderModal() {
+    return showModal ? (
         <>
           <div 
             className="fixed inset-0 bg-black bg-opacity-50 z-50"
@@ -144,9 +170,8 @@ const AddToTripButton = ({ experienceId }) => {
             </div>
           </div>
         </>
-      )}
-    </>
-  );
+    ) : null;
+  }
 };
 
 export default AddToTripButton;

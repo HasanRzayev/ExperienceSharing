@@ -3,7 +3,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import '../CSS/LikeButton.css';
 
-const LikeButton = ({ experienceId }) => {
+const LikeButton = ({ experienceId, onClose, renderAsMenuItem = false }) => {
   const [liked, setLiked] = useState(false);
   const token = Cookies.get('token');
 
@@ -39,6 +39,8 @@ const LikeButton = ({ experienceId }) => {
       );
       setLiked(!liked);
       
+      if (onClose) onClose();
+      
       // Dynamic import of Swal to reduce initial bundle size
       const { default: Swal } = await import('sweetalert2');
       Swal.fire({
@@ -60,6 +62,25 @@ const LikeButton = ({ experienceId }) => {
     }
   };
 
+  // Render as menu item
+  if (renderAsMenuItem) {
+    return (
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          handleLike();
+        }}
+        className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-3 text-gray-700 dark:text-gray-300"
+      >
+        <svg className="w-5 h-5 text-red-500" fill={liked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+        <span className="font-medium">{liked ? 'Unlike' : 'Like'}</span>
+      </button>
+    );
+  }
+
+  // Render as animated heart button
   return (
     <div className="like-container" onClick={handleLike}>
       <svg
