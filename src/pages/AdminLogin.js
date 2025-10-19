@@ -51,6 +51,11 @@ function AdminLogin() {
             email: email, // Use the email from login form
             profileImage: 'https://via.placeholder.com/150'
           };
+          
+          // IMPORTANT: Save admin userData to cookie so it persists across page reloads
+          Cookies.set('userData', JSON.stringify(adminUser), { expires: 7 });
+          console.log('Admin userData saved to cookie:', adminUser);
+          
           handleLogin(adminUser);
           navigate('/admin');
         } else {

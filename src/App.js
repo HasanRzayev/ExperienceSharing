@@ -75,10 +75,24 @@ export default function App() {
 
   useEffect(() => {
     const token = Cookies.get("token");
+    const userDataCookie = Cookies.get("userData");
     setIsLoggedIn(!!token);
     
-    // If token exists, fetch user data
-    if (token) {
+    // If userData exists in cookie (for admin), use it directly
+    if (userDataCookie) {
+      try {
+        const parsedUserData = JSON.parse(userDataCookie);
+        setUserData(parsedUserData);
+        console.log('Loaded userData from cookie:', parsedUserData);
+      } catch (error) {
+        console.error('Error parsing userData cookie:', error);
+        // If parsing fails, fetch from API
+        if (token) {
+          fetchUserData();
+        }
+      }
+    } else if (token) {
+      // If no userData cookie but token exists, fetch user data from API
       fetchUserData();
     }
   }, []);
@@ -113,6 +127,7 @@ export default function App() {
 
   const handleLogout = () => {
     Cookies.remove("token");
+    Cookies.remove("userData"); // Also remove userData cookie
     setIsLoggedIn(false);
     setUserData(null);
     // Dispatch custom event to notify other components
