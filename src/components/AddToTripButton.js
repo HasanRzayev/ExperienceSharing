@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
@@ -53,89 +54,94 @@ const AddToTripButton = ({ experienceId, onClose, renderAsMenuItem = false }) =>
       return;
     }
     console.log('Opening Add to Trip modal...');
-    // First close the parent menu
-    if (onClose) onClose();
-    // Then open modal after a short delay
-    setTimeout(() => {
-      setShowModal(true);
-      fetchTrips();
-    }, 50);
+    setShowModal(true);
+    fetchTrips();
+    // Close parent menu
+    if (onClose) {
+      onClose();
+    }
   };
 
-  // Modal JSX
-  const modalContent = showModal ? (
-        <>
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-[9999]"
-            onClick={() => setShowModal(false)}
-          />
-          <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-gray-800 dark:text-white">Add to Trip</h2>
-                  <button
-                    onClick={() => setShowModal(false)}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div className="p-6">
-                {loading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-                  </div>
-                ) : trips.length > 0 ? (
-                  <div className="space-y-3">
-                    {trips.map((trip) => (
-                      <button
-                        key={trip.id}
-                        onClick={() => handleAddToTrip(trip.id)}
-                        className="w-full text-left p-4 bg-gray-50 dark:bg-gray-700 hover:bg-purple-50 dark:hover:bg-gray-600 rounded-xl transition-colors border-2 border-transparent hover:border-purple-300"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold">
-                            ✈️
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-800 dark:text-white">{trip.title}</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{trip.destination}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                              {trip.tripExperiences?.length || 0} experiences
-                            </p>
-                          </div>
-                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="text-5xl mb-3">✈️</div>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">No trips yet</p>
-                    <button
-                      onClick={() => {
-                        setShowModal(false);
-                        window.location.href = '/trip-planner';
-                      }}
-                      className="btn-primary text-sm"
-                    >
-                      Create Your First Trip
-                    </button>
-                  </div>
-                )}
+  // Render modal using Portal (renders outside component tree)
+  const renderModal = () => {
+    if (!showModal) return null;
+    
+    const modalJSX = (
+      <>
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-[9999]"
+          onClick={() => setShowModal(false)}
+        />
+        <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-white">Add to Trip</h2>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
             </div>
+
+            <div className="p-6">
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                </div>
+              ) : trips.length > 0 ? (
+                <div className="space-y-3">
+                  {trips.map((trip) => (
+                    <button
+                      key={trip.id}
+                      onClick={() => handleAddToTrip(trip.id)}
+                      className="w-full text-left p-4 bg-gray-50 dark:bg-gray-700 hover:bg-purple-50 dark:hover:bg-gray-600 rounded-xl transition-colors border-2 border-transparent hover:border-purple-300"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold">
+                          ✈️
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-800 dark:text-white">{trip.title}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{trip.destination}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                            {trip.tripExperiences?.length || 0} experiences
+                          </p>
+                        </div>
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-5xl mb-3">✈️</div>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">No trips yet</p>
+                  <button
+                    onClick={() => {
+                      setShowModal(false);
+                      window.location.href = '/trip-planner';
+                    }}
+                    className="btn-primary text-sm"
+                  >
+                    Create Your First Trip
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </>
-  ) : null;
+        </div>
+      </>
+    );
+    
+    return ReactDOM.createPortal(modalJSX, document.body);
+  };
 
   // Render as menu item
   if (renderAsMenuItem) {
@@ -153,7 +159,7 @@ const AddToTripButton = ({ experienceId, onClose, renderAsMenuItem = false }) =>
           </svg>
           <span className="font-medium">Add to Trip</span>
         </button>
-        {modalContent}
+        {renderModal()}
       </>
     );
   }
@@ -173,7 +179,7 @@ const AddToTripButton = ({ experienceId, onClose, renderAsMenuItem = false }) =>
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
       </button>
-      {modalContent}
+      {renderModal()}
     </>
   );
 };
