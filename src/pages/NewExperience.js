@@ -113,6 +113,55 @@ const NewExperience = () => {
     }
   }, [id]);
 
+  const handleSaveDraft = async () => {
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const token = Cookies.get("token");
+      const formData = new FormData();
+      formData.append("Title", title.trim() || "Untitled Draft");
+      formData.append("Description", description.trim() || "");
+      formData.append("Location", location.trim() || "");
+      formData.append("Date", date.trim() || new Date().toISOString());
+      formData.append("Rating", "0");
+      
+      tags.filter(tag => tag.trim()).forEach((tag) => {
+        formData.append("Tags", tag.trim());
+      });
+    
+      images.forEach((image) => {
+        formData.append("Images", image);
+      });
+    
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      await axios.post(`${apiBaseUrl}/Experiences/save-draft`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      swal({
+        title: "Draft Saved!",
+        text: "Your experience has been saved as a draft",
+        icon: "success",
+        timer: 2000,
+        button: false
+      });
+
+      clearForm();
+      setTimeout(() => {
+        navigate("/Profil");
+      }, 2000);
+    } catch (error) {
+      console.error("Error saving draft:", error);
+      setError("Failed to save draft. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
   
@@ -549,6 +598,17 @@ const NewExperience = () => {
                 disabled={isLoading}
               >
                 Clear Form
+              </button>
+              <button 
+                type="button" 
+                onClick={handleSaveDraft}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isLoading}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                💾 Save Draft
               </button>
               <button 
                 type="submit" 
