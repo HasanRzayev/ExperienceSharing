@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Cookies from "js-cookie";
 import React, { useState, useEffect, createContext, useContext, lazy, Suspense } from "react";
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Lazy load all components for better performance
 const Home = lazy(() => import("./pages/Home"));
@@ -30,6 +31,8 @@ const AdminTags = lazy(() => import('./pages/admin/AdminTags'));
 const AdminComments = lazy(() => import('./pages/admin/AdminComments'));
 const AdminLikes = lazy(() => import('./pages/admin/AdminLikes'));
 const AdminFollows = lazy(() => import('./pages/admin/AdminFollows'));
+const TripPlanner = lazy(() => import('./pages/TripPlanner'));
+const Events = lazy(() => import('./pages/Events'));
 
 // Footer Pages
 const AboutUs = lazy(() => import('./pages/footer/AboutUs'));
@@ -147,10 +150,11 @@ export default function App() {
   const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || "680043772059-av648urt1kjqrqucf47q43tm908egorb.apps.googleusercontent.com";
 
   return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <AuthContext.Provider value={authValue}>
-        <Router>
-        <Suspense fallback={<LoadingSpinner />}>
+    <ThemeProvider>
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <AuthContext.Provider value={authValue}>
+          <Router>
+          <Suspense fallback={<LoadingSpinner />}>
           <Routes>
             {/* Admin Routes - No Navbar/Footer */}
             <Route path="/admin-login" element={<AdminLogin />} />
@@ -184,6 +188,8 @@ export default function App() {
                   <Route path="/reset-password" element={isLoggedIn ? <Navigate to="/" /> : <ResetPassword />} />
                   <Route path="/chatpage" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ChatPage /></ProtectedRoute>} />
                   <Route path="/Profil" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ProfilePage /></ProtectedRoute>} />
+                  <Route path="/trip-planner" element={<ProtectedRoute isLoggedIn={isLoggedIn}><TripPlanner /></ProtectedRoute>} />
+                  <Route path="/events" element={<Events />} />
                   <Route path="/Notification" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Notification /></ProtectedRoute>} />
                   <Route path="/Settings" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Settings /></ProtectedRoute>} />
                   <Route path="/Follow" element={<ProtectedRoute isLoggedIn={isLoggedIn}><FollowersPage /></ProtectedRoute>} />
@@ -217,6 +223,7 @@ export default function App() {
         </Router>
       </AuthContext.Provider>
     </GoogleOAuthProvider>
+    </ThemeProvider>
   );
 }
 
