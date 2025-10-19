@@ -28,12 +28,24 @@ const Events = () => {
     try {
       setLoading(true);
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      console.log('Fetching events from:', `${apiBaseUrl}/Event/upcoming`);
+      
       const response = await axios.get(`${apiBaseUrl}/Event/upcoming`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
-      setEvents(response.data.events || []);
+      
+      console.log('Events response:', response.data);
+      
+      // Backend-dən gələn data structure-u yoxlayaq
+      const eventsData = response.data.events || response.data || [];
+      console.log('Events data:', eventsData);
+      
+      setEvents(Array.isArray(eventsData) ? eventsData : []);
     } catch (error) {
       console.error('Error fetching events:', error);
+      console.error('Error response:', error.response?.data);
+      // Don't show error to user, just show empty state
+      setEvents([]);
     } finally {
       setLoading(false);
     }
@@ -72,13 +84,18 @@ const Events = () => {
         eventDate: new Date(newEvent.eventDate).toISOString()
       };
 
-      await axios.post(`${apiBaseUrl}/Event`, eventData, {
+      console.log('Creating event:', eventData);
+      
+      const response = await axios.post(`${apiBaseUrl}/Event`, eventData, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
+      
+      console.log('Event created:', response.data);
 
+      // Close modal and reset form
       setShowCreateModal(false);
       setNewEvent({
         title: '',
@@ -89,11 +106,15 @@ const Events = () => {
         price: 0,
         currency: 'USD'
       });
-      fetchEvents();
-      alert('✅ Event created successfully!');
+      
+      // Refresh events list
+      await fetchEvents();
+      
+      alert('✅ Event yaradıldı! İndi events list-də görünməlidir.');
     } catch (error) {
       console.error('Error creating event:', error);
-      alert('❌ Failed to create event');
+      console.error('Error details:', error.response?.data);
+      alert('❌ Event yaradıla bilmədi: ' + (error.response?.data?.message || error.message));
     }
   };
 
