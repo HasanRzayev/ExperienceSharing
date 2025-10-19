@@ -53,6 +53,23 @@ const TripDetail = () => {
     }
   };
 
+  const handleRemoveExperience = async (tripExperienceId) => {
+    if (!window.confirm('Remove this experience from trip?')) {
+      return;
+    }
+
+    try {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      await axios.delete(`${apiBaseUrl}/Trip/${id}/experiences/${tripExperienceId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchTrip(); // Refresh trip data
+    } catch (error) {
+      console.error('Error removing experience:', error);
+      alert('Failed to remove experience');
+    }
+  };
+
   const getStatusBadge = (status) => {
     const badges = {
       Planning: 'bg-yellow-100 text-yellow-800',
@@ -176,8 +193,7 @@ const TripDetail = () => {
               {trip.tripExperiences.map((te, index) => (
                 <div
                   key={te.id}
-                  onClick={() => navigate(`/card/${te.experience?.id}`)}
-                  className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                  className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors group"
                 >
                   <div className="w-12 h-12 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">
                     {index + 1}
@@ -189,13 +205,28 @@ const TripDetail = () => {
                       className="w-20 h-20 object-cover rounded-lg"
                     />
                   )}
-                  <div className="flex-1">
+                  <div 
+                    className="flex-1 cursor-pointer"
+                    onClick={() => navigate(`/about/${te.experience?.id}`)}
+                  >
                     <h3 className="font-bold text-gray-800 dark:text-white">{te.experience?.title}</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">{te.experience?.location}</p>
                     {te.notes && (
                       <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">📝 {te.notes}</p>
                     )}
                   </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveExperience(te.id);
+                    }}
+                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                    title="Remove from trip"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
               ))}
             </div>
