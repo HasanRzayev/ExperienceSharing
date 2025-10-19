@@ -53,22 +53,23 @@ const AddToTripButton = ({ experienceId, onClose, renderAsMenuItem = false }) =>
       return;
     }
     console.log('Opening Add to Trip modal...');
-    setShowModal(true);
-    fetchTrips();
-    // Close parent menu after a short delay to allow modal to render
+    // First close the parent menu
+    if (onClose) onClose();
+    // Then open modal after a short delay
     setTimeout(() => {
-      if (onClose) onClose();
-    }, 100);
+      setShowModal(true);
+      fetchTrips();
+    }, 50);
   };
 
   // Modal JSX
   const modalContent = showModal ? (
         <>
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-50"
+            className="fixed inset-0 bg-black bg-opacity-50 z-[9999]"
             onClick={() => setShowModal(false)}
           />
-          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4">
             <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
