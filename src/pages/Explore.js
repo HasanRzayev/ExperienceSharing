@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { FaSearch, FaFire, FaClock, FaStar, FaHeart, FaComment, FaMapMarkerAlt } from "react-icons/fa";
 import Cookies from "js-cookie";
+import AddToTripButton from "../components/AddToTripButton";
+import LikeButton from "../components/LikeButton";
 
 function Explore() {
   const [posts, setPosts] = useState([]);
@@ -10,6 +12,7 @@ function Explore() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("newest");
   const [totalCount, setTotalCount] = useState(0);
+  const [showOptionsMenu, setShowOptionsMenu] = useState({});
   const loadingRef = useRef(null);
   
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
@@ -155,6 +158,51 @@ function Explore() {
                       alt={post.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
+                    
+                    {/* 3 Dots Menu */}
+                    <div className="absolute top-4 right-4 z-20">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowOptionsMenu(prev => ({ ...prev, [post.id]: !prev[post.id] }));
+                        }}
+                        className="bg-white dark:bg-gray-800 bg-opacity-90 hover:bg-opacity-100 p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+                        title="More options"
+                      >
+                        <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                        </svg>
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      {showOptionsMenu[post.id] && (
+                        <>
+                          <div 
+                            className="fixed inset-0 z-30" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowOptionsMenu(prev => ({ ...prev, [post.id]: false }));
+                            }}
+                          />
+                          <div className="absolute top-12 right-0 z-40 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-2 min-w-[200px]">
+                            {/* Add to Trip */}
+                            <AddToTripButton 
+                              experienceId={post.id} 
+                              onClose={() => setShowOptionsMenu(prev => ({ ...prev, [post.id]: false }))}
+                              renderAsMenuItem={true}
+                            />
+
+                            {/* Like */}
+                            <LikeButton 
+                              experienceId={post.id}
+                              onClose={() => setShowOptionsMenu(prev => ({ ...prev, [post.id]: false }))}
+                              renderAsMenuItem={true}
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    
                     {/* Overlay on Hover */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <div className="absolute bottom-4 left-4 right-4 text-white">

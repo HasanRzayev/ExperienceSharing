@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 import { FaUsers, FaHeart, FaComment, FaShare, FaPaperPlane, FaSmile, FaMapMarkerAlt, FaCheck, FaWhatsapp, FaInstagram, FaTiktok, FaCopy } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import LikeButton from "../components/LikeButton";
+import AddToTripButton from "../components/AddToTripButton";
 import EmojiPicker from 'emoji-picker-react';
 import axios from "axios";
 
@@ -27,6 +28,9 @@ function Home() {
   const [selectedFollowers, setSelectedFollowers] = useState([]);
   const [copied, setCopied] = useState(false);
   const [sending, setSending] = useState(false);
+  
+  // Options menu state (3 dots)
+  const [showOptionsMenu, setShowOptionsMenu] = useState({});
   
   const apiBaseUrl = useMemo(() => 
     process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api',
@@ -292,16 +296,61 @@ function Home() {
                 {/* Post Image */}
                 {post.imageUrls?.length > 0 && (
                   <div 
-                    className="relative h-96 bg-gray-100 cursor-pointer group"
-                    onClick={() => navigate(`/card/${post.id}`)}
+                    className="relative h-96 bg-gray-100 group"
                   >
                     <img
                       src={post.imageUrls[0]?.url}
                       alt={post.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
+                      onClick={() => navigate(`/card/${post.id}`)}
                     />
+                    
+                    {/* 3 Dots Menu */}
+                    <div className="absolute top-4 right-4 z-20">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowOptionsMenu(prev => ({ ...prev, [post.id]: !prev[post.id] }));
+                        }}
+                        className="bg-white dark:bg-gray-800 bg-opacity-90 hover:bg-opacity-100 p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+                        title="More options"
+                      >
+                        <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                        </svg>
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      {showOptionsMenu[post.id] && (
+                        <>
+                          <div 
+                            className="fixed inset-0 z-30" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowOptionsMenu(prev => ({ ...prev, [post.id]: false }));
+                            }}
+                          />
+                          <div className="absolute top-12 right-0 z-40 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-2 min-w-[200px]">
+                            {/* Add to Trip */}
+                            <AddToTripButton 
+                              experienceId={post.id} 
+                              onClose={() => setShowOptionsMenu(prev => ({ ...prev, [post.id]: false }))}
+                              renderAsMenuItem={true}
+                            />
+
+                            {/* Like */}
+                            <LikeButton 
+                              experienceId={post.id}
+                              onClose={() => setShowOptionsMenu(prev => ({ ...prev, [post.id]: false }))}
+                              renderAsMenuItem={true}
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    
                     {post.imageUrls.length > 1 && (
-                      <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                      <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-semibold">
                         1/{post.imageUrls.length}
                       </div>
                     )}
