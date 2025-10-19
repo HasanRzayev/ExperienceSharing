@@ -90,10 +90,10 @@ const ProfilePage = () => {
       });
       
       console.log("✅ Liked experiences response:", response.data);
-      console.log("📊 Data:", response.data.data);
+      console.log("📊 Experiences:", response.data.experiences);
       console.log("📈 Total count:", response.data.totalCount);
       
-      setLikedExperiences(response.data.data || []);
+      setLikedExperiences(response.data.experiences || []);
     } catch (error) {
       console.error("❌ Error fetching liked experiences:", error);
       console.error("❌ Error response:", error.response?.data);
