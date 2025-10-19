@@ -8,6 +8,7 @@ const Events = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filter, setFilter] = useState('all'); // all, going, interested
+  const [showAllEvents, setShowAllEvents] = useState(false); // Toggle for debugging
   const [newEvent, setNewEvent] = useState({
     title: '',
     description: '',
@@ -19,31 +20,44 @@ const Events = () => {
   });
   const token = Cookies.get('token');
   const navigate = useNavigate();
+  
+  // Get minimum date (now + 1 hour)
+  const getMinDate = () => {
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+    return now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:mm
+  };
 
   useEffect(() => {
     fetchEvents();
-  }, []);
+  }, [showAllEvents]);
 
   const fetchEvents = async () => {
     try {
       setLoading(true);
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
-      console.log('Fetching events from:', `${apiBaseUrl}/Event/upcoming`);
+      const endpoint = showAllEvents ? 'all' : 'upcoming';
+      const url = `${apiBaseUrl}/Event/${endpoint}`;
       
-      const response = await axios.get(`${apiBaseUrl}/Event/upcoming`, {
+      console.log('Fetching events from:', url);
+      
+      const response = await axios.get(url, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
       
       console.log('Events response:', response.data);
+      console.log('Events count:', response.data.totalCount);
       
       // Backend-dən gələn data structure-u yoxlayaq
       const eventsData = response.data.events || response.data || [];
       console.log('Events data:', eventsData);
+      console.log('Events array length:', eventsData.length);
       
       setEvents(Array.isArray(eventsData) ? eventsData : []);
     } catch (error) {
-      console.error('Error fetching events:', error);
-      console.error('Error response:', error.response?.data);
+      console.error('❌ Error fetching events:', error);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
       // Don't show error to user, just show empty state
       setEvents([]);
     } finally {
@@ -129,24 +143,50 @@ const Events = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-              🎫 Events & Meetups
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">Discover and join travel events</p>
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
+                🎫 Events & Meetups
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">Discover and join travel events</p>
+            </div>
+            {token && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2 shadow-lg"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Create Event
+              </button>
+            )}
           </div>
-          {token && (
+          
+          {/* Toggle for upcoming/all events */}
+          <div className="flex gap-3 items-center">
             <button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2 shadow-lg"
+              onClick={() => setShowAllEvents(false)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                !showAllEvents 
+                  ? 'bg-purple-600 text-white' 
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+              }`}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Create Event
+              Upcoming Events
             </button>
-          )}
+            <button
+              onClick={() => setShowAllEvents(true)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                showAllEvents 
+                  ? 'bg-purple-600 text-white' 
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              All Events ({events.length})
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -303,10 +343,14 @@ const Events = () => {
                     <input
                       type="datetime-local"
                       required
+                      min={getMinDate()}
                       value={newEvent.eventDate}
                       onChange={(e) => setNewEvent({ ...newEvent, eventDate: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                     />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Event must be at least 1 hour from now
+                    </p>
                   </div>
                 </div>
 
