@@ -52,53 +52,17 @@ const AddToTripButton = ({ experienceId, onClose, renderAsMenuItem = false }) =>
       window.location.href = '/login';
       return;
     }
+    console.log('Opening Add to Trip modal...');
     setShowModal(true);
     fetchTrips();
-    if (onClose) onClose();
+    // Close parent menu after a short delay to allow modal to render
+    setTimeout(() => {
+      if (onClose) onClose();
+    }, 100);
   };
 
-  // Render as menu item
-  if (renderAsMenuItem) {
-    return (
-      <>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            openModal();
-          }}
-          className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-3 text-gray-700 dark:text-gray-300"
-        >
-          <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span className="font-medium">Add to Trip</span>
-        </button>
-        {renderModal()}
-      </>
-    );
-  }
-
-  // Render as floating button
-  return (
-    <>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          openModal();
-        }}
-        className="bg-white dark:bg-gray-800 bg-opacity-90 hover:bg-opacity-100 p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-purple-200 dark:border-purple-700 hover:border-purple-400 dark:hover:border-purple-500 z-10"
-        title="Add to Trip"
-      >
-        <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-      </button>
-      {renderModal()}
-    </>
-  );
-  
-  function renderModal() {
-    return showModal ? (
+  // Modal JSX
+  const modalContent = showModal ? (
         <>
           <div 
             className="fixed inset-0 bg-black bg-opacity-50 z-50"
@@ -170,8 +134,47 @@ const AddToTripButton = ({ experienceId, onClose, renderAsMenuItem = false }) =>
             </div>
           </div>
         </>
-    ) : null;
+  ) : null;
+
+  // Render as menu item
+  if (renderAsMenuItem) {
+    return (
+      <>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            openModal();
+          }}
+          className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-3 text-gray-700 dark:text-gray-300"
+        >
+          <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span className="font-medium">Add to Trip</span>
+        </button>
+        {modalContent}
+      </>
+    );
   }
+
+  // Render as floating button
+  return (
+    <>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          openModal();
+        }}
+        className="bg-white dark:bg-gray-800 bg-opacity-90 hover:bg-opacity-100 p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-purple-200 dark:border-purple-700 hover:border-purple-400 dark:hover:border-purple-500 z-10"
+        title="Add to Trip"
+      >
+        <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        </svg>
+      </button>
+      {modalContent}
+    </>
+  );
 };
 
 export default AddToTripButton;
