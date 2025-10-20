@@ -4,6 +4,8 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+// Ensure axios interceptors are registered once at app startup
+import './services/axiosSetup';
 
 // Set API base URL for .NET backend
 if (!process.env.REACT_APP_API_BASE_URL) {
