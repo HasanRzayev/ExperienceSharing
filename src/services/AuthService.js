@@ -24,6 +24,21 @@ const register = async (firstName, lastName, email, password, country, profileIm
     });
 
     if (response.data.token) {
+      console.log('✅ Registration successful - Setting token cookie');
+      console.log('Token:', response.data.token.substring(0, 20) + '...');
+      
+      // Cookie-ni set et (domain və SameSite ayarları ilə)
+      Cookies.set('token', response.data.token, { 
+        expires: 1, // 1 gün
+        path: '/',
+        sameSite: 'Lax',
+        secure: window.location.protocol === 'https:'
+      });
+      
+      // Verify cookie was set
+      const verifyToken = Cookies.get('token');
+      console.log('✅ Cookie verification:', verifyToken ? 'SUCCESS' : 'FAILED');
+      
       swal({
         title: "Success!",
         text: "Kayıt başarılı",
@@ -31,7 +46,6 @@ const register = async (firstName, lastName, email, password, country, profileIm
         timer: 3000,
         button: false
       });
-      Cookies.set('token', response.data.token, { expires: 1 }); // 1 gün süreyle saklar
     }
     
     // Create userData object for context
@@ -62,6 +76,21 @@ const login = async (email, password) => {
     });
 
     if (response.data.token) {
+      console.log('✅ Login successful - Setting token cookie');
+      console.log('Token:', response.data.token.substring(0, 20) + '...');
+      
+      // Cookie-ni set et (domain və SameSite ayarları ilə)
+      Cookies.set('token', response.data.token, { 
+        expires: 1, // 1 gün
+        path: '/',
+        sameSite: 'Lax',
+        secure: window.location.protocol === 'https:'
+      });
+      
+      // Verify cookie was set
+      const verifyToken = Cookies.get('token');
+      console.log('✅ Cookie verification:', verifyToken ? 'SUCCESS' : 'FAILED');
+      
       swal({
         title: "Success!",
         text: "Giriş başarılı",
@@ -69,7 +98,6 @@ const login = async (email, password) => {
         timer: 3000,
         button: false
       });
-      Cookies.set('token', response.data.token, { expires: 1 }); // 1 gün süreyle saklar
     }
 
     // For login, we'll fetch user data from the API
@@ -92,6 +120,21 @@ const googleLogin = async (googleToken) => {
     });
 
     if (response.data.token) {
+      console.log('✅ Google login successful - Setting token cookie');
+      console.log('Token:', response.data.token.substring(0, 20) + '...');
+      
+      // Cookie-ni set et (domain və SameSite ayarları ilə)
+      Cookies.set('token', response.data.token, { 
+        expires: 1, // 1 gün
+        path: '/',
+        sameSite: 'Lax',
+        secure: window.location.protocol === 'https:'
+      });
+      
+      // Verify cookie was set
+      const verifyToken = Cookies.get('token');
+      console.log('✅ Cookie verification:', verifyToken ? 'SUCCESS' : 'FAILED');
+      
       swal({
         title: "Success!",
         text: "Google ilə giriş uğurlu oldu!",
@@ -99,7 +142,6 @@ const googleLogin = async (googleToken) => {
         timer: 3000,
         button: false
       });
-      Cookies.set('token', response.data.token, { expires: 1 });
     }
 
     return { success: true, ...response.data };
