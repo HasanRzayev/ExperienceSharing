@@ -17,8 +17,11 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
   const checkIfSaved = async () => {
     // Əgər token yoxdursa, sadəcə return et - error göstərmə
     if (!token) {
+      console.log('⚠️ SaveButton - No token found');
       return;
     }
+
+    console.log('🔍 SaveButton - Checking saved status with token:', token ? token.substring(0, 30) + '...' : 'null');
 
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
@@ -30,13 +33,20 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
         }
       );
       
+      console.log('📥 SaveButton - Response status:', response.status);
+      
       if (response.status === 200) {
+        console.log('✅ SaveButton - Check successful:', response.data);
         setIsSaved(response.data.isSaved);
+      } else if (response.status === 401) {
+        console.log('🔒 SaveButton - Token invalid or expired');
+        setIsSaved(false);
       } else {
+        console.log('⚠️ SaveButton - Unexpected status:', response.status);
         setIsSaved(false);
       }
     } catch (error) {
-      // Bütün error-ları silent ignore et
+      console.log('❌ SaveButton - Network error:', error.message);
       setIsSaved(false);
     }
   };
