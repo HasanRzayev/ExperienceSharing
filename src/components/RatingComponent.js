@@ -31,7 +31,11 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('🔍 RatingComponent - Token:', token ? 'EXISTS' : 'MISSING');
+    console.log('🔍 RatingComponent - Token value:', token);
+    
     if (!token) {
+      console.log('❌ RatingComponent - No token found, redirecting to login');
       window.location.href = '/login';
       return;
     }
@@ -44,6 +48,8 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
     setSubmitting(true);
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      console.log('🔍 RatingComponent - API URL:', `${apiBaseUrl}/Rating/experience/${experienceId}`);
+      
       await axios.post(
         `${apiBaseUrl}/Rating/experience/${experienceId}`,
         {

@@ -16,7 +16,17 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
 
   const checkIfSaved = async () => {
     try {
+      console.log('🔍 SaveButton - Token:', token ? 'EXISTS' : 'MISSING');
+      console.log('🔍 SaveButton - Token value:', token);
+      
+      if (!token) {
+        console.log('❌ SaveButton - No token found, skipping check');
+        return;
+      }
+
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      console.log('🔍 SaveButton - API URL:', `${apiBaseUrl}/SavedExperience/check/${experienceId}`);
+      
       const response = await axios.get(
         `${apiBaseUrl}/SavedExperience/check/${experienceId}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -24,6 +34,7 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
       setIsSaved(response.data.isSaved);
     } catch (error) {
       console.error('Error checking saved status:', error);
+      console.error('Error response:', error.response?.data);
     }
   };
 
