@@ -31,27 +31,20 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    console.log('🔍 RatingComponent - HandleSubmit called');
-    console.log('🔍 RatingComponent - Token:', token ? 'EXISTS' : 'MISSING');
-    console.log('🔍 RatingComponent - Token value:', token);
-    console.log('🔍 RatingComponent - All cookies:', document.cookie);
-    
     if (!token) {
-      console.log('❌ RatingComponent - No token found, showing login modal');
-      alert('Please log in to submit ratings.');
+      alert('🔒 Please log in to submit ratings.\n\nClick OK to go to the login page.');
       window.location.href = '/login';
       return;
     }
 
     if (ratings.overall === 0) {
-      alert('Please provide an overall rating');
+      alert('⭐ Please provide an overall rating');
       return;
     }
 
     setSubmitting(true);
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
-      console.log('🔍 RatingComponent - API URL:', `${apiBaseUrl}/Rating/experience/${experienceId}`);
       
       await axios.post(
         `${apiBaseUrl}/Rating/experience/${experienceId}`,
@@ -81,17 +74,13 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
       });
       setReview('');
     } catch (error) {
-      console.error('Rating error:', error);
-      console.error('Rating error response:', error.response?.data);
-      console.error('Rating error status:', error.response?.status);
-      
       if (error.response?.status === 401) {
-        alert('❌ Authentication failed. Please log in again.');
+        alert('🔒 Your session has expired. Please log in again.\n\nClick OK to go to the login page.');
         window.location.href = '/login';
       } else if (error.response?.data?.message?.includes('already')) {
-        alert('You have already rated this experience');
+        alert('✅ You have already rated this experience');
       } else {
-        alert('An error occurred. Please try again.');
+        alert('❌ An error occurred. Please try again.');
       }
     } finally {
       setSubmitting(false);

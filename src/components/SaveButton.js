@@ -8,61 +8,44 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
   const [loading, setLoading] = useState(false);
   const token = Cookies.get('token');
 
-  // Debug token on component mount
-  useEffect(() => {
-    console.log('🔍 SaveButton - Component mounted');
-    console.log('🔍 SaveButton - Token from cookies:', token);
-    console.log('🔍 SaveButton - All cookies:', document.cookie);
-    console.log('🔍 SaveButton - Experience ID:', experienceId);
-  }, []);
-
   useEffect(() => {
     if (token) {
-      console.log('🔍 SaveButton - Token exists, checking saved status');
       checkIfSaved();
-    } else {
-      console.log('❌ SaveButton - No token found, skipping check');
     }
   }, [experienceId, token]);
 
   const checkIfSaved = async () => {
-    try {
-      console.log('🔍 SaveButton - Token:', token ? 'EXISTS' : 'MISSING');
-      console.log('🔍 SaveButton - Token value:', token);
-      
-      if (!token) {
-        console.log('❌ SaveButton - No token found, skipping check');
-        return;
-      }
+    // Əgər token yoxdursa, sadəcə return et - error göstərmə
+    if (!token) {
+      return;
+    }
 
+    try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
-      console.log('🔍 SaveButton - API URL:', `${apiBaseUrl}/SavedExperience/check/${experienceId}`);
-      
       const response = await axios.get(
         `${apiBaseUrl}/SavedExperience/check/${experienceId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setIsSaved(response.data.isSaved);
     } catch (error) {
-      console.error('Error checking saved status:', error);
-      console.error('Error response:', error.response?.data);
+      // Token səhv və ya expired-dirsə, sadəcə ignore et
+      if (error.response?.status === 401) {
+        setIsSaved(false);
+      }
     }
   };
 
   const handleSave = async (e) => {
     if (e) e.stopPropagation();
     
-    console.log('🔍 SaveButton - HandleSave called');
-    console.log('🔍 SaveButton - Current token:', token);
-    console.log('🔍 SaveButton - Token exists?', !!token);
-    
     if (!token) {
-      console.log('❌ SaveButton - No token, redirecting to login');
       Swal.fire({
-        title: 'Login Required!',
+        title: '🔒 Login Required',
         text: 'Please log in to save experiences.',
-        icon: 'warning',
+        icon: 'info',
         confirmButtonText: 'Go to Login',
+        showCancelButton: true,
+        cancelButtonText: 'Cancel',
         background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
         color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827'
       }).then((result) => {
@@ -116,18 +99,16 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
         setIsSaved(true);
       }
     } catch (error) {
-      console.error('Error toggling save:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      
       if (error.response?.status === 401) {
         Swal.fire({
-          title: 'Authentication Error!',
+          title: '🔒 Session Expired',
           text: 'Your session has expired. Please log in again.',
-          icon: 'error',
+          icon: 'warning',
           background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
           color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
-          confirmButtonText: 'Go to Login'
+          confirmButtonText: 'Go to Login',
+          showCancelButton: true,
+          cancelButtonText: 'Cancel'
         }).then((result) => {
           if (result.isConfirmed) {
             window.location.href = '/login';
@@ -135,7 +116,7 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
         });
       } else {
         Swal.fire({
-          title: 'Error!',
+          title: '❌ Error',
           text: 'An error occurred. Please try again.',
           icon: 'error',
           background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
