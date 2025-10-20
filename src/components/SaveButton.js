@@ -58,8 +58,8 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
         );
         
         Swal.fire({
-          title: 'Saxlamadan silindi!',
-          text: 'Bu təcrübə artıq saxlanmış siyahınızda deyil.',
+          title: 'Unsaved!',
+          text: 'This experience has been removed from your saved list.',
           icon: 'info',
           timer: 1500,
           showConfirmButton: false,
@@ -77,8 +77,8 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
         );
         
         Swal.fire({
-          title: 'Saxlanıldı! 📌',
-          text: 'Bu təcrübə saxlanmış siyahınıza əlavə edildi.',
+          title: 'Saved! 📌',
+          text: 'This experience has been added to your saved list.',
           icon: 'success',
           timer: 1500,
           showConfirmButton: false,
@@ -90,13 +90,31 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
       }
     } catch (error) {
       console.error('Error toggling save:', error);
-      Swal.fire({
-        title: 'Xəta!',
-        text: 'Bir problem yarandı. Yenidən cəhd edin.',
-        icon: 'error',
-        background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-        color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827'
-      });
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      if (error.response?.status === 401) {
+        Swal.fire({
+          title: 'Authentication Error!',
+          text: 'Your session has expired. Please log in again.',
+          icon: 'error',
+          background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+          color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
+          confirmButtonText: 'Go to Login'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = '/login';
+          }
+        });
+      } else {
+        Swal.fire({
+          title: 'Error!',
+          text: 'An error occurred. Please try again.',
+          icon: 'error',
+          background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+          color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827'
+        });
+      }
     } finally {
       setLoading(false);
     }

@@ -16,12 +16,12 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
   const token = Cookies.get('token');
 
   const ratingCategories = [
-    { key: 'overall', label: 'Ümumi', icon: '⭐', required: true },
-    { key: 'location', label: 'Məkan', icon: '📍' },
-    { key: 'value', label: 'Dəyər', icon: '💰' },
-    { key: 'service', label: 'Xidmət', icon: '👨‍💼' },
-    { key: 'cleanliness', label: 'Təmizlik', icon: '✨' },
-    { key: 'accuracy', label: 'Dəqiqlik', icon: '✓' }
+    { key: 'overall', label: 'Overall', icon: '⭐', required: true },
+    { key: 'location', label: 'Location', icon: '📍' },
+    { key: 'value', label: 'Value', icon: '💰' },
+    { key: 'service', label: 'Service', icon: '👨‍💼' },
+    { key: 'cleanliness', label: 'Cleanliness', icon: '✨' },
+    { key: 'accuracy', label: 'Accuracy', icon: '✓' }
   ];
 
   const handleRatingChange = (category, value) => {
@@ -41,7 +41,7 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
     }
 
     if (ratings.overall === 0) {
-      alert('Zəhmət olmasa ümumi qiymət verin');
+      alert('Please provide an overall rating');
       return;
     }
 
@@ -64,7 +64,7 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert('✅ Qiymətiniz əlavə edildi!');
+      alert('✅ Your rating has been submitted!');
       if (onRatingSubmit) onRatingSubmit();
       
       // Reset form
@@ -79,10 +79,16 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
       setReview('');
     } catch (error) {
       console.error('Rating error:', error);
-      if (error.response?.data?.message?.includes('already')) {
-        alert('Siz artıq bu təcrübəyə qiymət vermissiniz');
+      console.error('Rating error response:', error.response?.data);
+      console.error('Rating error status:', error.response?.status);
+      
+      if (error.response?.status === 401) {
+        alert('❌ Authentication failed. Please log in again.');
+        window.location.href = '/login';
+      } else if (error.response?.data?.message?.includes('already')) {
+        alert('You have already rated this experience');
       } else {
-        alert('Xəta baş verdi. Yenidən cəhd edin.');
+        alert('An error occurred. Please try again.');
       }
     } finally {
       setSubmitting(false);
@@ -124,7 +130,7 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
       <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
-        Qiymətləndirin ⭐
+        Rate This Experience ⭐
       </h3>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -138,7 +144,7 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
 
         <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            İstəyə bağlı kateqoriyalar:
+            Optional categories:
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -157,18 +163,18 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
         {/* Review Text */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            📝 Rəy (istəyə bağlı)
+            📝 Review (optional)
           </label>
           <textarea
             value={review}
             onChange={(e) => setReview(e.target.value)}
             rows={4}
-            placeholder="Təcrübənizi paylaşın..."
+            placeholder="Share your experience..."
             className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white resize-none"
             maxLength={1000}
           />
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {review.length}/1000 simvol
+            {review.length}/1000 characters
           </p>
         </div>
 
@@ -177,7 +183,7 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
           disabled={submitting || ratings.overall === 0}
           className="w-full bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {submitting ? 'Göndərilir...' : 'Qiyməti Göndər'}
+          {submitting ? 'Submitting...' : 'Submit Rating'}
         </button>
       </form>
     </div>
