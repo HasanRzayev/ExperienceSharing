@@ -5,6 +5,9 @@ import Cookies from "js-cookie";
 import LikeButton from "../components/LikeButton";
 import FollowButton from "../components/FollowButton";
 import { Carousel } from "flowbite-react";
+import MapDisplay from "../components/MapDisplay";
+import RatingComponent from "../components/RatingComponent";
+import RatingsDisplay from "../components/RatingsDisplay";
 import { FaMapMarkerAlt, FaCalendarAlt, FaShare, FaWhatsapp, FaInstagram, FaTiktok, FaCopy, FaCheck, FaUsers, FaPaperPlane, FaComment, FaHeart, FaSmile, FaReply, FaThumbsUp, FaThumbsDown } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import EmojiPicker from 'emoji-picker-react';
@@ -462,7 +465,6 @@ const CardAbout = () => {
         </Carousel>
       </div>
 
-          {/* Məzmun hissəsi */}
           <div className="p-8">
             {/* Başlıq */}
             <h1 className="text-3xl sm:text-4xl font-bold mb-6 text-center bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
@@ -509,6 +511,25 @@ const CardAbout = () => {
                     <h3 className="text-lg font-semibold mb-1">Location</h3>
                     <p className="text-red-100">{post.location || "Not specified"}</p>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Map & Ratings Section */}
+            <div className="space-y-8">
+              {post.latitude && post.longitude && (
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
+                    <FaMapMarkerAlt /> Məkan
+                  </h3>
+                  <MapDisplay lat={post.latitude} lng={post.longitude} locationName={post.location} />
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <RatingComponent experienceId={post.id} onRatingSubmit={() => {}} />
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <RatingsDisplay experienceId={post.id} />
                 </div>
               </div>
             </div>

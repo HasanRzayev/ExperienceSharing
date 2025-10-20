@@ -340,6 +340,12 @@ function Home() {
                               renderAsMenuItem={true}
                             />
 
+                            {/* Save/Bookmark */}
+                            <SaveButton 
+                              experienceId={post.id}
+                              renderAsMenuItem={true}
+                            />
+
                             {/* Like */}
                             <LikeButton 
                               experienceId={post.id}

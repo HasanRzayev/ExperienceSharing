@@ -3,6 +3,7 @@ import { FaSearch, FaFire, FaClock, FaStar, FaHeart, FaComment, FaMapMarkerAlt }
 import Cookies from "js-cookie";
 import AddToTripButton from "../components/AddToTripButton";
 import LikeButton from "../components/LikeButton";
+import SaveButton from "../components/SaveButton";
 
 function Explore() {
   const [posts, setPosts] = useState([]);
@@ -189,6 +190,12 @@ function Explore() {
                             <AddToTripButton 
                               experienceId={post.id} 
                               onClose={() => setShowOptionsMenu(prev => ({ ...prev, [post.id]: false }))}
+                              renderAsMenuItem={true}
+                            />
+
+                            {/* Save/Bookmark */}
+                            <SaveButton
+                              experienceId={post.id}
                               renderAsMenuItem={true}
                             />
 
