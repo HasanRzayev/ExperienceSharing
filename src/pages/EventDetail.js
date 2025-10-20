@@ -21,7 +21,7 @@ const EventDetail = () => {
   const fetchEvent = async () => {
     try {
       setLoading(true);
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const response = await axios.get(`${apiBaseUrl}/Event/${id}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
@@ -68,7 +68,7 @@ const EventDetail = () => {
     }
 
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       await axios.post(
         `${apiBaseUrl}/Event/${id}/rsvp`,
         { status },
@@ -88,7 +88,7 @@ const EventDetail = () => {
     }
 
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       await axios.delete(`${apiBaseUrl}/Event/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });

@@ -28,7 +28,7 @@ function AdminFollows() {
       setLoading(true);
       
       const token = Cookies.get('token');
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const response = await fetch(
         `${apiBaseUrl}/Admin/follows?page=1&pageSize=1000&search=${encodeURIComponent(searchTerm)}`,
         {
@@ -67,7 +67,7 @@ function AdminFollows() {
     if (window.confirm('Are you sure you want to delete this follow relationship?')) {
       try {
         const token = Cookies.get('token');
-        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
         const response = await fetch(`${apiBaseUrl}/Admin/follows/${id}`, {
           method: 'DELETE',
           headers: {

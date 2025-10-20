@@ -35,7 +35,7 @@ function Home() {
   const [showOptionsMenu, setShowOptionsMenu] = useState({});
   
   const apiBaseUrl = useMemo(() => 
-    process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api',
+    process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api',
     []
   );
 

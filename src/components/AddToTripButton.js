@@ -15,7 +15,7 @@ const AddToTripButton = ({ experienceId, onClose, renderAsMenuItem = false }) =>
     
     try {
       setLoading(true);
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const response = await axios.get(`${apiBaseUrl}/Trip/my-trips`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -29,7 +29,7 @@ const AddToTripButton = ({ experienceId, onClose, renderAsMenuItem = false }) =>
 
   const handleAddToTrip = async (tripId) => {
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       await axios.post(
         `${apiBaseUrl}/Trip/${tripId}/experiences/${experienceId}`,
         { orderIndex: 0, notes: '' },

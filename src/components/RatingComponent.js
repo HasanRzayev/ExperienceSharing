@@ -43,7 +43,7 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
 
     setSubmitting(true);
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       await axios.post(
         `${apiBaseUrl}/Rating/experience/${experienceId}`,
         {

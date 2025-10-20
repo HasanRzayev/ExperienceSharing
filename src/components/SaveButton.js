@@ -16,7 +16,7 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
 
   const checkIfSaved = async () => {
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const response = await axios.get(
         `${apiBaseUrl}/SavedExperience/check/${experienceId}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -37,7 +37,7 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
 
     setLoading(true);
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       
       if (isSaved) {
         // Unsave

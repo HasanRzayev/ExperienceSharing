@@ -16,7 +16,7 @@ function Explore() {
   const [showOptionsMenu, setShowOptionsMenu] = useState({});
   const loadingRef = useRef(null);
   
-  const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+  const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
 
   const fetchPosts = useCallback(async (pageNumber, filter, search) => {
     try {

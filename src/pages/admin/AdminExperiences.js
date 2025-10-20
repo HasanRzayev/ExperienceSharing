@@ -38,7 +38,7 @@ function AdminExperiences() {
       setLoading(true);
       
       const token = Cookies.get('token');
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const response = await fetch(
         `${apiBaseUrl}/Admin/experiences?page=1&pageSize=1000&search=${encodeURIComponent(searchTerm)}`,
         {

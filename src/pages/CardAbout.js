@@ -44,7 +44,7 @@ const CardAbout = () => {
 
     setLoadingComments(true);
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const response = await fetch(`${apiBaseUrl}/Experiences/${id}/comments`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -72,7 +72,7 @@ const CardAbout = () => {
 
     setSubmittingComment(true);
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const response = await fetch(`${apiBaseUrl}/Experiences/${id}/comments`, {
         method: 'POST',
         headers: {
@@ -102,7 +102,7 @@ const CardAbout = () => {
     if (!replyText.trim() || !token) return;
 
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const response = await fetch(`${apiBaseUrl}/Experiences/${id}/comments`, {
         method: 'POST',
         headers: {
@@ -129,7 +129,7 @@ const CardAbout = () => {
     if (!token) return;
 
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       await fetch(`${apiBaseUrl}/Experiences/comments/${commentId}/react`, {
         method: 'POST',
         headers: {
@@ -154,7 +154,7 @@ const CardAbout = () => {
     }
 
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const response = await fetch(`${apiBaseUrl}/Experiences/comments/${commentId}`, {
         method: 'DELETE',
         headers: {
@@ -245,7 +245,7 @@ const CardAbout = () => {
   // Messaging contacts fetch funksiyası
   const fetchFollowers = async () => {
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       
       // Əvvəlcə messaging-contacts endpoint-ini cəhd et
       try {
@@ -315,7 +315,7 @@ const CardAbout = () => {
     
     setSending(true);
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const url = getShareUrl();
       const text = getShareText();
       
@@ -351,7 +351,7 @@ const CardAbout = () => {
         const isUserId = typeof id === 'string' && id.startsWith('temp-') || id === '35';
         console.log("CardAbout.js - Is userId?", isUserId);
         
-        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
         
         let response;
         if (isUserId) {

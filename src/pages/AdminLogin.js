@@ -20,7 +20,7 @@ function AdminLogin() {
       console.log('API Base URL:', process.env.REACT_APP_API_BASE_URL);
       
       // Use admin-login endpoint for .NET backend
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const response = await fetch(`${apiBaseUrl}/Auth/admin-login`, {
         method: 'POST',
         headers: {

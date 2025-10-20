@@ -40,7 +40,7 @@ const Events = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const endpoint = showAllEvents ? 'all' : 'upcoming';
       const url = `${apiBaseUrl}/Event/${endpoint}`;
       
@@ -122,7 +122,7 @@ const Events = () => {
         return;
       }
 
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       await axios.post(
         `${apiBaseUrl}/Event/${eventId}/rsvp`,
         { status },
@@ -142,7 +142,7 @@ const Events = () => {
         return;
       }
 
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const eventData = {
         ...newEvent,
         eventDate: new Date(newEvent.eventDate).toISOString()

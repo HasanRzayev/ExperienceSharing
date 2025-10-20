@@ -26,7 +26,7 @@ const Collections = () => {
   const fetchCollections = async () => {
     try {
       setLoading(true);
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const response = await axios.get(
         `${apiBaseUrl}/Collection/my-collections`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -42,7 +42,7 @@ const Collections = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       await axios.post(
         `${apiBaseUrl}/Collection`,
         newCollection,

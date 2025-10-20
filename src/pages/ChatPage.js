@@ -259,7 +259,7 @@ const stopRecording = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
         
         // Əvvəlcə messaging-contacts endpoint-ini cəhd et
         try {
@@ -489,7 +489,7 @@ const stopRecording = () => {
     
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api'}/Messages/conversation/${selectedUser.id}`, 
+          `${process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api'}/Messages/conversation/${selectedUser.id}`, 
           { headers: { Authorization: `Bearer ${Cookies.get("token")}` } }
         );
         

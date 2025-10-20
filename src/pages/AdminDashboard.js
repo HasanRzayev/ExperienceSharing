@@ -32,7 +32,7 @@ function AdminDashboard() {
         console.log('AdminDashboard - Token:', token);
         
         // Use the dedicated stats endpoint
-        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
         const response = await fetch(`${apiBaseUrl}/Admin/stats`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });

@@ -21,7 +21,7 @@ const TripDetail = () => {
   const fetchTrip = async () => {
     try {
       setLoading(true);
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const response = await axios.get(`${apiBaseUrl}/Trip/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -41,7 +41,7 @@ const TripDetail = () => {
     }
 
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       await axios.delete(`${apiBaseUrl}/Trip/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -59,7 +59,7 @@ const TripDetail = () => {
     }
 
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5029/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       await axios.delete(`${apiBaseUrl}/Trip/${id}/experiences/${tripExperienceId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
