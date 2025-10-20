@@ -8,9 +8,20 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
   const [loading, setLoading] = useState(false);
   const token = Cookies.get('token');
 
+  // Debug token on component mount
+  useEffect(() => {
+    console.log('🔍 SaveButton - Component mounted');
+    console.log('🔍 SaveButton - Token from cookies:', token);
+    console.log('🔍 SaveButton - All cookies:', document.cookie);
+    console.log('🔍 SaveButton - Experience ID:', experienceId);
+  }, []);
+
   useEffect(() => {
     if (token) {
+      console.log('🔍 SaveButton - Token exists, checking saved status');
       checkIfSaved();
+    } else {
+      console.log('❌ SaveButton - No token found, skipping check');
     }
   }, [experienceId, token]);
 
@@ -41,8 +52,24 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
   const handleSave = async (e) => {
     if (e) e.stopPropagation();
     
+    console.log('🔍 SaveButton - HandleSave called');
+    console.log('🔍 SaveButton - Current token:', token);
+    console.log('🔍 SaveButton - Token exists?', !!token);
+    
     if (!token) {
-      window.location.href = '/login';
+      console.log('❌ SaveButton - No token, redirecting to login');
+      Swal.fire({
+        title: 'Login Required!',
+        text: 'Please log in to save experiences.',
+        icon: 'warning',
+        confirmButtonText: 'Go to Login',
+        background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+        color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = '/login';
+        }
+      });
       return;
     }
 

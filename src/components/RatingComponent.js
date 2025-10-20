@@ -31,11 +31,14 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('🔍 RatingComponent - HandleSubmit called');
     console.log('🔍 RatingComponent - Token:', token ? 'EXISTS' : 'MISSING');
     console.log('🔍 RatingComponent - Token value:', token);
+    console.log('🔍 RatingComponent - All cookies:', document.cookie);
     
     if (!token) {
-      console.log('❌ RatingComponent - No token found, redirecting to login');
+      console.log('❌ RatingComponent - No token found, showing login modal');
+      alert('Please log in to submit ratings.');
       window.location.href = '/login';
       return;
     }
