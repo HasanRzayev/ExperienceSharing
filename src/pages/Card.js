@@ -2,6 +2,7 @@ import React, { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LikeButton from '../components/LikeButton';
 import AddToTripButton from '../components/AddToTripButton';
+import SaveButton from '../components/SaveButton';
 import Cookies from 'js-cookie';
 import { useAuth } from '../App';
 
@@ -128,6 +129,12 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
                 <AddToTripButton 
                   experienceId={id} 
                   onClose={() => setShowOptionsMenu(false)}
+                  renderAsMenuItem={true}
+                />
+
+                {/* Save/Bookmark */}
+                <SaveButton 
+                  experienceId={id}
                   renderAsMenuItem={true}
                 />
 

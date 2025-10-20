@@ -4,6 +4,8 @@ import { FaUsers, FaHeart, FaComment, FaShare, FaPaperPlane, FaSmile, FaMapMarke
 import { useNavigate } from "react-router-dom";
 import LikeButton from "../components/LikeButton";
 import AddToTripButton from "../components/AddToTripButton";
+import SaveButton from "../components/SaveButton";
+import AIRecommendations from "../components/AIRecommendations";
 import EmojiPicker from 'emoji-picker-react';
 import axios from "axios";
 
