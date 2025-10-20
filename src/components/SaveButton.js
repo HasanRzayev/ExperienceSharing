@@ -24,14 +24,20 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const response = await axios.get(
         `${apiBaseUrl}/SavedExperience/check/${experienceId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          validateStatus: (status) => status < 500 // 401-i error kimi qəbul etmə
+        }
       );
-      setIsSaved(response.data.isSaved);
-    } catch (error) {
-      // Token səhv və ya expired-dirsə, sadəcə ignore et
-      if (error.response?.status === 401) {
+      
+      if (response.status === 200) {
+        setIsSaved(response.data.isSaved);
+      } else {
         setIsSaved(false);
       }
+    } catch (error) {
+      // Bütün error-ları silent ignore et
+      setIsSaved(false);
     }
   };
 
@@ -62,67 +68,91 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
       
       if (isSaved) {
         // Unsave
-        await axios.delete(
+        const response = await axios.delete(
           `${apiBaseUrl}/SavedExperience/${experienceId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { 
+            headers: { Authorization: `Bearer ${token}` },
+            validateStatus: (status) => status < 500 // 401-i error kimi qəbul etmə
+          }
         );
         
-        Swal.fire({
-          title: 'Unsaved!',
-          text: 'This experience has been removed from your saved list.',
-          icon: 'info',
-          timer: 1500,
-          showConfirmButton: false,
-          background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-          color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827'
-        });
-        
-        setIsSaved(false);
+        if (response.status === 200) {
+          Swal.fire({
+            title: 'Unsaved!',
+            text: 'This experience has been removed from your saved list.',
+            icon: 'info',
+            timer: 1500,
+            showConfirmButton: false,
+            background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+            color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827'
+          });
+          setIsSaved(false);
+        } else if (response.status === 401) {
+          // Session expired
+          Swal.fire({
+            title: '🔒 Session Expired',
+            text: 'Your session has expired. Please log in again.',
+            icon: 'warning',
+            background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+            color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
+            confirmButtonText: 'Go to Login',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              window.location.href = '/login';
+            }
+          });
+        }
       } else {
         // Save
-        await axios.post(
+        const response = await axios.post(
           `${apiBaseUrl}/SavedExperience/${experienceId}`,
           {},
-          { headers: { Authorization: `Bearer ${token}` } }
+          { 
+            headers: { Authorization: `Bearer ${token}` },
+            validateStatus: (status) => status < 500 // 401-i error kimi qəbul etmə
+          }
         );
         
-        Swal.fire({
-          title: 'Saved! 📌',
-          text: 'This experience has been added to your saved list.',
-          icon: 'success',
-          timer: 1500,
-          showConfirmButton: false,
-          background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-          color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827'
-        });
-        
-        setIsSaved(true);
+        if (response.status === 200) {
+          Swal.fire({
+            title: 'Saved! 📌',
+            text: 'This experience has been added to your saved list.',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false,
+            background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+            color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827'
+          });
+          setIsSaved(true);
+        } else if (response.status === 401) {
+          // Session expired
+          Swal.fire({
+            title: '🔒 Session Expired',
+            text: 'Your session has expired. Please log in again.',
+            icon: 'warning',
+            background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+            color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
+            confirmButtonText: 'Go to Login',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              window.location.href = '/login';
+            }
+          });
+        }
       }
     } catch (error) {
-      if (error.response?.status === 401) {
-        Swal.fire({
-          title: '🔒 Session Expired',
-          text: 'Your session has expired. Please log in again.',
-          icon: 'warning',
-          background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-          color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
-          confirmButtonText: 'Go to Login',
-          showCancelButton: true,
-          cancelButtonText: 'Cancel'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.href = '/login';
-          }
-        });
-      } else {
-        Swal.fire({
-          title: '❌ Error',
-          text: 'An error occurred. Please try again.',
-          icon: 'error',
-          background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-          color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827'
-        });
-      }
+      // Network error və ya başqa server error (500+)
+      Swal.fire({
+        title: '❌ Error',
+        text: 'An error occurred. Please check your connection and try again.',
+        icon: 'error',
+        background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+        color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827'
+      });
     } finally {
       setLoading(false);
     }

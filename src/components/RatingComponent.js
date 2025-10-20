@@ -46,7 +46,7 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       
-      await axios.post(
+      const response = await axios.post(
         `${apiBaseUrl}/Rating/experience/${experienceId}`,
         {
           overallRating: ratings.overall,
@@ -57,31 +57,37 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
           accuracyRating: ratings.accuracy || null,
           review: review.trim() || null
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          validateStatus: (status) => status < 500 // 401-i error kimi qəbul etmə
+        }
       );
 
-      alert('✅ Your rating has been submitted!');
-      if (onRatingSubmit) onRatingSubmit();
-      
-      // Reset form
-      setRatings({
-        overall: 0,
-        location: 0,
-        value: 0,
-        service: 0,
-        cleanliness: 0,
-        accuracy: 0
-      });
-      setReview('');
-    } catch (error) {
-      if (error.response?.status === 401) {
+      if (response.status === 200) {
+        alert('✅ Your rating has been submitted!');
+        if (onRatingSubmit) onRatingSubmit();
+        
+        // Reset form
+        setRatings({
+          overall: 0,
+          location: 0,
+          value: 0,
+          service: 0,
+          cleanliness: 0,
+          accuracy: 0
+        });
+        setReview('');
+      } else if (response.status === 401) {
         alert('🔒 Your session has expired. Please log in again.\n\nClick OK to go to the login page.');
         window.location.href = '/login';
-      } else if (error.response?.data?.message?.includes('already')) {
+      } else if (response.status === 400 && response.data?.message?.includes('already')) {
         alert('✅ You have already rated this experience');
       } else {
         alert('❌ An error occurred. Please try again.');
       }
+    } catch (error) {
+      // Network error və ya başqa server error (500+)
+      alert('❌ An error occurred. Please check your connection and try again.');
     } finally {
       setSubmitting(false);
     }
