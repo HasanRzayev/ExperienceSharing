@@ -37,14 +37,13 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtHelper>();
 
+// Add HTTP Client and AI Recommendation Service
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<AIRecommendationService>();
+
 // JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var jwtKey = jwtSettings.GetValue<string>("Key");
-if (string.IsNullOrEmpty(jwtKey))
-{
-    throw new InvalidOperationException("JWT Key is not configured in appsettings.json");
-}
-var key = Encoding.ASCII.GetBytes(jwtKey);
+var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -61,9 +60,19 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings.GetValue<string>("Issuer"),
-        ValidAudience = jwtSettings.GetValue<string>("Audience"),
-        IssuerSigningKey = new SymmetricSecurityKey(key)
+        // Çoklu issuer/audience kabul et
+        ValidIssuers = new[]
+        {
+            jwtSettings["Issuer"],
+            "https://experiencesharingbackend.runasp.net"
+        },
+        ValidAudiences = new[]
+        {
+            jwtSettings["Audience"],
+            "https://experiencesharingbackend.runasp.net"
+        },
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ClockSkew = TimeSpan.FromMinutes(3)
     };
 });
 

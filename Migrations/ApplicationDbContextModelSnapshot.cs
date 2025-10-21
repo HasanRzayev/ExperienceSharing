@@ -112,6 +112,45 @@ namespace Experience.Migrations
                     b.ToTable("CommentReactions");
                 });
 
+            modelBuilder.Entity("ExperienceProject.Models.Collection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("CoverImage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Collections");
+                });
+
             modelBuilder.Entity("ExperienceProject.Models.Event", b =>
                 {
                     b.Property<int>("Id")
@@ -267,8 +306,14 @@ namespace Experience.Migrations
                     b.Property<bool>("IsDraft")
                         .HasColumnType("bit");
 
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
                     b.Property<string>("Location")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
 
                     b.Property<double>("Rating")
                         .HasColumnType("float");
@@ -293,6 +338,61 @@ namespace Experience.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Experiences");
+                });
+
+            modelBuilder.Entity("ExperienceProject.Models.ExperienceRating", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int?>("AccuracyRating")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CleanlinessRating")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ExperienceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HelpfulCount")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("LocationRating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OverallRating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Review")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int?>("ServiceRating")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ValueRating")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExperienceId");
+
+                    b.HasIndex("UserId", "ExperienceId")
+                        .IsUnique();
+
+                    b.ToTable("ExperienceRatings");
                 });
 
             modelBuilder.Entity("ExperienceProject.Models.ExperienceTag", b =>
@@ -582,6 +682,68 @@ namespace Experience.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("ExperienceProject.Models.RatingHelpful", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RatingId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RatingId");
+
+                    b.HasIndex("UserId", "RatingId")
+                        .IsUnique();
+
+                    b.ToTable("RatingHelpfuls");
+                });
+
+            modelBuilder.Entity("ExperienceProject.Models.SavedExperience", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int?>("CollectionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExperienceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("SavedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CollectionId");
+
+                    b.HasIndex("ExperienceId");
+
+                    b.HasIndex("UserId", "ExperienceId")
+                        .IsUnique();
+
+                    b.ToTable("SavedExperiences");
+                });
+
             modelBuilder.Entity("ExperienceProject.Models.Tag", b =>
                 {
                     b.Property<int>("TagId")
@@ -802,6 +964,17 @@ namespace Experience.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ExperienceProject.Models.Collection", b =>
+                {
+                    b.HasOne("ExperienceProject.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ExperienceProject.Models.Event", b =>
                 {
                     b.HasOne("ExperienceProject.Models.User", "CreatedBy")
@@ -869,6 +1042,25 @@ namespace Experience.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ExperienceProject.Models.ExperienceRating", b =>
+                {
+                    b.HasOne("ExperienceProject.Models.ExperienceModel", "Experience")
+                        .WithMany()
+                        .HasForeignKey("ExperienceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ExperienceProject.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Experience");
 
                     b.Navigation("User");
                 });
@@ -1055,6 +1247,51 @@ namespace Experience.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ExperienceProject.Models.RatingHelpful", b =>
+                {
+                    b.HasOne("ExperienceProject.Models.ExperienceRating", "Rating")
+                        .WithMany()
+                        .HasForeignKey("RatingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ExperienceProject.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Rating");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ExperienceProject.Models.SavedExperience", b =>
+                {
+                    b.HasOne("ExperienceProject.Models.Collection", "Collection")
+                        .WithMany("SavedExperiences")
+                        .HasForeignKey("CollectionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ExperienceProject.Models.ExperienceModel", "Experience")
+                        .WithMany()
+                        .HasForeignKey("ExperienceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ExperienceProject.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Collection");
+
+                    b.Navigation("Experience");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ExperienceProject.Models.Trip", b =>
                 {
                     b.HasOne("ExperienceProject.Models.User", "User")
@@ -1107,6 +1344,11 @@ namespace Experience.Migrations
             modelBuilder.Entity("Experience.Models.Comment", b =>
                 {
                     b.Navigation("Replies");
+                });
+
+            modelBuilder.Entity("ExperienceProject.Models.Collection", b =>
+                {
+                    b.Navigation("SavedExperiences");
                 });
 
             modelBuilder.Entity("ExperienceProject.Models.Event", b =>

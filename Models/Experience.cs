@@ -21,6 +21,10 @@ namespace ExperienceProject.Models
         public double Rating { get; set; } = 0;
         public bool IsDraft { get; set; } = false; // For draft experiences
         public DateTime? ScheduledPublishDate { get; set; } // For scheduled posts
+        
+        // Location coordinates for map
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
 
         public ICollection<ExperienceTag> ExperienceTags { get; set; }
 

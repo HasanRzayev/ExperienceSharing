@@ -25,6 +25,8 @@ namespace ExperienceProject.Controllers
             try
             {
                 var now = DateTime.UtcNow;
+                Console.WriteLine($"Current UTC time: {now}");
+                
                 var events = await _context.Events
                     .Where(e => e.EventDate >= now)
                     .Include(e => e.CreatedBy)
@@ -35,6 +37,8 @@ namespace ExperienceProject.Controllers
                     .Take(pageSize)
                     .ToListAsync();
 
+                Console.WriteLine($"Found {events.Count} upcoming events");
+                
                 var totalCount = await _context.Events.CountAsync(e => e.EventDate >= now);
 
                 return Ok(new
@@ -48,7 +52,68 @@ namespace ExperienceProject.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching events: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return StatusCode(500, new { error = "Failed to fetch events", details = ex.Message });
+            }
+        }
+        
+        // Get ALL events (for testing/debugging)
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllEvents([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+        {
+            try
+            {
+                var events = await _context.Events
+                    .Include(e => e.CreatedBy)
+                    .Include(e => e.Attendees)
+                        .ThenInclude(a => a.User)
+                    .OrderByDescending(e => e.CreatedAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var totalCount = await _context.Events.CountAsync();
+                
+                Console.WriteLine($"Total events in DB: {totalCount}");
+
+                return Ok(new
+                {
+                    events,
+                    totalCount,
+                    totalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+                    currentPage = page
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching all events: {ex.Message}");
                 return StatusCode(500, new { error = "Failed to fetch events" });
+            }
+        }
+
+        // Get event by ID
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetEventById(int id)
+        {
+            try
+            {
+                var eventItem = await _context.Events
+                    .Include(e => e.CreatedBy)
+                    .Include(e => e.Attendees)
+                        .ThenInclude(a => a.User)
+                    .FirstOrDefaultAsync(e => e.Id == id);
+
+                if (eventItem == null)
+                {
+                    return NotFound(new { message = "Event not found" });
+                }
+
+                return Ok(eventItem);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching event: {ex.Message}");
+                return StatusCode(500, new { error = "Failed to fetch event" });
             }
         }
 
@@ -131,6 +196,42 @@ namespace ExperienceProject.Controllers
             {
                 Console.WriteLine($"Error creating event: {ex.Message}");
                 return StatusCode(500, new { error = "Failed to create event" });
+            }
+        }
+
+        // Delete event (organizer only)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteEvent(int id)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "User ID not found in token" });
+                }
+
+                var eventItem = await _context.Events.FindAsync(id);
+                if (eventItem == null)
+                {
+                    return NotFound(new { message = "Event not found" });
+                }
+
+                // Only organizer can delete
+                if (eventItem.CreatedByUserId != userId.Value)
+                {
+                    return Forbid();
+                }
+
+                _context.Events.Remove(eventItem);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Event deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting event: {ex.Message}");
+                return StatusCode(500, new { error = "Failed to delete event" });
             }
         }
 

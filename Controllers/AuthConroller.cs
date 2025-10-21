@@ -174,7 +174,7 @@ namespace ExperienceProject.Controllers
             var result = await _authService.LoginAsync(userDto.Email, userDto.Password);
 
             if (result.success)
-                return Ok(new { Token = result.token, Message = result.message });
+                return Ok(new { token = result.token, message = result.message });
 
             return BadRequest(result.message);
         }

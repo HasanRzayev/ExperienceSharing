@@ -35,7 +35,11 @@ namespace ExperienceProject.Data
         public DbSet<MessageReaction> MessageReactions { get; set; }
         public DbSet<ExperienceCollaborator> ExperienceCollaborators { get; set; } // Collaborative Experiences
         public DbSet<Event> Events { get; set; } // Events & Meetups
-        public DbSet<EventAttendee> EventAttendees { get; set; }  
+        public DbSet<EventAttendee> EventAttendees { get; set; }
+        public DbSet<SavedExperience> SavedExperiences { get; set; } // Save/Bookmark
+        public DbSet<Collection> Collections { get; set; } // Collections/Albums
+        public DbSet<ExperienceRating> ExperienceRatings { get; set; } // Enhanced Rating
+        public DbSet<RatingHelpful> RatingHelpfuls { get; set; } // Rating Helpful votes  
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -224,6 +228,71 @@ namespace ExperienceProject.Data
                 .WithMany()
                 .HasForeignKey(te => te.ExperienceId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            // SavedExperience relationships
+            modelBuilder.Entity<SavedExperience>()
+                .HasOne(se => se.User)
+                .WithMany()
+                .HasForeignKey(se => se.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<SavedExperience>()
+                .HasOne(se => se.Experience)
+                .WithMany()
+                .HasForeignKey(se => se.ExperienceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SavedExperience>()
+                .HasOne(se => se.Collection)
+                .WithMany(c => c.SavedExperiences)
+                .HasForeignKey(se => se.CollectionId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Collection relationships
+            modelBuilder.Entity<Collection>()
+                .HasOne(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // ExperienceRating relationships
+            modelBuilder.Entity<ExperienceRating>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<ExperienceRating>()
+                .HasOne(r => r.Experience)
+                .WithMany()
+                .HasForeignKey(r => r.ExperienceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // RatingHelpful relationships
+            modelBuilder.Entity<RatingHelpful>()
+                .HasOne(rh => rh.Rating)
+                .WithMany()
+                .HasForeignKey(rh => rh.RatingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RatingHelpful>()
+                .HasOne(rh => rh.User)
+                .WithMany()
+                .HasForeignKey(rh => rh.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Unique constraints
+            modelBuilder.Entity<SavedExperience>()
+                .HasIndex(se => new { se.UserId, se.ExperienceId })
+                .IsUnique();
+
+            modelBuilder.Entity<ExperienceRating>()
+                .HasIndex(r => new { r.UserId, r.ExperienceId })
+                .IsUnique();
+
+            modelBuilder.Entity<RatingHelpful>()
+                .HasIndex(rh => new { rh.UserId, rh.RatingId })
+                .IsUnique();
         }
 
         }
