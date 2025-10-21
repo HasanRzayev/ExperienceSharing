@@ -164,12 +164,6 @@ const NavbarComponent = () => {
               >
                 Messages
               </button>
-              <button
-                onClick={() => navigate("/group-chat")}
-                className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Groups
-              </button>
             </div>
           </div>
 
@@ -387,12 +381,6 @@ const NavbarComponent = () => {
               className="text-gray-700 hover:text-purple-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
         >
           Messages
-            </button>
-            <button
-              onClick={() => handleMenuClick("/group-chat")}
-              className="text-gray-700 hover:text-purple-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
-        >
-          Groups
             </button>
 
             {/* Theme Toggle for Mobile */}
