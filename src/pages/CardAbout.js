@@ -8,7 +8,6 @@ import { Carousel } from "flowbite-react";
 import MapDisplay from "../components/MapDisplay";
 import RatingComponent from "../components/RatingComponent";
 import RatingsDisplay from "../components/RatingsDisplay";
-import TokenDebugger from "../components/TokenDebugger";
 import { FaMapMarkerAlt, FaCalendarAlt, FaShare, FaWhatsapp, FaInstagram, FaTiktok, FaCopy, FaCheck, FaUsers, FaPaperPlane, FaComment, FaHeart, FaSmile, FaReply, FaThumbsUp, FaThumbsDown } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import EmojiPicker from 'emoji-picker-react';
@@ -1043,9 +1042,6 @@ const CardAbout = () => {
           </div>
         </div>
       </div>
-      
-      {/* Token Debugger - Yalnız development üçün */}
-      <TokenDebugger />
     </div>
   );
 };

@@ -20,6 +20,7 @@ const NewExperience = lazy(() => import("./pages/NewExperience"));
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
 const Notification = lazy(() => import('./pages/Notification'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
+const GroupChat = lazy(() => import('./pages/GroupChat'));
 const Settings = lazy(() => import('./pages/Setting'));
 const FollowersPage = lazy(() => import('./pages/Follow'));
 const FollowingPage = lazy(() => import('./pages/Following'));
@@ -190,6 +191,7 @@ export default function App() {
                   <Route path="/forgot-password" element={isLoggedIn ? <Navigate to="/" /> : <ForgotPassword />} />
                   <Route path="/reset-password" element={isLoggedIn ? <Navigate to="/" /> : <ResetPassword />} />
                   <Route path="/chatpage" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ChatPage /></ProtectedRoute>} />
+                  <Route path="/group-chat" element={<ProtectedRoute isLoggedIn={isLoggedIn}><GroupChat /></ProtectedRoute>} />
                   <Route path="/Profil" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ProfilePage /></ProtectedRoute>} />
                   <Route path="/trip-planner" element={<ProtectedRoute isLoggedIn={isLoggedIn}><TripPlanner /></ProtectedRoute>} />
                   <Route path="/trip/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn}><TripDetail /></ProtectedRoute>} />
