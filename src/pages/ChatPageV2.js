@@ -525,13 +525,22 @@ const ChatPageV2 = () => {
       fetchGroups();
     } catch (error) {
       console.error('Error leaving group:', error);
-      alert('Xəta baş verdi');
+      if (error.response?.status === 404) {
+        alert('Bu funksiya hələ backend-də mövcud deyil. Backend developer əlavə etməlidir.');
+      } else {
+        alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
+      }
     }
   };
 
   const handleClearChat = async () => {
     if (!window.confirm('Söhbəti təmizləmək istədiyinizə əminsiniz?')) return;
     
+    // Just clear locally for now since backend endpoint doesn't exist
+    setMessages([]);
+    alert('Söhbət təmizləndi (yalnız lokal)');
+    
+    /* Backend endpoint hazır olanda bu kodu aktivləşdir:
     try {
       if (chatType === 'user') {
         await axios.delete(
@@ -548,8 +557,9 @@ const ChatPageV2 = () => {
       alert('Söhbət təmizləndi');
     } catch (error) {
       console.error('Error clearing chat:', error);
-      alert('Xəta baş verdi');
+      alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
     }
+    */
   };
 
   const handleBlockUser = async () => {
@@ -565,13 +575,23 @@ const ChatPageV2 = () => {
       setSelectedChat(null);
     } catch (error) {
       console.error('Error blocking user:', error);
-      alert('Xəta baş verdi');
+      if (error.response?.status === 404) {
+        alert('Bu funksiya hələ backend-də mövcud deyil. Backend developer əlavə etməlidir.');
+      } else {
+        alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
+      }
     }
   };
 
   const handleDeleteConversation = async () => {
     if (!window.confirm('Söhbəti silmək istədiyinizə əminsiniz? Bu əməliyyat geri alına bilməz.')) return;
     
+    // Just close chat for now since backend endpoint doesn't exist
+    setSelectedChat(null);
+    setMessages([]);
+    alert('Söhbət qapadıldı (backend hazır olmadığı üçün tam silinmədi)');
+    
+    /* Backend endpoint hazır olanda bu kodu aktivləşdir:
     try {
       await axios.delete(
         `${apiBaseUrl}/Messages/conversation/${selectedChat.id}`,
@@ -581,7 +601,29 @@ const ChatPageV2 = () => {
       setSelectedChat(null);
     } catch (error) {
       console.error('Error deleting conversation:', error);
-      alert('Xəta baş verdi');
+      alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
+    }
+    */
+  };
+
+  // Remove member from group (Admin only)
+  const handleRemoveMember = async (memberId) => {
+    if (!window.confirm('Bu üzvü groupdan çıxarmaq istədiyinizə əminsiniz?')) return;
+    
+    try {
+      await axios.delete(
+        `${apiBaseUrl}/GroupChat/${selectedChat.id}/members/${memberId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert('Üzv groupdan çıxarıldı');
+      fetchGroupMembers(selectedChat.id);
+    } catch (error) {
+      console.error('Error removing member:', error);
+      if (error.response?.status === 404) {
+        alert('Bu funksiya hələ backend-də mövcud deyil. Backend developer əlavə etməlidir.');
+      } else {
+        alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
+      }
     }
   };
 
@@ -697,7 +739,14 @@ const ChatPageV2 = () => {
                       </button>
                     </div>
                   ) : (
-                    groups.map((group) => (
+                    groups.map((group) => {
+                      // Check if group image is via.placeholder and replace with ui-avatars
+                      let groupImage = group.groupImage || group.GroupImage;
+                      if (!groupImage || groupImage.includes('via.placeholder')) {
+                        groupImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(group.name || 'Group')}&background=random`;
+                      }
+                      
+                      return (
                       <div
                         key={group.id}
                         onClick={() => handleSelectGroup(group)}
@@ -707,7 +756,7 @@ const ChatPageV2 = () => {
                       >
                         <div className="flex items-center gap-3">
                           <img
-                            src={group.groupImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(group.name || 'Group')}&background=random`}
+                            src={groupImage}
                             alt={group.name || 'Group'}
                             className="w-12 h-12 rounded-full object-cover flex-shrink-0"
                             onError={(e) => {
@@ -724,7 +773,7 @@ const ChatPageV2 = () => {
                           </div>
                         </div>
                       </div>
-                    ))
+                    )})
                   )
                 )}
               </div>
@@ -766,12 +815,17 @@ const ChatPageV2 = () => {
                             );
                           } else {
                             const groupName = selectedChat.name || selectedChat.Name || 'Group';
-                            const groupImg = selectedChat.groupImage || selectedChat.GroupImage || selectedChat.group_image;
+                            let groupImg = selectedChat.groupImage || selectedChat.GroupImage || selectedChat.group_image;
+                            
+                            // Replace via.placeholder with ui-avatars
+                            if (!groupImg || groupImg.includes('via.placeholder')) {
+                              groupImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(groupName)}&background=random`;
+                            }
                             
                             return (
                               <>
                                 <img
-                                  src={groupImg || `https://ui-avatars.com/api/?name=${encodeURIComponent(groupName)}&background=random`}
+                                  src={groupImg}
                                   alt={groupName}
                                   className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                                   onError={(e) => {
@@ -1396,6 +1450,11 @@ const ChatPageV2 = () => {
                     const profileImg = userData.profileImage || userData.ProfileImage || userData.profile_image;
                     const isAdmin = member.role === 'Admin' || member.role === 'admin' || member.isAdmin || false;
                     
+                    // Check if current user is admin of this group
+                    const currentUserMember = groupMembers.find(m => m.userId === user?.id);
+                    const isCurrentUserAdmin = currentUserMember?.role === 'Admin';
+                    const isCurrentUser = member.userId === user?.id;
+                    
                     return (
                       <div
                         key={member.id || index}
@@ -1412,6 +1471,7 @@ const ChatPageV2 = () => {
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-gray-800 dark:text-white truncate">
                             {fullName}
+                            {isCurrentUser && <span className="text-xs text-gray-500 ml-2">(Siz)</span>}
                           </h3>
                           <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                             @{username}
@@ -1421,6 +1481,15 @@ const ChatPageV2 = () => {
                           <span className="px-3 py-1 bg-purple-600 text-white text-xs font-semibold rounded-full flex-shrink-0">
                             Admin
                           </span>
+                        )}
+                        {isCurrentUserAdmin && !isCurrentUser && (
+                          <button
+                            onClick={() => handleRemoveMember(member.userId)}
+                            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                            title="Groupdan çıxart"
+                          >
+                            <FaTimes className="w-4 h-4" />
+                          </button>
                         )}
                       </div>
                     );
