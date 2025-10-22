@@ -1184,13 +1184,14 @@ const ChatPageV2 = () => {
               ) : (
                 <div className="space-y-3">
                   {groupMembers.map((member, index) => {
-                    // Extract member properties with multiple fallbacks
-                    const displayName = member.firstName || member.firstname || member.Username || member.username || member.userName || member.name || 'User';
-                    const lastName = member.lastName || member.lastname || '';
+                    // Extract user data from nested user object
+                    const userData = member.user || member;
+                    const displayName = userData.firstName || userData.firstname || 'User';
+                    const lastName = userData.lastName || userData.lastname || '';
                     const fullName = lastName ? `${displayName} ${lastName}` : displayName;
-                    const username = member.userName || member.username || member.Username || 'user';
-                    const profileImg = member.profileImage || member.ProfileImage || member.profile_image;
-                    const isAdmin = member.isAdmin || member.IsAdmin || member.is_admin || false;
+                    const username = userData.userName || userData.username || userData.Username || 'user';
+                    const profileImg = userData.profileImage || userData.ProfileImage || userData.profile_image;
+                    const isAdmin = member.role === 'Admin' || member.role === 'admin' || member.isAdmin || false;
                     
                     return (
                       <div
