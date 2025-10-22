@@ -558,33 +558,34 @@ const ChatPageV2 = () => {
                       const profileImg = user.profileImage || user.ProfileImage || user.profile_image;
                       
                       return (
-                      <div
-                        key={user.id}
-                        onClick={() => handleSelectUser(user)}
-                        className={`p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                          selectedChat?.id === user.id && chatType === 'user' ? 'bg-purple-50 dark:bg-purple-900/20 border-l-4 border-l-purple-600' : ''
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={profileImg || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`}
-                            alt={displayName}
-                            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                            onError={(e) => {
-                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=667eea&color=fff`;
-                            }}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-800 dark:text-white truncate">
-                              {displayName}
-                            </h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                              @{username}
-                            </p>
+                        <div
+                          key={user.id}
+                          onClick={() => handleSelectUser(user)}
+                          className={`p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                            selectedChat?.id === user.id && chatType === 'user' ? 'bg-purple-50 dark:bg-purple-900/20 border-l-4 border-l-purple-600' : ''
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={profileImg || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`}
+                              alt={displayName}
+                              className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                              onError={(e) => {
+                                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=667eea&color=fff`;
+                              }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-gray-800 dark:text-white truncate">
+                                {displayName}
+                              </h3>
+                              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                @{username}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}))
+                      );
+                    })
                   )
                 ) : (
                   groups.length === 0 ? (
@@ -1173,33 +1174,34 @@ const ChatPageV2 = () => {
                     const isAdmin = member.isAdmin || member.IsAdmin || member.is_admin || false;
                     
                     return (
-                    <div
-                      key={member.id || index}
-                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                    >
-                      <img
-                        src={profileImg || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`}
-                        alt={displayName}
-                        className="w-12 h-12 rounded-full object-cover border-2 border-purple-500 flex-shrink-0"
-                        onError={(e) => {
-                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=667eea&color=fff`;
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-800 dark:text-white truncate">
-                          {fullName}
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                          @{username}
-                        </p>
+                      <div
+                        key={member.id || index}
+                        className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                      >
+                        <img
+                          src={profileImg || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`}
+                          alt={displayName}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-purple-500 flex-shrink-0"
+                          onError={(e) => {
+                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=667eea&color=fff`;
+                          }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-800 dark:text-white truncate">
+                            {fullName}
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                            @{username}
+                          </p>
+                        </div>
+                        {isAdmin && (
+                          <span className="px-3 py-1 bg-purple-600 text-white text-xs font-semibold rounded-full flex-shrink-0">
+                            Admin
+                          </span>
+                        )}
                       </div>
-                      {isAdmin && (
-                        <span className="px-3 py-1 bg-purple-600 text-white text-xs font-semibold rounded-full flex-shrink-0">
-                          Admin
-                        </span>
-                      )}
-                    </div>
-                  )})}
+                    );
+                  })}
                 </div>
               )}
             </div>
