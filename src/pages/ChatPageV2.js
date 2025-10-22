@@ -1,8 +1,69 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { FaUsers, FaUser, FaPlus, FaSearch, FaPaperPlane, FaTimes } from 'react-icons/fa';
+import { HiOutlinePhotograph, HiOutlineVideoCamera, HiOutlineVolumeUp } from "react-icons/hi";
+import EmojiPicker from "emoji-picker-react";
+import MicRecorder from "mic-recorder-to-mp3";
+
+// Upload file to Cloudinary
+export async function uploadFile(file) {
+  console.log("Checking file type:", file);
+
+  // If file is a URL and is a GIF, return it directly
+  if (typeof file === "string" && file.startsWith("http")) {
+      console.log("GIF detected, sending directly to API:", file);
+      return file;
+  }
+
+  // Check file type and fix if necessary
+  if (!file.type) {
+      console.warn("File type unknown, setting as audio/wav.");
+      file = new File([file], file.name || "recorded-audio.wav", { type: "audio/wav" });
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", "ml_default"); // Cloudinary preset
+  formData.append("folder", "messages"); // Files for messages
+
+  const fileType = file.type.split("/")[0]; // "image", "video", "audio"
+  const fileExtension = file.name.split('.').pop().toLowerCase(); // File extension
+
+  let cloudinaryEndpoint = process.env.REACT_APP_CLOUDINARY_ENDPOINT;
+
+  if (fileType === "image") {
+      cloudinaryEndpoint += "image/upload";
+      if (fileExtension === "gif") {
+          formData.append("resource_type", "image"); // GIFs are also stored as images
+      }
+  } else if (fileType === "video") {
+      cloudinaryEndpoint += "video/upload";
+  } else if (fileType === "audio") {
+      cloudinaryEndpoint += "raw/upload"; // Audio files stored as "raw" in Cloudinary
+  } else {
+      console.error("Unsupported file type:", fileType);
+      return null;
+  }
+
+  try {
+      const response = await fetch(cloudinaryEndpoint, {
+          method: "POST",
+          body: formData
+      });
+
+      if (!response.ok) {
+          throw new Error("File upload failed!");
+      }
+
+      const data = await response.json();
+      return data.secure_url; // Return uploaded file link
+  } catch (error) {
+      console.error("File upload error:", error);
+      return null;
+  }
+}
 
 const ChatPageV2 = () => {
   const navigate = useNavigate();
@@ -19,6 +80,25 @@ const ChatPageV2 = () => {
   const [searchUsers, setSearchUsers] = useState('');
   const [availableUsers, setAvailableUsers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
+  
+  // Media upload states
+  const [file, setFile] = useState(null);
+  const [filePreview, setFilePreview] = useState(null);
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
+  
+  // GIF states
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  const [gifs, setGifs] = useState([]);
+  
+  // Voice recording states
+  const [isRecording, setIsRecording] = useState(false);
+  const [blobURL, setBlobURL] = useState("");
+  const [recorder, setRecorder] = useState(null);
+  
+  // Emoji picker state
+  const [showPicker, setShowPicker] = useState(false);
+  
+  const messagesEndRef = useRef(null);
   const token = Cookies.get('token');
 
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
@@ -28,6 +108,15 @@ const ChatPageV2 = () => {
       navigate('/login');
       return;
     }
+    
+    // Initialize microphone recorder
+    const newRecorder = new MicRecorder({ bitRate: 128 });
+    setRecorder(newRecorder);
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(() => console.log("Microphone permission granted"))
+      .catch(() => console.log("Microphone access denied"));
+    
     fetchUsers();
     fetchGroups();
     fetchAvailableUsers();
@@ -103,7 +192,40 @@ const ChatPageV2 = () => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     
-    if (!newMessage.trim() || !selectedChat) return;
+    if ((!newMessage.trim() && !file) || !selectedChat) return;
+
+    let fileUrl = null;
+    let mediaType = null;
+
+    // Upload file if exists
+    if (file) {
+      fileUrl = await uploadFile(file);
+      if (!fileUrl) {
+        console.error("File upload failed, message not sent.");
+        alert('File upload failed. Please try again.');
+        return;
+      }
+      console.log("Uploaded file link:", fileUrl);
+
+      // Determine media type
+      if (file?.name) {
+        const fileExtension = file.name.split('.').pop().toLowerCase();
+        if (["jpg", "jpeg", "png", "webp", "gif"].includes(fileExtension)) {
+          mediaType = "image";
+        } else if (["mp4", "avi", "mov", "mkv"].includes(fileExtension)) {
+          mediaType = "video";
+        } else if (["mp3", "wav", "ogg", "flac"].includes(fileExtension)) {
+          mediaType = "audio";
+        } else {
+          mediaType = "document";
+        }
+      }
+
+      // If fileUrl is GIF link
+      if (fileUrl && fileUrl.includes("gif")) {
+        mediaType = "image";
+      }
+    }
 
     try {
       if (chatType === 'user') {
@@ -111,7 +233,9 @@ const ChatPageV2 = () => {
           `${apiBaseUrl}/Messages`,
           {
             receiverId: selectedChat.id,
-            content: newMessage.trim()
+            content: newMessage.trim(),
+            mediaUrl: fileUrl,
+            mediaType: mediaType
           },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -119,13 +243,19 @@ const ChatPageV2 = () => {
       } else if (chatType === 'group') {
         await axios.post(
           `${apiBaseUrl}/GroupChat/${selectedChat.id}/messages`,
-          { content: newMessage.trim() },
+          { 
+            content: newMessage.trim(),
+            mediaUrl: fileUrl,
+            mediaType: mediaType
+          },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         fetchGroupMessages(selectedChat.id);
       }
       
       setNewMessage('');
+      setFile(null);
+      setFilePreview(null);
     } catch (error) {
       console.error('Error sending message:', error);
       alert('Failed to send message');
@@ -169,6 +299,159 @@ const ChatPageV2 = () => {
         ? prev.filter(id => id !== userId)
         : [...prev, userId]
     );
+  };
+
+  // GIF Functions
+  const fetchTrendingGifs = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_GIPHY_API_URL}/trending`,
+        {
+          params: {
+            api_key: "DjEE0CmAPnIkmKlM7sjBN1bGBwQQE21V",
+            limit: 10,
+            rating: "g",
+          },
+        }
+      );
+      console.log("Giphy Trending GIFs:", response.data);
+      setGifs(response.data.data);
+    } catch (error) {
+      console.error("Failed to load GIFs:", error);
+    }
+  };
+
+  const searchGifs = async (query) => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_GIPHY_API_URL}/search`,
+        {
+          params: {
+            api_key: "DjEE0CmAPnIkmKlM7sjBN1bGBwQQE21V",
+            q: query,
+            limit: 10,
+            rating: "g",
+          },
+        }
+      );
+      console.log("Giphy Search GIFs:", response.data);
+      setGifs(response.data.data);
+    } catch (error) {
+      console.error("Failed to search GIFs:", error);
+    }
+  };
+
+  const handleGifClick = async (gifUrl) => {
+    // Send GIF in selected chat
+    if (!selectedChat) return;
+
+    try {
+      if (chatType === 'user') {
+        await axios.post(
+          `${apiBaseUrl}/Messages`,
+          {
+            receiverId: selectedChat.id,
+            content: '',
+            mediaUrl: gifUrl,
+            mediaType: 'image'
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        fetchUserMessages(selectedChat.id);
+      } else if (chatType === 'group') {
+        await axios.post(
+          `${apiBaseUrl}/GroupChat/${selectedChat.id}/messages`,
+          { 
+            content: '',
+            mediaUrl: gifUrl,
+            mediaType: 'image'
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        fetchGroupMessages(selectedChat.id);
+      }
+      
+      setShowGifPicker(false);
+    } catch (error) {
+      console.error('Error sending GIF:', error);
+      alert('Failed to send GIF');
+    }
+  };
+
+  // Voice Recording Functions
+  const startRecording = () => {
+    if (!recorder) return;
+
+    recorder.start()
+      .then(() => setIsRecording(true))
+      .catch((e) => console.error("Failed to start recording:", e));
+  };
+
+  const stopRecording = () => {
+    if (!recorder) {
+      console.error("Recorder object is undefined.");
+      return;
+    }
+
+    recorder.stop();
+
+    recorder.getMp3()
+      .then(([buffer, blob]) => {
+        if (!blob) {
+          console.error("Blob not created.");
+          return;
+        }
+
+        const blobURL = URL.createObjectURL(blob);
+        setBlobURL(blobURL);
+        setIsRecording(false);
+        
+        // Create Blob as File with name and type
+        const audioFile = new File([blob], "recorded-audio.wav", { type: "audio/wav" });
+        
+        // Set file for sending
+        setFile(audioFile);
+        
+        // Auto-generate preview for audio
+        setFilePreview({
+          url: blobURL,
+          name: "recorded-audio.wav",
+          type: "audio/wav",
+          size: blob.size
+        });
+      })
+      .catch((e) => console.error("Failed to stop recording:", e));
+  };
+
+  // Emoji Handler
+  const handleEmojiClick = (emojiData) => {
+    setNewMessage((prevText) => prevText + emojiData.emoji);
+  };
+
+  // File Handling Functions
+  const handleFileChange = (e) => {
+    if (e.target.files.length > 0) {
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      setDropdownOpen(false);
+      
+      // Create file preview
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFilePreview({
+          url: event.target.result,
+          name: selectedFile.name,
+          type: selectedFile.type,
+          size: selectedFile.size
+        });
+      };
+      reader.readAsDataURL(selectedFile);
+    }
+  };
+
+  const removeFile = () => {
+    setFile(null);
+    setFilePreview(null);
   };
 
   const filteredUsers = availableUsers.filter(user =>
@@ -366,7 +649,33 @@ const ChatPageV2 = () => {
                                       : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-white'
                                   }`}
                                 >
-                                  <p>{msg.content}</p>
+                                  {/* Media Display */}
+                                  {msg.mediaUrl && msg.mediaType === "image" && (
+                                    <img 
+                                      src={msg.mediaUrl} 
+                                      alt="Uploaded media" 
+                                      className="rounded-xl max-w-full mb-2 max-h-64 object-contain" 
+                                    />
+                                  )}
+                                  {msg.mediaUrl && msg.mediaType === "video" && (
+                                    <video 
+                                      src={msg.mediaUrl} 
+                                      controls 
+                                      className="rounded-xl max-w-full mb-2 max-h-64" 
+                                    />
+                                  )}
+                                  {msg.mediaUrl && msg.mediaType === "audio" && (
+                                    <audio 
+                                      src={msg.mediaUrl} 
+                                      controls 
+                                      className="rounded-xl mb-2 w-full" 
+                                    />
+                                  )}
+                                  
+                                  {/* Text Content */}
+                                  {msg.content && <p className="break-words">{msg.content}</p>}
+                                  
+                                  {/* Timestamp */}
                                   <p className={`text-xs mt-1 ${isOwnMessage ? 'text-purple-200' : 'text-gray-500'}`}>
                                     {new Date(msg.sentAt || msg.timestamp).toLocaleTimeString([], {
                                       hour: '2-digit',
@@ -382,19 +691,213 @@ const ChatPageV2 = () => {
                     )}
                   </div>
 
+                  {/* File Preview */}
+                  {filePreview && (
+                    <div className="p-4 bg-gray-100 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 rounded-xl">
+                        <div className="flex-shrink-0">
+                          {filePreview.type.startsWith('image/') ? (
+                            <img 
+                              src={filePreview.url} 
+                              alt="Preview" 
+                              className="w-12 h-12 object-cover rounded-lg"
+                            />
+                          ) : filePreview.type.startsWith('video/') ? (
+                            <video 
+                              src={filePreview.url} 
+                              className="w-12 h-12 object-cover rounded-lg"
+                              controls={false}
+                            />
+                          ) : filePreview.type.startsWith('audio/') ? (
+                            <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                              <span className="text-white text-xl">🎵</span>
+                            </div>
+                          ) : (
+                            <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
+                              <span className="text-white text-xl">📄</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-gray-800 dark:text-white font-medium truncate">{filePreview.name}</p>
+                          <p className="text-gray-500 dark:text-gray-400 text-sm">
+                            {(filePreview.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                        <button
+                          onClick={removeFile}
+                          className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                        >
+                          <FaTimes className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Message Input */}
                   <form onSubmit={handleSendMessage} className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-center">
+                      {/* Media Upload Dropdown */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          className={`p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                            file ? "bg-green-100 dark:bg-green-900" : ""
+                          }`}
+                          onClick={() => setDropdownOpen(!isDropdownOpen)}
+                          title={file ? "File selected" : "Add media"}
+                        >
+                          <FaPlus className={`w-5 h-5 ${file ? "text-green-600" : "text-gray-600 dark:text-gray-400"}`} />
+                        </button>
+
+                        {isDropdownOpen && (
+                          <div className="absolute left-0 bottom-full mb-2 w-48 bg-white dark:bg-gray-700 rounded-xl p-2 shadow-lg border border-gray-200 dark:border-gray-600 z-10">
+                            <button
+                              type="button"
+                              className="flex items-center w-full space-x-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors text-gray-700 dark:text-gray-200"
+                              onClick={() => document.getElementById("image-upload-v2").click()}
+                            >
+                              <HiOutlinePhotograph className="text-xl" /> <span>Image</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="flex items-center w-full space-x-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors text-gray-700 dark:text-gray-200"
+                              onClick={() => document.getElementById("video-upload-v2").click()}
+                            >
+                              <HiOutlineVideoCamera className="text-xl" /> <span>Video</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="flex items-center w-full space-x-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors text-gray-700 dark:text-gray-200"
+                              onClick={() => document.getElementById("audio-upload-v2").click()}
+                            >
+                              <HiOutlineVolumeUp className="text-xl" /> <span>Audio</span>
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Hidden File Inputs */}
+                        <input 
+                          type="file" 
+                          id="image-upload-v2" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={handleFileChange} 
+                        />
+                        <input 
+                          type="file" 
+                          id="video-upload-v2" 
+                          accept="video/*" 
+                          className="hidden" 
+                          onChange={handleFileChange} 
+                        />
+                        <input 
+                          type="file" 
+                          id="audio-upload-v2" 
+                          accept="audio/*" 
+                          className="hidden" 
+                          onChange={handleFileChange} 
+                        />
+                      </div>
+
+                      {/* Message Input */}
                       <input
                         type="text"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Type a message..."
+                        placeholder={file ? `Type a message and send ${file.name}...` : "Type a message..."}
                         className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                       />
+
+                      {/* Emoji Picker Button */}
+                      <button
+                        type="button"
+                        onClick={() => setShowPicker(!showPicker)}
+                        className={`p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                          showPicker ? "bg-purple-100 dark:bg-purple-900" : ""
+                        }`}
+                        title="Add emoji"
+                      >
+                        <span className="text-xl">😊</span>
+                      </button>
+
+                      {/* Emoji Picker Modal */}
+                      {showPicker && (
+                        <div className="absolute bottom-20 right-20 z-30">
+                          <div className="bg-white dark:bg-gray-800 rounded-xl p-2 shadow-2xl border border-gray-200 dark:border-gray-600">
+                            <div className="flex justify-between items-center mb-2 px-2">
+                              <h4 className="text-gray-800 dark:text-white font-semibold text-sm">Choose Emoji</h4>
+                              <button
+                                type="button"
+                                onClick={() => setShowPicker(false)}
+                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                              >
+                                <FaTimes />
+                              </button>
+                            </div>
+                            <EmojiPicker onEmojiClick={handleEmojiClick} />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* GIF Picker Button */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowGifPicker(!showGifPicker);
+                          if (!gifs.length) fetchTrendingGifs();
+                        }}
+                        className={`p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                          showGifPicker ? "bg-purple-100 dark:bg-purple-900" : ""
+                        }`}
+                        title="Send GIF"
+                      >
+                        <span className="text-xl">🎥</span>
+                      </button>
+
+                      {/* GIF Picker Modal */}
+                      {showGifPicker && (
+                        <div className="absolute bottom-20 right-32 z-30 bg-white dark:bg-gray-800 rounded-xl p-4 w-72 max-h-80 overflow-auto shadow-2xl border border-gray-200 dark:border-gray-600">
+                          <div className="flex justify-between items-center mb-3">
+                            <h4 className="text-gray-800 dark:text-white font-semibold">Choose a GIF</h4>
+                            <button
+                              type="button"
+                              onClick={() => setShowGifPicker(false)}
+                              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                            >
+                              <FaTimes />
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            {gifs.map((gif) => (
+                              <img
+                                key={gif.id}
+                                src={gif.images.fixed_height.url}
+                                alt="GIF"
+                                className="w-full h-auto cursor-pointer rounded-lg hover:opacity-75 transition-opacity"
+                                onClick={() => handleGifClick(gif.images.fixed_height.url)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Voice Recording Button */}
+                      <button
+                        type="button"
+                        onClick={isRecording ? stopRecording : startRecording}
+                        className={`p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                          isRecording ? "bg-red-100 dark:bg-red-900 animate-pulse" : ""
+                        }`}
+                        title={isRecording ? "Stop recording" : "Record voice"}
+                      >
+                        <span className="text-xl">{isRecording ? "🛑" : "🎙️"}</span>
+                      </button>
+
+                      {/* Send Button */}
                       <button
                         type="submit"
-                        disabled={!newMessage.trim()}
+                        disabled={!newMessage.trim() && !file}
                         className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-full font-medium hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                       >
                         <FaPaperPlane />
