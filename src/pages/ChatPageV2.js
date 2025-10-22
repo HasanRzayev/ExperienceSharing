@@ -70,6 +70,7 @@ const ChatPageV2 = () => {
   const [activeTab, setActiveTab] = useState('chats'); // 'chats' or 'groups'
   const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState([]);
+  const [user, setUser] = useState(null); // Current user state
   const [selectedChat, setSelectedChat] = useState(null);
   const [chatType, setChatType] = useState(null); // 'user' or 'group'
   const [messages, setMessages] = useState([]);
@@ -110,6 +111,18 @@ const ChatPageV2 = () => {
 
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
 
+  // Fetch current user
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await axios.get(`${apiBaseUrl}/Users/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUser(response.data);
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+    }
+  };
+
   useEffect(() => {
     if (!token) {
       navigate('/login');
@@ -127,6 +140,7 @@ const ChatPageV2 = () => {
     fetchUsers();
     fetchGroups();
     fetchAvailableUsers();
+    fetchCurrentUser(); // Fetch current user
   }, [token]);
 
   const fetchUsers = async () => {
@@ -697,15 +711,15 @@ const ChatPageV2 = () => {
                       const profileImg = user.profileImage || user.ProfileImage || user.profile_image;
                       
                       return (
-                        <div
-                          key={user.id}
-                          onClick={() => handleSelectUser(user)}
-                          className={`p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                            selectedChat?.id === user.id && chatType === 'user' ? 'bg-purple-50 dark:bg-purple-900/20 border-l-4 border-l-purple-600' : ''
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <img
+                      <div
+                        key={user.id}
+                        onClick={() => handleSelectUser(user)}
+                        className={`p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                          selectedChat?.id === user.id && chatType === 'user' ? 'bg-purple-50 dark:bg-purple-900/20 border-l-4 border-l-purple-600' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <img
                               src={profileImg || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`}
                               alt={displayName}
                               className="w-12 h-12 rounded-full object-cover flex-shrink-0"
@@ -716,13 +730,13 @@ const ChatPageV2 = () => {
                             <div className="flex-1 min-w-0">
                               <h3 className="font-semibold text-gray-800 dark:text-white truncate">
                                 {displayName}
-                              </h3>
+                            </h3>
                               <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                                 @{username}
-                              </p>
-                            </div>
+                            </p>
                           </div>
                         </div>
+                      </div>
                       );
                     })
                   )
@@ -806,11 +820,11 @@ const ChatPageV2 = () => {
                                 <div className="flex-1 min-w-0">
                                   <h3 className="font-bold text-gray-800 dark:text-white truncate">
                                     {displayName}
-                                  </h3>
+                        </h3>
                                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                     @{username}
-                                  </p>
-                                </div>
+                        </p>
+                      </div>
                               </>
                             );
                           } else {
