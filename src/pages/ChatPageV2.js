@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { FaUsers, FaUser, FaPlus, FaSearch, FaPaperPlane, FaTimes } from 'react-icons/fa';
+import { FaUsers, FaUser, FaPlus, FaSearch, FaPaperPlane, FaTimes, FaEllipsisV, FaInfoCircle, FaSignOutAlt, FaTrash, FaBan, FaBroom, FaCheckSquare } from 'react-icons/fa';
 import { HiOutlinePhotograph, HiOutlineVideoCamera, HiOutlineVolumeUp } from "react-icons/hi";
 import EmojiPicker from "emoji-picker-react";
 import MicRecorder from "mic-recorder-to-mp3";
@@ -101,6 +101,9 @@ const ChatPageV2 = () => {
   // Group members modal state
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [groupMembers, setGroupMembers] = useState([]);
+  
+  // Chat options menu state
+  const [showChatOptions, setShowChatOptions] = useState(false);
   
   const messagesEndRef = useRef(null);
   const token = Cookies.get('token');
@@ -507,6 +510,81 @@ const ChatPageV2 = () => {
     setFilePreview(null);
   };
 
+  // Chat options handlers
+  const handleLeaveGroup = async () => {
+    if (!window.confirm('Groupdan çıxmaq istədiyinizə əminsiniz?')) return;
+    
+    try {
+      await axios.post(
+        `${apiBaseUrl}/GroupChat/${selectedChat.id}/leave`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert('Groupdan çıxdınız');
+      setSelectedChat(null);
+      fetchGroups();
+    } catch (error) {
+      console.error('Error leaving group:', error);
+      alert('Xəta baş verdi');
+    }
+  };
+
+  const handleClearChat = async () => {
+    if (!window.confirm('Söhbəti təmizləmək istədiyinizə əminsiniz?')) return;
+    
+    try {
+      if (chatType === 'user') {
+        await axios.delete(
+          `${apiBaseUrl}/Messages/conversation/${selectedChat.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else {
+        await axios.delete(
+          `${apiBaseUrl}/GroupChat/${selectedChat.id}/messages`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+      setMessages([]);
+      alert('Söhbət təmizləndi');
+    } catch (error) {
+      console.error('Error clearing chat:', error);
+      alert('Xəta baş verdi');
+    }
+  };
+
+  const handleBlockUser = async () => {
+    if (!window.confirm('Bu istifadəçini bloklamaq istədiyinizə əminsiniz?')) return;
+    
+    try {
+      await axios.post(
+        `${apiBaseUrl}/Users/block/${selectedChat.id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert('İstifadəçi bloklandı');
+      setSelectedChat(null);
+    } catch (error) {
+      console.error('Error blocking user:', error);
+      alert('Xəta baş verdi');
+    }
+  };
+
+  const handleDeleteConversation = async () => {
+    if (!window.confirm('Söhbəti silmək istədiyinizə əminsiniz? Bu əməliyyat geri alına bilməz.')) return;
+    
+    try {
+      await axios.delete(
+        `${apiBaseUrl}/Messages/conversation/${selectedChat.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert('Söhbət silindi');
+      setSelectedChat(null);
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      alert('Xəta baş verdi');
+    }
+  };
+
   const filteredUsers = availableUsers.filter(user =>
     user.firstName?.toLowerCase().includes(searchUsers.toLowerCase()) ||
     user.userName?.toLowerCase().includes(searchUsers.toLowerCase())
@@ -715,6 +793,131 @@ const ChatPageV2 = () => {
                             );
                           }
                         })()}
+                      </div>
+                      
+                      {/* 3 Dots Menu */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowChatOptions(!showChatOptions)}
+                          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <FaEllipsisV className="text-gray-600 dark:text-gray-400" />
+                        </button>
+
+                        {showChatOptions && (
+                          <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50">
+                            {chatType === 'group' ? (
+                              /* Group Chat Options */
+                              <div className="py-2">
+                                <button
+                                  onClick={() => {
+                                    setShowMembersModal(true);
+                                    setShowChatOptions(false);
+                                  }}
+                                  className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
+                                >
+                                  <FaInfoCircle className="text-purple-600" />
+                                  <span className="text-gray-700 dark:text-gray-200">Group bilgisi</span>
+                                </button>
+                                
+                                <button
+                                  onClick={() => {
+                                    handleClearChat();
+                                    setShowChatOptions(false);
+                                  }}
+                                  className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
+                                >
+                                  <FaBroom className="text-blue-600" />
+                                  <span className="text-gray-700 dark:text-gray-200">Söhbəti təmizlə</span>
+                                </button>
+                                
+                                <button
+                                  onClick={() => {
+                                    setSelectedChat(null);
+                                    setShowChatOptions(false);
+                                  }}
+                                  className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
+                                >
+                                  <FaTimes className="text-gray-600" />
+                                  <span className="text-gray-700 dark:text-gray-200">Söhbəti qapat</span>
+                                </button>
+                                
+                                <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                                
+                                <button
+                                  onClick={() => {
+                                    handleLeaveGroup();
+                                    setShowChatOptions(false);
+                                  }}
+                                  className="w-full px-4 py-3 text-left hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-3"
+                                >
+                                  <FaSignOutAlt className="text-red-600" />
+                                  <span className="text-red-600 dark:text-red-400 font-medium">Groupdan çıx</span>
+                                </button>
+                              </div>
+                            ) : (
+                              /* User Chat Options */
+                              <div className="py-2">
+                                <button
+                                  onClick={() => {
+                                    navigate(`/profile/${selectedChat.id}`);
+                                    setShowChatOptions(false);
+                                  }}
+                                  className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
+                                >
+                                  <FaInfoCircle className="text-purple-600" />
+                                  <span className="text-gray-700 dark:text-gray-200">Şəxs bilgisi</span>
+                                </button>
+                                
+                                <button
+                                  onClick={() => {
+                                    handleClearChat();
+                                    setShowChatOptions(false);
+                                  }}
+                                  className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
+                                >
+                                  <FaBroom className="text-blue-600" />
+                                  <span className="text-gray-700 dark:text-gray-200">Söhbəti təmizlə</span>
+                                </button>
+                                
+                                <button
+                                  onClick={() => {
+                                    setSelectedChat(null);
+                                    setShowChatOptions(false);
+                                  }}
+                                  className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
+                                >
+                                  <FaTimes className="text-gray-600" />
+                                  <span className="text-gray-700 dark:text-gray-200">Söhbəti qapat</span>
+                                </button>
+                                
+                                <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                                
+                                <button
+                                  onClick={() => {
+                                    handleDeleteConversation();
+                                    setShowChatOptions(false);
+                                  }}
+                                  className="w-full px-4 py-3 text-left hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-3"
+                                >
+                                  <FaTrash className="text-red-600" />
+                                  <span className="text-red-600 dark:text-red-400">Söhbəti sil</span>
+                                </button>
+                                
+                                <button
+                                  onClick={() => {
+                                    handleBlockUser();
+                                    setShowChatOptions(false);
+                                  }}
+                                  className="w-full px-4 py-3 text-left hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-3"
+                                >
+                                  <FaBan className="text-red-600" />
+                                  <span className="text-red-600 dark:text-red-400 font-medium">Blokla</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
