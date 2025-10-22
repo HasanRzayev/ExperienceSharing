@@ -213,9 +213,28 @@ const ChatPageV2 = () => {
       const response = await axios.get(`${apiBaseUrl}/GroupChat/${groupId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('=== GROUP MEMBERS DEBUG ===');
       console.log('Group details from API:', response.data);
       console.log('Members in group:', response.data?.members);
-      console.log('First member example:', response.data?.members?.[0]);
+      console.log('Members count:', response.data?.members?.length);
+      
+      if (response.data?.members && response.data.members.length > 0) {
+        console.log('First member full object:', response.data.members[0]);
+        console.log('First member keys:', Object.keys(response.data.members[0]));
+        
+        // Check all possible name fields
+        const firstMember = response.data.members[0];
+        console.log('firstName:', firstMember.firstName);
+        console.log('firstname:', firstMember.firstname);
+        console.log('FirstName:', firstMember.FirstName);
+        console.log('userName:', firstMember.userName);
+        console.log('username:', firstMember.username);
+        console.log('Username:', firstMember.Username);
+        console.log('name:', firstMember.name);
+        console.log('Name:', firstMember.Name);
+      }
+      console.log('=== END DEBUG ===');
+      
       setGroupMembers(response.data?.members || []);
     } catch (error) {
       console.error('Error fetching group members:', error);
