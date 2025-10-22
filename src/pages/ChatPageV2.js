@@ -556,16 +556,19 @@ const ChatPageV2 = () => {
                       >
                         <div className="flex items-center gap-3">
                           <img
-                            src={user.profileImage || 'https://ui-avatars.com/api/?name=' + (user.firstName || 'User')}
-                            alt={user.firstName}
-                            className="w-12 h-12 rounded-full object-cover"
+                            src={user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.firstName || user.userName || 'User')}&background=random`}
+                            alt={user.firstName || user.userName}
+                            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                            onError={(e) => {
+                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.userName || 'U')}&background=667eea&color=fff`;
+                            }}
                           />
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-800 dark:text-white">
-                              {user.firstName || user.userName}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-gray-800 dark:text-white truncate">
+                              {user.firstName || user.userName || 'Unknown User'}
                             </h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              @{user.userName}
+                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                              @{user.userName || 'unknown'}
                             </p>
                           </div>
                         </div>
@@ -595,14 +598,19 @@ const ChatPageV2 = () => {
                       >
                         <div className="flex items-center gap-3">
                           <img
-                            src={group.groupImage || 'https://ui-avatars.com/api/?name=' + group.name + '&background=random'}
-                            alt={group.name}
-                            className="w-12 h-12 rounded-full object-cover"
+                            src={group.groupImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(group.name || 'Group')}&background=random`}
+                            alt={group.name || 'Group'}
+                            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                            onError={(e) => {
+                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(group.name || 'G')}&background=667eea&color=fff`;
+                            }}
                           />
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-800 dark:text-white">{group.name}</h3>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-gray-800 dark:text-white truncate">
+                              {group.name || 'Unnamed Group'}
+                            </h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                              {group.members?.length || 0} members
+                              {group.members?.length || group.memberCount || 0} members
                             </p>
                           </div>
                         </div>
@@ -620,30 +628,38 @@ const ChatPageV2 = () => {
                   {/* Chat Header */}
                   <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
                         <img
                           src={
                             chatType === 'user'
-                              ? (selectedChat.profileImage || 'https://ui-avatars.com/api/?name=' + (selectedChat.firstName || 'User'))
-                              : (selectedChat.groupImage || 'https://ui-avatars.com/api/?name=' + selectedChat.name + '&background=random')
+                              ? (selectedChat.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedChat.firstName || selectedChat.userName || 'User')}&background=random`)
+                              : (selectedChat.groupImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedChat.name || 'Group')}&background=random`)
                           }
-                          alt={chatType === 'user' ? selectedChat.firstName : selectedChat.name}
-                          className="w-10 h-10 rounded-full object-cover"
+                          alt={chatType === 'user' ? (selectedChat.firstName || selectedChat.userName) : selectedChat.name}
+                          className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                          onError={(e) => {
+                            const name = chatType === 'user' 
+                              ? (selectedChat.userName || 'U')
+                              : (selectedChat.name || 'G');
+                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=667eea&color=fff`;
+                          }}
                         />
-                        <div>
-                          <h3 className="font-bold text-gray-800 dark:text-white">
-                            {chatType === 'user' ? (selectedChat.firstName || selectedChat.userName) : selectedChat.name}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-gray-800 dark:text-white truncate">
+                            {chatType === 'user' 
+                              ? (selectedChat.firstName || selectedChat.userName || 'Unknown User')
+                              : (selectedChat.name || 'Unnamed Group')}
                           </h3>
                           {chatType === 'user' ? (
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              @{selectedChat.userName}
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                              @{selectedChat.userName || 'unknown'}
                             </p>
                           ) : (
                             <button
                               onClick={() => setShowMembersModal(true)}
-                              className="text-xs text-purple-600 dark:text-purple-400 hover:underline cursor-pointer"
+                              className="text-xs text-purple-600 dark:text-purple-400 hover:underline cursor-pointer text-left"
                             >
-                              {selectedChat.members?.length || 0} members • View all
+                              {selectedChat.members?.length || selectedChat.memberCount || 0} members • View all
                             </button>
                           )}
                         </div>
@@ -1090,9 +1106,9 @@ const ChatPageV2 = () => {
 
       {/* Group Members Modal */}
       {showMembersModal && chatType === 'group' && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4" onClick={() => setShowMembersModal(false)}>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-gray-800 dark:text-white">{selectedChat?.name}</h2>
@@ -1100,7 +1116,7 @@ const ChatPageV2 = () => {
                 </div>
                 <button
                   onClick={() => setShowMembersModal(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                 >
                   <FaTimes className="w-6 h-6" />
                 </button>
@@ -1115,24 +1131,31 @@ const ChatPageV2 = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {groupMembers.map((member) => (
+                  {groupMembers.map((member, index) => (
                     <div
-                      key={member.id}
+                      key={member.id || index}
                       className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                     >
                       <img
-                        src={member.profileImage || 'https://ui-avatars.com/api/?name=' + (member.userName || 'User')}
-                        alt={member.userName}
-                        className="w-12 h-12 rounded-full object-cover border-2 border-purple-500"
+                        src={member.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.userName || member.firstName || 'User')}&background=random`}
+                        alt={member.userName || 'User'}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-purple-500 flex-shrink-0"
+                        onError={(e) => {
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.userName || member.firstName || 'U')}&background=667eea&color=fff`;
+                        }}
                       />
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-800 dark:text-white">
-                          {member.firstName ? `${member.firstName} ${member.lastName || ''}` : member.userName}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-800 dark:text-white truncate">
+                          {member.firstName && member.lastName 
+                            ? `${member.firstName} ${member.lastName}` 
+                            : member.firstName || member.userName || 'Unknown User'}
                         </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">@{member.userName}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                          @{member.userName || 'unknown'}
+                        </p>
                       </div>
                       {member.isAdmin && (
-                        <span className="px-3 py-1 bg-purple-600 text-white text-xs font-semibold rounded-full">
+                        <span className="px-3 py-1 bg-purple-600 text-white text-xs font-semibold rounded-full flex-shrink-0">
                           Admin
                         </span>
                       )}
