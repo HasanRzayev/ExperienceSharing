@@ -142,6 +142,7 @@ const ChatPageV2 = () => {
       const response = await axios.get(`${apiBaseUrl}/GroupChat/my-groups`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('Groups data:', response.data);
       setGroups(response.data || []);
     } catch (error) {
       console.error('Error fetching groups:', error);
@@ -188,18 +189,29 @@ const ChatPageV2 = () => {
   };
 
   const handleSelectGroup = (group) => {
+    console.log('Selected group:', group);
     setSelectedChat(group);
     setChatType('group');
     fetchGroupMessages(group.id);
-    fetchGroupMembers(group.id);
+    
+    // If group already has members data, use it. Otherwise fetch separately
+    if (group.members && Array.isArray(group.members)) {
+      console.log('Using members from group object:', group.members);
+      setGroupMembers(group.members);
+    } else {
+      console.log('Fetching members separately for group:', group.id);
+      fetchGroupMembers(group.id);
+    }
   };
 
   const fetchGroupMembers = async (groupId) => {
     try {
-      const response = await axios.get(`${apiBaseUrl}/GroupChat/${groupId}/members`, {
+      // Try to get group details which might include members
+      const response = await axios.get(`${apiBaseUrl}/GroupChat/${groupId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setGroupMembers(response.data || []);
+      console.log('Group details:', response.data);
+      setGroupMembers(response.data?.members || []);
     } catch (error) {
       console.error('Error fetching group members:', error);
       setGroupMembers([]);
