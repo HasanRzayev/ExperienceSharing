@@ -131,6 +131,8 @@ const ChatPageV2 = () => {
       const response = await axios.get(`${apiBaseUrl}/Followers/messaging-contacts`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('Users data from API:', response.data);
+      console.log('First user example:', response.data?.[0]);
       setUsers(response.data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -142,7 +144,8 @@ const ChatPageV2 = () => {
       const response = await axios.get(`${apiBaseUrl}/GroupChat/my-groups`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('Groups data:', response.data);
+      console.log('Groups data from API:', response.data);
+      console.log('First group example:', response.data?.[0]);
       setGroups(response.data || []);
     } catch (error) {
       console.error('Error fetching groups:', error);
@@ -210,7 +213,9 @@ const ChatPageV2 = () => {
       const response = await axios.get(`${apiBaseUrl}/GroupChat/${groupId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('Group details:', response.data);
+      console.log('Group details from API:', response.data);
+      console.log('Members in group:', response.data?.members);
+      console.log('First member example:', response.data?.members?.[0]);
       setGroupMembers(response.data?.members || []);
     } catch (error) {
       console.error('Error fetching group members:', error);
@@ -546,7 +551,13 @@ const ChatPageV2 = () => {
                       <p>No contacts yet</p>
                     </div>
                   ) : (
-                    users.map((user) => (
+                    users.map((user) => {
+                      // Extract user properties with fallbacks
+                      const displayName = user.firstName || user.firstname || user.Username || user.username || user.userName || user.name || 'User';
+                      const username = user.userName || user.username || user.Username || 'user';
+                      const profileImg = user.profileImage || user.ProfileImage || user.profile_image;
+                      
+                      return (
                       <div
                         key={user.id}
                         onClick={() => handleSelectUser(user)}
@@ -556,24 +567,24 @@ const ChatPageV2 = () => {
                       >
                         <div className="flex items-center gap-3">
                           <img
-                            src={user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.firstName || user.userName || 'User')}&background=random`}
-                            alt={user.firstName || user.userName}
+                            src={profileImg || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`}
+                            alt={displayName}
                             className="w-12 h-12 rounded-full object-cover flex-shrink-0"
                             onError={(e) => {
-                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.userName || 'U')}&background=667eea&color=fff`;
+                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=667eea&color=fff`;
                             }}
                           />
                           <div className="flex-1 min-w-0">
                             <h3 className="font-semibold text-gray-800 dark:text-white truncate">
-                              {user.firstName || user.userName || 'Unknown User'}
+                              {displayName}
                             </h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                              @{user.userName || 'unknown'}
+                              @{username}
                             </p>
                           </div>
                         </div>
                       </div>
-                    ))
+                    )}))
                   )
                 ) : (
                   groups.length === 0 ? (
@@ -629,40 +640,61 @@ const ChatPageV2 = () => {
                   <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <img
-                          src={
-                            chatType === 'user'
-                              ? (selectedChat.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedChat.firstName || selectedChat.userName || 'User')}&background=random`)
-                              : (selectedChat.groupImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedChat.name || 'Group')}&background=random`)
+                        {(() => {
+                          if (chatType === 'user') {
+                            const displayName = selectedChat.firstName || selectedChat.firstname || selectedChat.Username || selectedChat.username || selectedChat.userName || selectedChat.name || 'User';
+                            const username = selectedChat.userName || selectedChat.username || selectedChat.Username || 'user';
+                            const profileImg = selectedChat.profileImage || selectedChat.ProfileImage || selectedChat.profile_image;
+                            
+                            return (
+                              <>
+                                <img
+                                  src={profileImg || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`}
+                                  alt={displayName}
+                                  className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                                  onError={(e) => {
+                                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=667eea&color=fff`;
+                                  }}
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="font-bold text-gray-800 dark:text-white truncate">
+                                    {displayName}
+                                  </h3>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                    @{username}
+                                  </p>
+                                </div>
+                              </>
+                            );
+                          } else {
+                            const groupName = selectedChat.name || selectedChat.Name || 'Group';
+                            const groupImg = selectedChat.groupImage || selectedChat.GroupImage || selectedChat.group_image;
+                            
+                            return (
+                              <>
+                                <img
+                                  src={groupImg || `https://ui-avatars.com/api/?name=${encodeURIComponent(groupName)}&background=random`}
+                                  alt={groupName}
+                                  className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                                  onError={(e) => {
+                                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(groupName)}&background=667eea&color=fff`;
+                                  }}
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="font-bold text-gray-800 dark:text-white truncate">
+                                    {groupName}
+                                  </h3>
+                                  <button
+                                    onClick={() => setShowMembersModal(true)}
+                                    className="text-xs text-purple-600 dark:text-purple-400 hover:underline cursor-pointer text-left"
+                                  >
+                                    {selectedChat.members?.length || selectedChat.memberCount || 0} members • View all
+                                  </button>
+                                </div>
+                              </>
+                            );
                           }
-                          alt={chatType === 'user' ? (selectedChat.firstName || selectedChat.userName) : selectedChat.name}
-                          className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                          onError={(e) => {
-                            const name = chatType === 'user' 
-                              ? (selectedChat.userName || 'U')
-                              : (selectedChat.name || 'G');
-                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=667eea&color=fff`;
-                          }}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-gray-800 dark:text-white truncate">
-                            {chatType === 'user' 
-                              ? (selectedChat.firstName || selectedChat.userName || 'Unknown User')
-                              : (selectedChat.name || 'Unnamed Group')}
-                          </h3>
-                          {chatType === 'user' ? (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                              @{selectedChat.userName || 'unknown'}
-                            </p>
-                          ) : (
-                            <button
-                              onClick={() => setShowMembersModal(true)}
-                              className="text-xs text-purple-600 dark:text-purple-400 hover:underline cursor-pointer text-left"
-                            >
-                              {selectedChat.members?.length || selectedChat.memberCount || 0} members • View all
-                            </button>
-                          )}
-                        </div>
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -1131,36 +1163,43 @@ const ChatPageV2 = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {groupMembers.map((member, index) => (
+                  {groupMembers.map((member, index) => {
+                    // Extract member properties with multiple fallbacks
+                    const displayName = member.firstName || member.firstname || member.Username || member.username || member.userName || member.name || 'User';
+                    const lastName = member.lastName || member.lastname || '';
+                    const fullName = lastName ? `${displayName} ${lastName}` : displayName;
+                    const username = member.userName || member.username || member.Username || 'user';
+                    const profileImg = member.profileImage || member.ProfileImage || member.profile_image;
+                    const isAdmin = member.isAdmin || member.IsAdmin || member.is_admin || false;
+                    
+                    return (
                     <div
                       key={member.id || index}
                       className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                     >
                       <img
-                        src={member.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.userName || member.firstName || 'User')}&background=random`}
-                        alt={member.userName || 'User'}
+                        src={profileImg || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`}
+                        alt={displayName}
                         className="w-12 h-12 rounded-full object-cover border-2 border-purple-500 flex-shrink-0"
                         onError={(e) => {
-                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.userName || member.firstName || 'U')}&background=667eea&color=fff`;
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=667eea&color=fff`;
                         }}
                       />
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-800 dark:text-white truncate">
-                          {member.firstName && member.lastName 
-                            ? `${member.firstName} ${member.lastName}` 
-                            : member.firstName || member.userName || 'Unknown User'}
+                          {fullName}
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                          @{member.userName || 'unknown'}
+                          @{username}
                         </p>
                       </div>
-                      {member.isAdmin && (
+                      {isAdmin && (
                         <span className="px-3 py-1 bg-purple-600 text-white text-xs font-semibold rounded-full flex-shrink-0">
                           Admin
                         </span>
                       )}
                     </div>
-                  ))}
+                  )})}
                 </div>
               )}
             </div>
