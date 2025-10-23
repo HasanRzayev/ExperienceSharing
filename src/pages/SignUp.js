@@ -19,7 +19,7 @@ function SignUp() {
 
   const handleSignUp = async (e) => {
     e.preventDefault();
-    setError(''); // Əvvəlki xətaları təmizlə
+    setError(''); // Clear previous errors
     
     const response = await register(firstName, lastName, email, password, country, profileImage, userName);
     
@@ -29,7 +29,7 @@ function SignUp() {
       alert('Signup Successful!');
       navigate('/');
     } else {
-      // Xəta mesajını göstər
+      // Show error message
       setError(response.error || 'An error occurred during registration');
     }
   };

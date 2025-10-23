@@ -59,7 +59,7 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
         },
         { 
           headers: { Authorization: `Bearer ${token}` },
-          validateStatus: (status) => status < 500 // 401-i error kimi qəbul etmə
+          validateStatus: (status) => status < 500 // Don't treat 401 as error
         }
       );
 
@@ -86,7 +86,7 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
         alert('❌ An error occurred. Please try again.');
       }
     } catch (error) {
-      // Network error və ya başqa server error (500+)
+      // Network error or other server error (500+)
       alert('❌ An error occurred. Please check your connection and try again.');
     } finally {
       setSubmitting(false);

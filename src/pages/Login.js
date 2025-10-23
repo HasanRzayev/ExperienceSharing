@@ -14,7 +14,7 @@ function Login({ onLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); // Əvvəlki xətaları təmizlə
+    setError(''); // Clear previous errors
     
     const response = await login(email, password);
     
@@ -27,7 +27,7 @@ function Login({ onLogin }) {
       handleLogin(response.userData || null);
       navigate('/');
     } else {
-      // Xəta mesajını göstər
+      // Show error message
       setError(response.error || 'An error occurred during login');
     }
   };
@@ -45,16 +45,16 @@ function Login({ onLogin }) {
         handleLogin(response.userData || null);
         navigate('/');
       } else {
-        setError(response.error || 'Google ilə giriş zamanı xəta baş verdi');
+        setError(response.error || 'An error occurred during Google login');
       }
     } catch (error) {
       console.error('Google login error:', error);
-      setError('Google ilə giriş zamanı xəta baş verdi');
+      setError('An error occurred during Google login');
     }
   };
 
   const handleGoogleError = () => {
-    setError('Google ilə giriş uğursuz oldu');
+    setError('Google login failed');
   };
 
   return (

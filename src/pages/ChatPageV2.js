@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { FaUsers, FaUser, FaPlus, FaSearch, FaPaperPlane, FaTimes, FaEllipsisV, FaInfoCircle, FaSignOutAlt, FaTrash, FaBan, FaBroom, FaCheckSquare } from 'react-icons/fa';
+import { FaUsers, FaUser, FaPlus, FaSearch, FaPaperPlane, FaTimes, FaEllipsisV, FaInfoCircle, FaSignOutAlt, FaTrash, FaBan, FaBroom, FaCheckSquare, FaCheck } from 'react-icons/fa';
 import { HiOutlinePhotograph, HiOutlineVideoCamera, HiOutlineVolumeUp } from "react-icons/hi";
 import EmojiPicker from "emoji-picker-react";
 import MicRecorder from "mic-recorder-to-mp3";
@@ -191,7 +191,7 @@ const ChatPageV2 = () => {
       
       // Check if it's a blocked user error
       if (error.response?.status === 400 && error.response?.data?.message?.includes('blocked')) {
-        alert('Bu istifadəçi ilə mesajlaşa bilməzsiniz. Biri digərini bloklamışdır.');
+        alert('You cannot message this user. One of you has blocked the other.');
         setSelectedChat(null);
         setMessages([]);
       } else {
@@ -340,11 +340,11 @@ const ChatPageV2 = () => {
       
       // Check if it's a blocked user error
       if (error.response?.status === 400 && error.response?.data?.message?.includes('blocked')) {
-        alert('Bu istifadəçi ilə mesajlaşa bilməzsiniz. Biri digərini bloklamışdır.');
+        alert('You cannot message this user. One of you has blocked the other.');
         setSelectedChat(null);
         setMessages([]);
       } else {
-        alert('Mesaj göndərilmədi: ' + (error.response?.data?.message || error.message));
+        alert('Message not sent: ' + (error.response?.data?.message || error.message));
       }
     }
   };
@@ -543,7 +543,7 @@ const ChatPageV2 = () => {
 
   // Chat options handlers
   const handleLeaveGroup = async () => {
-    if (!window.confirm('Groupdan çıxmaq istədiyinizə əminsiniz?')) return;
+    if (!window.confirm('Are you sure you want to leave the group?')) return;
     
     try {
       await axios.post(
@@ -551,17 +551,17 @@ const ChatPageV2 = () => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert('Groupdan çıxdınız');
+      alert('You left the group');
       setSelectedChat(null);
       fetchGroups();
     } catch (error) {
       console.error('Error leaving group:', error);
-      alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
+      alert('Error occurred: ' + (error.response?.data?.message || error.message));
     }
   };
 
   const handleClearChat = async () => {
-    if (!window.confirm('Söhbəti təmizləmək istədiyinizə əminsiniz?')) return;
+    if (!window.confirm('Are you sure you want to clear this chat?')) return;
     
     try {
       if (chatType === 'user') {
@@ -576,15 +576,15 @@ const ChatPageV2 = () => {
         );
       }
       setMessages([]);
-      alert('Söhbət təmizləndi');
+      alert('Chat cleared successfully');
     } catch (error) {
       console.error('Error clearing chat:', error);
-      alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
+      alert('Error occurred: ' + (error.response?.data?.message || error.message));
     }
   };
 
   const handleBlockUser = async () => {
-    if (!window.confirm('Bu istifadəçini bloklamaq istədiyinizə əminsiniz?')) return;
+    if (!window.confirm('Are you sure you want to block this user?')) return;
     
     try {
       await axios.post(
@@ -592,45 +592,61 @@ const ChatPageV2 = () => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert('İstifadəçi bloklandı');
+      alert('User blocked successfully');
       setSelectedChat(null);
     } catch (error) {
       console.error('Error blocking user:', error);
-      alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
+      alert('Error occurred: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleUnblockUser = async () => {
+    if (!window.confirm('Are you sure you want to unblock this user?')) return;
+    
+    try {
+      await axios.delete(
+        `${apiBaseUrl}/Messages/unblock/${selectedChat.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert('User unblocked successfully');
+      setSelectedChat(null);
+    } catch (error) {
+      console.error('Error unblocking user:', error);
+      alert('Error occurred: ' + (error.response?.data?.message || error.message));
     }
   };
 
   const handleDeleteConversation = async () => {
-    if (!window.confirm('Söhbəti silmək istədiyinizə əminsiniz? Bu əməliyyat geri alına bilməz.')) return;
+    if (!window.confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) return;
     
     try {
       await axios.delete(
         `${apiBaseUrl}/Messages/conversation/${selectedChat.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert('Söhbət silindi');
+      alert('Conversation deleted successfully');
       setSelectedChat(null);
       setMessages([]);
     } catch (error) {
       console.error('Error deleting conversation:', error);
-      alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
+      alert('Error occurred: ' + (error.response?.data?.message || error.message));
     }
   };
 
   // Remove member from group (Admin only)
   const handleRemoveMember = async (memberId) => {
-    if (!window.confirm('Bu üzvü groupdan çıxarmaq istədiyinizə əminsiniz?')) return;
+    if (!window.confirm('Are you sure you want to remove this member from the group?')) return;
     
     try {
       await axios.delete(
         `${apiBaseUrl}/GroupChat/${selectedChat.id}/members/${memberId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert('Üzv groupdan çıxarıldı');
+      alert('Member removed from group');
       fetchGroupMembers(selectedChat.id);
     } catch (error) {
       console.error('Error removing member:', error);
-      alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
+      alert('Error occurred: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -889,7 +905,7 @@ const ChatPageV2 = () => {
                                   className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
                                 >
                                   <FaBroom className="text-blue-600" />
-                                  <span className="text-gray-700 dark:text-gray-200">Söhbəti təmizlə</span>
+                                  <span className="text-gray-700 dark:text-gray-200">Clear Chat</span>
                                 </button>
                                 
                                 <button
@@ -900,7 +916,7 @@ const ChatPageV2 = () => {
                                   className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
                                 >
                                   <FaTimes className="text-gray-600" />
-                                  <span className="text-gray-700 dark:text-gray-200">Söhbəti qapat</span>
+                                  <span className="text-gray-700 dark:text-gray-200">Close Chat</span>
                                 </button>
                                 
                                 <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
@@ -913,7 +929,7 @@ const ChatPageV2 = () => {
                                   className="w-full px-4 py-3 text-left hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-3"
                                 >
                                   <FaSignOutAlt className="text-red-600" />
-                                  <span className="text-red-600 dark:text-red-400 font-medium">Groupdan çıx</span>
+                                  <span className="text-red-600 dark:text-red-400 font-medium">Leave Group</span>
                                 </button>
                               </div>
                             ) : (
@@ -927,7 +943,7 @@ const ChatPageV2 = () => {
                                   className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
                                 >
                                   <FaInfoCircle className="text-purple-600" />
-                                  <span className="text-gray-700 dark:text-gray-200">Şəxs bilgisi</span>
+                                  <span className="text-gray-700 dark:text-gray-200">Profile Info</span>
                                 </button>
                                 
                                 <button
@@ -938,7 +954,7 @@ const ChatPageV2 = () => {
                                   className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
                                 >
                                   <FaBroom className="text-blue-600" />
-                                  <span className="text-gray-700 dark:text-gray-200">Söhbəti təmizlə</span>
+                                  <span className="text-gray-700 dark:text-gray-200">Clear Chat</span>
                                 </button>
                                 
                                 <button
@@ -949,7 +965,7 @@ const ChatPageV2 = () => {
                                   className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
                                 >
                                   <FaTimes className="text-gray-600" />
-                                  <span className="text-gray-700 dark:text-gray-200">Söhbəti qapat</span>
+                                  <span className="text-gray-700 dark:text-gray-200">Close Chat</span>
                                 </button>
                                 
                                 <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
@@ -962,7 +978,7 @@ const ChatPageV2 = () => {
                                   className="w-full px-4 py-3 text-left hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-3"
                                 >
                                   <FaTrash className="text-red-600" />
-                                  <span className="text-red-600 dark:text-red-400">Söhbəti sil</span>
+                                  <span className="text-red-600 dark:text-red-400">Delete Chat</span>
                                 </button>
                                 
                                 <button
@@ -973,7 +989,18 @@ const ChatPageV2 = () => {
                                   className="w-full px-4 py-3 text-left hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-3"
                                 >
                                   <FaBan className="text-red-600" />
-                                  <span className="text-red-600 dark:text-red-400 font-medium">Blokla</span>
+                                  <span className="text-red-600 dark:text-red-400 font-medium">Block User</span>
+                                </button>
+                                
+                                <button
+                                  onClick={() => {
+                                    handleUnblockUser();
+                                    setShowChatOptions(false);
+                                  }}
+                                  className="w-full px-4 py-3 text-left hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors flex items-center gap-3"
+                                >
+                                  <FaCheck className="text-green-600" />
+                                  <span className="text-green-600 dark:text-green-400 font-medium">Unblock User</span>
                                 </button>
                               </div>
                             )}
@@ -1493,7 +1520,7 @@ const ChatPageV2 = () => {
                           <button
                             onClick={() => handleRemoveMember(member.userId)}
                             className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                            title="Groupdan çıxart"
+                            title="Remove from Group"
                           >
                             <FaTimes className="w-4 h-4" />
                           </button>

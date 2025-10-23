@@ -15,7 +15,7 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
   }, [experienceId, token]);
 
   const checkIfSaved = async () => {
-    // Əgər token yoxdursa, sadəcə return et - error göstərmə
+    // If no token, just return - don't show error
     if (!token) {
       console.log('⚠️ SaveButton - No token found');
       return;
@@ -29,7 +29,7 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
         `${apiBaseUrl}/SavedExperience/check/${experienceId}`,
         { 
           headers: { Authorization: `Bearer ${token}` },
-          validateStatus: (status) => status < 500 // 401-i error kimi qəbul etmə
+          validateStatus: (status) => status < 500 // Don't treat 401 as error
         }
       );
       
@@ -82,7 +82,7 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
           `${apiBaseUrl}/SavedExperience/${experienceId}`,
           { 
             headers: { Authorization: `Bearer ${token}` },
-            validateStatus: (status) => status < 500 // 401-i error kimi qəbul etmə
+            validateStatus: (status) => status < 500 // Don't treat 401 as error
           }
         );
         
@@ -121,7 +121,7 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
           {},
           { 
             headers: { Authorization: `Bearer ${token}` },
-            validateStatus: (status) => status < 500 // 401-i error kimi qəbul etmə
+            validateStatus: (status) => status < 500 // Don't treat 401 as error
           }
         );
         
@@ -155,7 +155,7 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
         }
       }
     } catch (error) {
-      // Network error və ya başqa server error (500+)
+      // Network error or other server error (500+)
       Swal.fire({
         title: '❌ Error',
         text: 'An error occurred. Please check your connection and try again.',
