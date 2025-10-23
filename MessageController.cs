@@ -265,6 +265,16 @@ public class MessagesController : ControllerBase
             return Unauthorized(new { message = "User ID not found in token" });
         }
 
+        // Check if user is blocked
+        var isBlocked = await _context.BlockedUsers
+            .AnyAsync(b => (b.UserId == userId && b.BlockedUserId == receiverId) ||
+                          (b.UserId == receiverId && b.BlockedUserId == userId));
+
+        if (isBlocked)
+        {
+            return BadRequest(new { message = "You cannot view messages with this user. One of you has blocked the other." });
+        }
+
         var messages = await _context.Messages
             .Where(m => (m.SenderId == userId && m.ReceiverId == receiverId) ||
                         (m.SenderId == receiverId && m.ReceiverId == userId))
@@ -276,6 +286,7 @@ public class MessagesController : ControllerBase
                 Id = m.Id,
                 Content = m.Content,
                 MediaType = m.MediaType,
+                MediaUrl = m.MediaUrl,
                 Timestamp = m.Timestamp,
                 SenderId = m.SenderId,
                 ReceiverId = m.ReceiverId,
@@ -333,6 +344,16 @@ public class MessagesController : ControllerBase
         if (userId == 0)
         {
             return Unauthorized();
+        }
+
+        // Check if user is blocked
+        var isBlocked = await _context.BlockedUsers
+            .AnyAsync(b => (b.UserId == userId && b.BlockedUserId == messageDto.ReceiverId) ||
+                          (b.UserId == messageDto.ReceiverId && b.BlockedUserId == userId));
+
+        if (isBlocked)
+        {
+            return BadRequest(new { message = "You cannot send messages to this user. One of you has blocked the other." });
         }
 
         var message = new Message

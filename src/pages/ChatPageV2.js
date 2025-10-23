@@ -188,6 +188,15 @@ const ChatPageV2 = () => {
       setMessages(response.data || []);
     } catch (error) {
       console.error('Error fetching messages:', error);
+      
+      // Check if it's a blocked user error
+      if (error.response?.status === 400 && error.response?.data?.message?.includes('blocked')) {
+        alert('Bu istifadəçi ilə mesajlaşa bilməzsiniz. Biri digərini bloklamışdır.');
+        setSelectedChat(null);
+        setMessages([]);
+      } else {
+        setMessages([]);
+      }
     }
   };
 
@@ -328,7 +337,15 @@ const ChatPageV2 = () => {
       setFilePreview(null);
     } catch (error) {
       console.error('Error sending message:', error);
-      alert('Failed to send message');
+      
+      // Check if it's a blocked user error
+      if (error.response?.status === 400 && error.response?.data?.message?.includes('blocked')) {
+        alert('Bu istifadəçi ilə mesajlaşa bilməzsiniz. Biri digərini bloklamışdır.');
+        setSelectedChat(null);
+        setMessages([]);
+      } else {
+        alert('Mesaj göndərilmədi: ' + (error.response?.data?.message || error.message));
+      }
     }
   };
 
