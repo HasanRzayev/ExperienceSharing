@@ -127,7 +127,7 @@ namespace ExperienceProject.Controllers
 
                 if (!isMember)
                 {
-                    return Forbid();
+                    return StatusCode(403, new { message = "Access denied" });
                 }
 
                 var messages = await _context.GroupMessages
@@ -166,7 +166,7 @@ namespace ExperienceProject.Controllers
 
                 if (!isMember)
                 {
-                    return Forbid();
+                    return StatusCode(403, new { message = "Access denied" });
                 }
 
                 var message = new GroupMessage
@@ -176,7 +176,6 @@ namespace ExperienceProject.Controllers
                     Content = dto.Content,
                     MessageType = dto.MessageType ?? "text",
                     MediaUrl = dto.MediaUrl,
-                    MediaType = dto.MediaType,
                     SentAt = DateTime.UtcNow
                 };
 
@@ -259,7 +258,7 @@ namespace ExperienceProject.Controllers
 
                 if (!isMember)
                 {
-                    return Forbid();
+                    return StatusCode(403, new { message = "Access denied" });
                 }
 
                 var group = await _context.GroupChats
@@ -333,7 +332,7 @@ namespace ExperienceProject.Controllers
 
                 if (currentUserMember == null || currentUserMember.Role != "Admin")
                 {
-                    return Forbid(new { message = "Only admins can remove members" });
+                    return StatusCode(403, new { message = "Only admins can remove members" });
                 }
 
                 // Check if member exists
@@ -381,7 +380,7 @@ namespace ExperienceProject.Controllers
 
                 if (!isMember)
                 {
-                    return Forbid();
+                    return StatusCode(403, new { message = "Access denied" });
                 }
 
                 var messages = await _context.GroupMessages
@@ -441,7 +440,6 @@ namespace ExperienceProject.Controllers
         public string Content { get; set; }
         public string MessageType { get; set; }
         public string MediaUrl { get; set; }
-        public string MediaType { get; set; }
     }
 
     public class AddReactionDto
