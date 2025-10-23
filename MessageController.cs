@@ -126,38 +126,27 @@ public class MessagesController : ControllerBase
     [HttpPost("block/{userId}")]
     public async Task<IActionResult> BlockUser(int userId)
     {
-        Console.WriteLine($"BlockUser called with userId: {userId}");
-        
         var currentUserId = GetUserIdFromHeader();
-        Console.WriteLine($"Parsed currentUserId: {currentUserId}");
-        
         if (currentUserId == 0)
         {
-            Console.WriteLine("Current user ID is 0, returning Unauthorized");
             return Unauthorized(new { message = "User ID not found in token" });
         }
 
         if (currentUserId == userId)
         {
-            Console.WriteLine("User trying to block themselves");
             return BadRequest(new { message = "You cannot block yourself." });
         }
 
         try
         {
-            Console.WriteLine($"Checking if user {userId} is already blocked by {currentUserId}");
-            
             var existingBlock = await _context.BlockedUsers
                 .FirstOrDefaultAsync(b => b.UserId == currentUserId && b.BlockedUserId == userId);
 
             if (existingBlock != null)
             {
-                Console.WriteLine("User is already blocked");
                 return BadRequest(new { message = "User is already blocked." });
             }
 
-            Console.WriteLine($"Creating new block entry for user {userId}");
-            
             var block = new BlockedUser
             {
                 UserId = currentUserId,
@@ -167,13 +156,11 @@ public class MessagesController : ControllerBase
             _context.BlockedUsers.Add(block);
             await _context.SaveChangesAsync();
 
-            Console.WriteLine("User blocked successfully");
             return Ok(new { message = "User blocked successfully." });
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error blocking user: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             return StatusCode(500, new { message = "Failed to block user" });
         }
     }
@@ -356,44 +343,32 @@ public class MessagesController : ControllerBase
     [HttpDelete("conversation/{receiverId}")]
     public async Task<IActionResult> DeleteConversation(int receiverId)
     {
-        Console.WriteLine($"DeleteConversation called with receiverId: {receiverId}");
-        
         var userId = GetUserIdFromHeader();
-        Console.WriteLine($"Parsed userId: {userId}");
-        
         if (userId == 0)
         {
-            Console.WriteLine("User ID is 0, returning Unauthorized");
             return Unauthorized(new { message = "User ID not found in token" });
         }
 
         try
         {
-            Console.WriteLine($"Looking for messages between user {userId} and receiver {receiverId}");
-            
             var messages = await _context.Messages
                 .Where(m => (m.SenderId == userId && m.ReceiverId == receiverId) ||
                             (m.SenderId == receiverId && m.ReceiverId == userId))
                 .ToListAsync();
 
-            Console.WriteLine($"Found {messages.Count} messages to delete");
-
             if (!messages.Any())
             {
-                Console.WriteLine("No messages found, returning NotFound");
                 return NotFound(new { message = "No messages found" });
             }
 
             _context.Messages.RemoveRange(messages);
             await _context.SaveChangesAsync();
 
-            Console.WriteLine("Messages deleted successfully");
             return Ok(new { message = "Conversation deleted successfully" });
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error deleting conversation: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             return StatusCode(500, new { message = "Failed to delete conversation" });
         }
     }
