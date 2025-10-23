@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ExperienceProject.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class GroupChatController : ControllerBase
@@ -175,6 +177,7 @@ namespace ExperienceProject.Controllers
                     Content = dto.Content,
                     MessageType = dto.MessageType ?? "text",
                     MediaUrl = dto.MediaUrl,
+                    MediaType = dto.MediaType,
                     SentAt = DateTime.UtcNow
                 };
 
@@ -439,6 +442,7 @@ namespace ExperienceProject.Controllers
         public string Content { get; set; }
         public string MessageType { get; set; }
         public string MediaUrl { get; set; }
+        public string MediaType { get; set; }
     }
 
     public class AddReactionDto

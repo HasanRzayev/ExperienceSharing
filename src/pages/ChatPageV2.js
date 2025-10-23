@@ -539,22 +539,13 @@ const ChatPageV2 = () => {
       fetchGroups();
     } catch (error) {
       console.error('Error leaving group:', error);
-      if (error.response?.status === 404) {
-        alert('Bu funksiya hələ backend-də mövcud deyil. Backend developer əlavə etməlidir.');
-      } else {
-        alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
-      }
+      alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
     }
   };
 
   const handleClearChat = async () => {
     if (!window.confirm('Söhbəti təmizləmək istədiyinizə əminsiniz?')) return;
     
-    // Just clear locally for now since backend endpoint doesn't exist
-    setMessages([]);
-    alert('Söhbət təmizləndi (yalnız lokal)');
-    
-    /* Backend endpoint hazır olanda bu kodu aktivləşdir:
     try {
       if (chatType === 'user') {
         await axios.delete(
@@ -573,7 +564,6 @@ const ChatPageV2 = () => {
       console.error('Error clearing chat:', error);
       alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
     }
-    */
   };
 
   const handleBlockUser = async () => {
@@ -581,7 +571,7 @@ const ChatPageV2 = () => {
     
     try {
       await axios.post(
-        `${apiBaseUrl}/Users/block/${selectedChat.id}`,
+        `${apiBaseUrl}/Messages/block/${selectedChat.id}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -589,23 +579,13 @@ const ChatPageV2 = () => {
       setSelectedChat(null);
     } catch (error) {
       console.error('Error blocking user:', error);
-      if (error.response?.status === 404) {
-        alert('Bu funksiya hələ backend-də mövcud deyil. Backend developer əlavə etməlidir.');
-      } else {
-        alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
-      }
+      alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
     }
   };
 
   const handleDeleteConversation = async () => {
     if (!window.confirm('Söhbəti silmək istədiyinizə əminsiniz? Bu əməliyyat geri alına bilməz.')) return;
     
-    // Just close chat for now since backend endpoint doesn't exist
-    setSelectedChat(null);
-    setMessages([]);
-    alert('Söhbət qapadıldı (backend hazır olmadığı üçün tam silinmədi)');
-    
-    /* Backend endpoint hazır olanda bu kodu aktivləşdir:
     try {
       await axios.delete(
         `${apiBaseUrl}/Messages/conversation/${selectedChat.id}`,
@@ -613,11 +593,11 @@ const ChatPageV2 = () => {
       );
       alert('Söhbət silindi');
       setSelectedChat(null);
+      setMessages([]);
     } catch (error) {
       console.error('Error deleting conversation:', error);
       alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
     }
-    */
   };
 
   // Remove member from group (Admin only)
@@ -633,11 +613,7 @@ const ChatPageV2 = () => {
       fetchGroupMembers(selectedChat.id);
     } catch (error) {
       console.error('Error removing member:', error);
-      if (error.response?.status === 404) {
-        alert('Bu funksiya hələ backend-də mövcud deyil. Backend developer əlavə etməlidir.');
-      } else {
-        alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
-      }
+      alert('Xəta baş verdi: ' + (error.response?.data?.message || error.message));
     }
   };
 

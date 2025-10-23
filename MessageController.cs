@@ -340,6 +340,8 @@ public class MessagesController : ControllerBase
             SenderId = userId, // Token'dan gelen ID
             ReceiverId = messageDto.ReceiverId,
             Content = messageDto.Content,
+            MediaUrl = messageDto.MediaUrl,
+            MediaType = messageDto.MediaType,
             Timestamp = DateTime.UtcNow
         };
 
