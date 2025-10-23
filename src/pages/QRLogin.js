@@ -15,8 +15,15 @@ const QRLogin = () => {
   const [timeLeft, setTimeLeft] = useState(0);
 
   useEffect(() => {
+    // Check if user is logged in
+    const token = Cookies.get('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    
     generateLoginQR();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     let interval;
@@ -39,7 +46,8 @@ const QRLogin = () => {
 
       const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/Device/generate-login-qr`, {}, {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Cookies.get('token')}`
         }
       });
 

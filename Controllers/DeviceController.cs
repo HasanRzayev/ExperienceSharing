@@ -4,6 +4,9 @@ using ExperienceProject.Data;
 using ExperienceProject.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace ExperienceProject.Controllers
 {
@@ -82,6 +85,49 @@ namespace ExperienceProject.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Error generating QR code", error = ex.Message });
+            }
+        }
+
+        [HttpPost("generate-login-qr")]
+        public async Task<IActionResult> GenerateLoginQRCode()
+        {
+            try
+            {
+                var userId = GetUserIdFromHeader();
+                if (userId == 0)
+                {
+                    return Unauthorized("User ID not found in headers");
+                }
+
+                var sessionId = Guid.NewGuid().ToString();
+                var expiresAt = DateTime.UtcNow.AddMinutes(5); // 5 minute expiry
+
+                var deviceSession = new DeviceSession
+                {
+                    SessionId = sessionId,
+                    UserId = userId,
+                    CreatedAt = DateTime.UtcNow,
+                    ExpiresAt = expiresAt,
+                    IsConfirmed = false,
+                    IsActive = true
+                };
+
+                _context.DeviceSessions.Add(deviceSession);
+                await _context.SaveChangesAsync();
+
+                var qrData = new
+                {
+                    sessionId = sessionId,
+                    userId = userId,
+                    expiresAt = expiresAt,
+                    action = "login_device"
+                };
+
+                return Ok(new { qrData = qrData, expiresIn = 300 });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error generating login QR code", error = ex.Message });
             }
         }
 
@@ -323,9 +369,25 @@ namespace ExperienceProject.Controllers
 
         private string GenerateJWTToken(User user)
         {
-            // This should match your existing JWT generation logic
-            // For now, return a placeholder - you'll need to implement this
-            return "jwt_token_placeholder";
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your-secret-key-that-is-at-least-32-characters-long"));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Email, user.Email)
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: "ExperienceProject",
+                audience: "ExperienceProject",
+                claims: claims,
+                expires: DateTime.UtcNow.AddDays(7),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 
