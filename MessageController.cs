@@ -27,19 +27,36 @@ public class MessagesController : ControllerBase
 
     private int GetUserIdFromHeader()
     {
-        var authHeader = Request.Headers["Authorization"].ToString();
-        var token = authHeader.Replace("Bearer ", "");
-
-        var handler = new JwtSecurityTokenHandler();
-        var jwtToken = handler.ReadJwtToken(token);
-        var userIdClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;
-
-        if (int.TryParse(userIdClaim, out var userId))
+        try
         {
-            return userId;
-        }
+            var authHeader = Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrEmpty(authHeader))
+            {
+                return 0;
+            }
 
-        return 0;
+            var token = authHeader.Replace("Bearer ", "");
+            if (string.IsNullOrEmpty(token))
+            {
+                return 0;
+            }
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+            var userIdClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (int.TryParse(userIdClaim, out var userId))
+            {
+                return userId;
+            }
+
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error parsing token: {ex.Message}");
+            return 0;
+        }
     }
     [HttpDelete("admin/delete/{messageId}")]
     public async Task<IActionResult> DeleteMessageById(int messageId)
@@ -107,34 +124,46 @@ public class MessagesController : ControllerBase
         return Ok("User unblocked successfully.");
     }
 
-    [HttpPost("block/{blockedUserId}")]
-    public async Task<IActionResult> BlockUser(int blockedUserId)
+    [HttpPost("block/{userId}")]
+    public async Task<IActionResult> BlockUser(int userId)
     {
-        var userId = GetUserIdFromHeader();
-
-        if (userId == blockedUserId)
+        var currentUserId = GetUserIdFromHeader();
+        if (currentUserId == 0)
         {
-            return BadRequest("You cannot block yourself.");
+            return Unauthorized(new { message = "User ID not found in token" });
         }
 
-        var existingBlock = await _context.BlockedUsers
-            .FirstOrDefaultAsync(b => b.UserId == userId && b.BlockedUserId == blockedUserId);
-
-        if (existingBlock != null)
+        if (currentUserId == userId)
         {
-            return BadRequest("User is already blocked.");
+            return BadRequest(new { message = "You cannot block yourself." });
         }
 
-        var block = new BlockedUser
+        try
         {
-            UserId = userId,
-            BlockedUserId = blockedUserId
-        };
+            var existingBlock = await _context.BlockedUsers
+                .FirstOrDefaultAsync(b => b.UserId == currentUserId && b.BlockedUserId == userId);
 
-        _context.BlockedUsers.Add(block);
-        await _context.SaveChangesAsync();
+            if (existingBlock != null)
+            {
+                return BadRequest(new { message = "User is already blocked." });
+            }
 
-        return Ok("User blocked successfully.");
+            var block = new BlockedUser
+            {
+                UserId = currentUserId,
+                BlockedUserId = userId
+            };
+
+            _context.BlockedUsers.Add(block);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "User blocked successfully." });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error blocking user: {ex.Message}");
+            return StatusCode(500, new { message = "Failed to block user" });
+        }
     }
 
     [HttpDelete("clear")]
@@ -321,20 +350,28 @@ public class MessagesController : ControllerBase
             return Unauthorized(new { message = "User ID not found in token" });
         }
 
-        var messages = await _context.Messages
-            .Where(m => (m.SenderId == userId && m.ReceiverId == receiverId) ||
-                        (m.SenderId == receiverId && m.ReceiverId == userId))
-            .ToListAsync();
-
-        if (!messages.Any())
+        try
         {
-            return NotFound(new { message = "No messages found" });
+            var messages = await _context.Messages
+                .Where(m => (m.SenderId == userId && m.ReceiverId == receiverId) ||
+                            (m.SenderId == receiverId && m.ReceiverId == userId))
+                .ToListAsync();
+
+            if (!messages.Any())
+            {
+                return NotFound(new { message = "No messages found" });
+            }
+
+            _context.Messages.RemoveRange(messages);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Conversation deleted successfully" });
         }
-
-        _context.Messages.RemoveRange(messages);
-        await _context.SaveChangesAsync();
-
-        return Ok(new { message = "Conversation deleted successfully" });
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting conversation: {ex.Message}");
+            return StatusCode(500, new { message = "Failed to delete conversation" });
+        }
     }
 
     [HttpPost]
