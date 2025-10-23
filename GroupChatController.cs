@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace ExperienceProject.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class GroupChatController : ControllerBase

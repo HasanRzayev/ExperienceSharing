@@ -58,7 +58,7 @@ function Home() {
       
       if (!response.ok) {
         if (response.status === 401) {
-          console.warn("Unauthorized - redirecting to login");
+          console.warn("Not logged in - redirecting to login");
         }
         throw new Error("Network response was not ok");
       }

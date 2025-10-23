@@ -31,40 +31,29 @@ public class MessagesController : ControllerBase
             var authHeader = Request.Headers["Authorization"].ToString();
             if (string.IsNullOrEmpty(authHeader))
             {
-                Console.WriteLine("No Authorization header found");
                 return 0;
             }
 
             var token = authHeader.Replace("Bearer ", "");
             if (string.IsNullOrEmpty(token))
             {
-                Console.WriteLine("No token found in Authorization header");
                 return 0;
             }
 
-            Console.WriteLine($"Token found: {token.Substring(0, Math.Min(20, token.Length))}...");
-
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(token);
-            
-            Console.WriteLine($"JWT Token parsed successfully. Claims count: {jwtToken.Claims.Count()}");
-            
             var userIdClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;
-            Console.WriteLine($"User ID claim: {userIdClaim}");
 
             if (int.TryParse(userIdClaim, out var userId))
             {
-                Console.WriteLine($"Parsed user ID: {userId}");
                 return userId;
             }
 
-            Console.WriteLine("Failed to parse user ID");
             return 0;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error parsing token: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             return 0;
         }
     }

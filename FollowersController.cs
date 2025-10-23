@@ -9,7 +9,6 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using System.IdentityModel.Tokens.Jwt;
 
-[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class FollowersController : ControllerBase

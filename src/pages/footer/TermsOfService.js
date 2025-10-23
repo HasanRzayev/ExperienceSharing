@@ -33,7 +33,7 @@ const TermsOfService = () => {
               <li>Provide accurate and complete information</li>
               <li>Maintain the security of your password</li>
               <li>Be responsible for all activity under your account</li>
-              <li>Notify us immediately of any unauthorized access</li>
+              <li>Notify us immediately of any illegal access</li>
             </ul>
           </section>
 
@@ -58,7 +58,7 @@ const TermsOfService = () => {
               <li>Post false, misleading, or offensive content</li>
               <li>Harass, abuse, or harm other users</li>
               <li>Violate any laws or regulations</li>
-              <li>Attempt to gain unauthorized access to our systems</li>
+              <li>Attempt to gain illegal access to our systems</li>
               <li>Use our platform for commercial purposes without permission</li>
             </ul>
           </section>
