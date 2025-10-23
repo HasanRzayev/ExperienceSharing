@@ -174,6 +174,43 @@ namespace ExperienceProject.Controllers
             }
         }
 
+        [HttpPost("generate-login-qr-public")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GenerateLoginQRCodePublic()
+        {
+            try
+            {
+                var sessionId = Guid.NewGuid().ToString();
+                var expiresAt = DateTime.UtcNow.AddMinutes(5); // 5 minute expiry
+
+                var deviceSession = new DeviceSession
+                {
+                    SessionId = sessionId,
+                    UserId = 0, // Will be set when user scans QR
+                    CreatedAt = DateTime.UtcNow,
+                    ExpiresAt = expiresAt,
+                    IsConfirmed = false,
+                    IsActive = true
+                };
+
+                _context.DeviceSessions.Add(deviceSession);
+                await _context.SaveChangesAsync();
+
+                var qrData = new
+                {
+                    sessionId = sessionId,
+                    expiresAt = expiresAt,
+                    action = "login_device"
+                };
+
+                return Ok(new { qrData = qrData, expiresIn = 300 });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error generating login QR code", error = ex.Message });
+            }
+        }
+
         [HttpPost("confirm-link")]
         public async Task<IActionResult> ConfirmDeviceLink([FromBody] ConfirmDeviceLinkRequest request)
         {
@@ -337,12 +374,15 @@ namespace ExperienceProject.Controllers
                     return BadRequest(new { message = "Invalid or expired session" });
                 }
 
-                // Get user info
-                var user = await _context.Users.FindAsync(session.UserId);
+                // Get user info from request (sent from mobile app)
+                var user = await _context.Users.FindAsync(request.UserId);
                 if (user == null)
                 {
                     return BadRequest(new { message = "User not found" });
                 }
+
+                // Update session with user ID
+                session.UserId = request.UserId;
 
                 // Generate JWT token for the new device
                 var token = GenerateJWTToken(user);
@@ -408,5 +448,6 @@ namespace ExperienceProject.Controllers
     public class ConfirmLoginRequest
     {
         public string SessionId { get; set; }
+        public int UserId { get; set; }
     }
 }
