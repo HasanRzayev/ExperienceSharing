@@ -108,7 +108,7 @@ const TripPlanner = () => {
               <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
                 ✈️ Trip Planner
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">Plan your next adventure</p>
+              <p className="text-gray-600 dark:text-gray-400">Plan your next adventure and organize your experiences</p>
             </div>
             <button
               onClick={() => setShowCreateModal(true)}
