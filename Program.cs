@@ -39,7 +39,7 @@ builder.Services.AddSignalR();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add JWT Authentication
+// Add JWT Authentication - but don't enforce it globally
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -54,13 +54,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
         
-        // Don't fail on anonymous endpoints
+        // Don't fail on missing token - let [Authorize] handle it
         options.Events = new JwtBearerEvents
         {
             OnAuthenticationFailed = context =>
             {
-                // Skip authentication if endpoint allows anonymous
-                if (context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<Microsoft.AspNetCore.Authorization.IAllowAnonymous>() != null)
+                // Don't fail if no token is provided
+                if (context.Exception.GetType() == typeof(SecurityTokenException))
                 {
                     context.NoResult();
                 }
@@ -70,7 +70,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 // Add Authorization - NO global policy, only explicit [Authorize]
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // NO default policy - endpoints are public by default
+    options.FallbackPolicy = null;
+});
 
 // Add HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
