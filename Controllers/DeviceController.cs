@@ -10,7 +10,6 @@ using System.Text;
 
 namespace ExperienceProject.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
     public class DeviceController : ControllerBase
     {
