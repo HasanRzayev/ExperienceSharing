@@ -51,6 +51,36 @@ const Settings = () => {
         confirmPassword: ''
     });
 
+    // Interaction settings
+    const [interactionData, setInteractionData] = useState({
+        allowMessages: true,
+        allowStoryReplies: true,
+        allowTags: true,
+        allowMentions: true,
+        allowComments: true,
+        allowSharing: true,
+        restrictedAccounts: [],
+        hiddenWords: []
+    });
+
+    // Content management
+    const [contentData, setContentData] = useState({
+        mutedAccounts: [],
+        showLikeCounts: true,
+        showShareCounts: true,
+        contentFilter: 'all',
+        autoArchive: false
+    });
+
+    // App & Media settings
+    const [appData, setAppData] = useState({
+        language: 'en',
+        theme: 'light',
+        autoDownload: false,
+        websitePermissions: true,
+        accessibilityMode: false
+    });
+
     const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
 
     useEffect(() => {
@@ -147,7 +177,11 @@ const Settings = () => {
         { id: 'privacy', label: 'Account Privacy', icon: '🔒' },
         { id: 'notifications', label: 'Notifications', icon: '🔔' },
         { id: 'account', label: 'Account Settings', icon: '⚙️' },
-        { id: 'security', label: 'Password & Security', icon: '🛡️' }
+        { id: 'security', label: 'Password & Security', icon: '🛡️' },
+        { id: 'interaction', label: 'Interaction Settings', icon: '💬' },
+        { id: 'content', label: 'Content Management', icon: '📝' },
+        { id: 'app', label: 'App & Media', icon: '📱' },
+        { id: 'support', label: 'Support & Help', icon: '❓' }
     ];
 
     const renderProfileTab = () => (
@@ -390,6 +424,215 @@ const Settings = () => {
         </div>
     );
 
+    const renderInteractionTab = () => (
+        <div className="settings-content">
+            <h3>Interaction Settings</h3>
+            <div className="toggle-group">
+                <label className="toggle-label">
+                    <input
+                        type="checkbox"
+                        checked={interactionData.allowMessages}
+                        onChange={(e) => setInteractionData({...interactionData, allowMessages: e.target.checked})}
+                    />
+                    <span className="toggle-text">Allow Messages</span>
+                </label>
+            </div>
+            <div className="toggle-group">
+                <label className="toggle-label">
+                    <input
+                        type="checkbox"
+                        checked={interactionData.allowStoryReplies}
+                        onChange={(e) => setInteractionData({...interactionData, allowStoryReplies: e.target.checked})}
+                    />
+                    <span className="toggle-text">Allow Story Replies</span>
+                </label>
+            </div>
+            <div className="toggle-group">
+                <label className="toggle-label">
+                    <input
+                        type="checkbox"
+                        checked={interactionData.allowTags}
+                        onChange={(e) => setInteractionData({...interactionData, allowTags: e.target.checked})}
+                    />
+                    <span className="toggle-text">Allow Tags</span>
+                </label>
+            </div>
+            <div className="toggle-group">
+                <label className="toggle-label">
+                    <input
+                        type="checkbox"
+                        checked={interactionData.allowMentions}
+                        onChange={(e) => setInteractionData({...interactionData, allowMentions: e.target.checked})}
+                    />
+                    <span className="toggle-text">Allow Mentions</span>
+                </label>
+            </div>
+            <div className="toggle-group">
+                <label className="toggle-label">
+                    <input
+                        type="checkbox"
+                        checked={interactionData.allowComments}
+                        onChange={(e) => setInteractionData({...interactionData, allowComments: e.target.checked})}
+                    />
+                    <span className="toggle-text">Allow Comments</span>
+                </label>
+            </div>
+            <div className="toggle-group">
+                <label className="toggle-label">
+                    <input
+                        type="checkbox"
+                        checked={interactionData.allowSharing}
+                        onChange={(e) => setInteractionData({...interactionData, allowSharing: e.target.checked})}
+                    />
+                    <span className="toggle-text">Allow Sharing</span>
+                </label>
+            </div>
+            <button className="btn-primary" onClick={() => handleSave('interaction')} disabled={loading}>
+                Save Changes
+            </button>
+        </div>
+    );
+
+    const renderContentTab = () => (
+        <div className="settings-content">
+            <h3>Content Management</h3>
+            <div className="toggle-group">
+                <label className="toggle-label">
+                    <input
+                        type="checkbox"
+                        checked={contentData.showLikeCounts}
+                        onChange={(e) => setContentData({...contentData, showLikeCounts: e.target.checked})}
+                    />
+                    <span className="toggle-text">Show Like Counts</span>
+                </label>
+            </div>
+            <div className="toggle-group">
+                <label className="toggle-label">
+                    <input
+                        type="checkbox"
+                        checked={contentData.showShareCounts}
+                        onChange={(e) => setContentData({...contentData, showShareCounts: e.target.checked})}
+                    />
+                    <span className="toggle-text">Show Share Counts</span>
+                </label>
+            </div>
+            <div className="form-group">
+                <label>Content Filter</label>
+                <select
+                    value={contentData.contentFilter}
+                    onChange={(e) => setContentData({...contentData, contentFilter: e.target.value})}
+                >
+                    <option value="all">Show All Content</option>
+                    <option value="safe">Safe Content Only</option>
+                    <option value="family">Family Friendly</option>
+                </select>
+            </div>
+            <div className="toggle-group">
+                <label className="toggle-label">
+                    <input
+                        type="checkbox"
+                        checked={contentData.autoArchive}
+                        onChange={(e) => setContentData({...contentData, autoArchive: e.target.checked})}
+                    />
+                    <span className="toggle-text">Auto Archive Old Content</span>
+                </label>
+            </div>
+            <button className="btn-primary" onClick={() => handleSave('content')} disabled={loading}>
+                Save Changes
+            </button>
+        </div>
+    );
+
+    const renderAppTab = () => (
+        <div className="settings-content">
+            <h3>App & Media Settings</h3>
+            <div className="form-group">
+                <label>Language</label>
+                <select
+                    value={appData.language}
+                    onChange={(e) => setAppData({...appData, language: e.target.value})}
+                >
+                    <option value="en">English</option>
+                    <option value="az">Azərbaycan</option>
+                    <option value="tr">Türkçe</option>
+                    <option value="ru">Русский</option>
+                </select>
+            </div>
+            <div className="form-group">
+                <label>Theme</label>
+                <select
+                    value={appData.theme}
+                    onChange={(e) => setAppData({...appData, theme: e.target.value})}
+                >
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="auto">Auto</option>
+                </select>
+            </div>
+            <div className="toggle-group">
+                <label className="toggle-label">
+                    <input
+                        type="checkbox"
+                        checked={appData.autoDownload}
+                        onChange={(e) => setAppData({...appData, autoDownload: e.target.checked})}
+                    />
+                    <span className="toggle-text">Auto Download Media</span>
+                </label>
+            </div>
+            <div className="toggle-group">
+                <label className="toggle-label">
+                    <input
+                        type="checkbox"
+                        checked={appData.websitePermissions}
+                        onChange={(e) => setAppData({...appData, websitePermissions: e.target.checked})}
+                    />
+                    <span className="toggle-text">Website Permissions</span>
+                </label>
+            </div>
+            <div className="toggle-group">
+                <label className="toggle-label">
+                    <input
+                        type="checkbox"
+                        checked={appData.accessibilityMode}
+                        onChange={(e) => setAppData({...appData, accessibilityMode: e.target.checked})}
+                    />
+                    <span className="toggle-text">Accessibility Mode</span>
+                </label>
+            </div>
+            <button className="btn-primary" onClick={() => handleSave('app')} disabled={loading}>
+                Save Changes
+            </button>
+        </div>
+    );
+
+    const renderSupportTab = () => (
+        <div className="settings-content">
+            <h3>Support & Help</h3>
+            <div className="help-section">
+                <h4>Account Status</h4>
+                <p>Your account is active and in good standing.</p>
+            </div>
+            <div className="help-section">
+                <h4>Privacy Center</h4>
+                <p>Learn more about how we protect your privacy and data.</p>
+            </div>
+            <div className="help-section">
+                <h4>Help Center</h4>
+                <p>Find answers to common questions and get support.</p>
+            </div>
+            <div className="help-section">
+                <h4>Contact Support</h4>
+                <p>Need help? Contact our support team.</p>
+            </div>
+            <div className="help-links">
+                <a href="/help" className="help-link">Help Center</a>
+                <a href="/privacy" className="help-link">Privacy Policy</a>
+                <a href="/contact" className="help-link">Contact Us</a>
+                <a href="/report" className="help-link">Report Issue</a>
+            </div>
+        </div>
+    );
+
     const renderContent = () => {
         switch (activeTab) {
             case 'profile': return renderProfileTab();
@@ -397,6 +640,10 @@ const Settings = () => {
             case 'notifications': return renderNotificationsTab();
             case 'account': return renderAccountTab();
             case 'security': return renderSecurityTab();
+            case 'interaction': return renderInteractionTab();
+            case 'content': return renderContentTab();
+            case 'app': return renderAppTab();
+            case 'support': return renderSupportTab();
             default: return renderProfileTab();
         }
     };
