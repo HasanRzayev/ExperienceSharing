@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Features;
 using Newtonsoft.Json;
-using ExperienceProject.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,8 +31,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add SignalR
-builder.Services.AddSignalR();
 
 // Add Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -95,9 +92,8 @@ app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Map Controllers and Hubs
+// Map Controllers
 app.MapControllers();
-app.MapHub<DeviceLinkHub>("api/deviceLinkHub");
 
 // Ensure database migrations are applied (with error handling)
 try
