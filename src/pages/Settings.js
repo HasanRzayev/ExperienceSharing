@@ -122,9 +122,19 @@ const Settings = () => {
 
             const headers = { Authorization: `Bearer ${token}` };
             
-            // Load profile from existing AuthController
-            const profileRes = await axios.get(`${apiBaseUrl}/Auth/GetProfile`, { headers });
+            // Load all settings from SettingsController
+            const [profileRes, privacyRes, notificationRes, accountRes, interactionRes, contentRes, appRes, toolsRes] = await Promise.all([
+                axios.get(`${apiBaseUrl}/Settings/profile`, { headers }),
+                axios.get(`${apiBaseUrl}/Settings/privacy`, { headers }),
+                axios.get(`${apiBaseUrl}/Settings/notifications`, { headers }),
+                axios.get(`${apiBaseUrl}/Settings/account`, { headers }),
+                axios.get(`${apiBaseUrl}/Settings/interaction`, { headers }).catch(() => ({ data: {} })),
+                axios.get(`${apiBaseUrl}/Settings/content`, { headers }).catch(() => ({ data: {} })),
+                axios.get(`${apiBaseUrl}/Settings/app`, { headers }).catch(() => ({ data: {} })),
+                axios.get(`${apiBaseUrl}/Settings/tools`, { headers }).catch(() => ({ data: {} }))
+            ]);
 
+            // Set profile data
             setProfileData({
                 firstName: profileRes.data.firstName || '',
                 lastName: profileRes.data.lastName || '',
@@ -136,24 +146,64 @@ const Settings = () => {
                 country: profileRes.data.country || ''
             });
 
-            setAccountData({
-                userName: profileRes.data.userName || '',
-                email: profileRes.data.email || '',
-                language: 'en'
-            });
-
-            // Set default values for other settings
+            // Set privacy data
             setPrivacyData({
-                isPrivate: false,
-                allowComments: true,
-                allowTags: true,
-                allowMentions: true,
-                showActivityStatus: true
+                isPrivate: privacyRes.data.isPrivate || false,
+                allowComments: privacyRes.data.allowComments || true,
+                allowTags: privacyRes.data.allowTags || true,
+                allowMentions: privacyRes.data.allowMentions || true,
+                showActivityStatus: privacyRes.data.showActivityStatus || true
             });
 
+            // Set notification data
             setNotificationData({
-                emailNotifications: true,
-                pushNotifications: true
+                emailNotifications: notificationRes.data.emailNotifications || true,
+                pushNotifications: notificationRes.data.pushNotifications || true
+            });
+
+            // Set account data
+            setAccountData({
+                userName: accountRes.data.userName || '',
+                email: accountRes.data.email || '',
+                language: accountRes.data.language || 'en'
+            });
+
+            // Set interaction data
+            setInteractionData({
+                allowMessages: interactionRes.data.allowMessages ?? true,
+                allowStoryReplies: interactionRes.data.allowStoryReplies ?? true,
+                allowTags: interactionRes.data.allowTags ?? true,
+                allowMentions: interactionRes.data.allowMentions ?? true,
+                allowComments: interactionRes.data.allowComments ?? true,
+                allowSharing: interactionRes.data.allowSharing ?? true,
+                restrictedAccounts: interactionRes.data.restrictedAccounts || [],
+                hiddenWords: interactionRes.data.hiddenWords || []
+            });
+
+            // Set content data
+            setContentData({
+                showLikeCounts: contentRes.data.showLikeCounts ?? true,
+                showShareCounts: contentRes.data.showShareCounts ?? true,
+                contentFilter: contentRes.data.contentFilter || 'all',
+                autoArchive: contentRes.data.autoArchive ?? false,
+                mutedAccounts: contentRes.data.mutedAccounts || []
+            });
+
+            // Set app data
+            setAppData({
+                language: appRes.data.language || 'en',
+                theme: appRes.data.theme || 'light',
+                autoDownload: appRes.data.autoDownload ?? false,
+                websitePermissions: appRes.data.websitePermissions ?? true,
+                accessibilityMode: appRes.data.accessibilityMode ?? false
+            });
+
+            // Set account tools data
+            setAccountTools({
+                accountType: toolsRes.data.accountType || 'personal',
+                analyticsEnabled: toolsRes.data.analyticsEnabled ?? false,
+                insightsEnabled: toolsRes.data.insightsEnabled ?? false,
+                professionalTools: toolsRes.data.professionalTools ?? false
             });
         } catch (error) {
             console.error('Error loading settings:', error);
@@ -171,17 +221,20 @@ const Settings = () => {
 
             switch (type) {
                 case 'profile':
-                    // For now, just show success message since we don't have update API
-                    setMessage('Profile settings saved locally (backend update needed)');
+                    await axios.put(`${apiBaseUrl}/Settings/profile`, profileData, { headers });
+                    setMessage('Profile settings saved successfully');
                     break;
                 case 'privacy':
-                    setMessage('Privacy settings saved locally (backend update needed)');
+                    await axios.put(`${apiBaseUrl}/Settings/privacy`, privacyData, { headers });
+                    setMessage('Privacy settings saved successfully');
                     break;
                 case 'notifications':
-                    setMessage('Notification settings saved locally (backend update needed)');
+                    await axios.put(`${apiBaseUrl}/Settings/notifications`, notificationData, { headers });
+                    setMessage('Notification settings saved successfully');
                     break;
                 case 'account':
-                    setMessage('Account settings saved locally (backend update needed)');
+                    await axios.put(`${apiBaseUrl}/Settings/account`, accountData, { headers });
+                    setMessage('Account settings saved successfully');
                     break;
                 case 'password':
                     if (passwordData.newPassword !== passwordData.confirmPassword) {
@@ -189,23 +242,31 @@ const Settings = () => {
                         setLoading(false);
                         return;
                     }
-                    setMessage('Password change saved locally (backend update needed)');
+                    await axios.put(`${apiBaseUrl}/Settings/password`, {
+                        oldPassword: passwordData.oldPassword,
+                        newPassword: passwordData.newPassword
+                    }, { headers });
+                    setMessage('Password changed successfully');
                     setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
                     break;
                 case 'interaction':
-                    setMessage('Interaction settings saved locally (backend update needed)');
+                    await axios.put(`${apiBaseUrl}/Settings/interaction`, interactionData, { headers });
+                    setMessage('Interaction settings saved successfully');
                     break;
                 case 'content':
-                    setMessage('Content settings saved locally (backend update needed)');
+                    await axios.put(`${apiBaseUrl}/Settings/content`, contentData, { headers });
+                    setMessage('Content settings saved successfully');
                     break;
                 case 'app':
-                    setMessage('App settings saved locally (backend update needed)');
+                    await axios.put(`${apiBaseUrl}/Settings/app`, appData, { headers });
+                    setMessage('App settings saved successfully');
                     break;
                 case 'tools':
-                    setMessage('Account tools saved locally (backend update needed)');
+                    await axios.put(`${apiBaseUrl}/Settings/tools`, accountTools, { headers });
+                    setMessage('Account tools saved successfully');
                     break;
                 default:
-                    setMessage('Settings saved locally (backend update needed)');
+                    setMessage('Settings saved successfully');
             }
         } catch (error) {
             console.error('Error saving settings:', error);

@@ -52,6 +52,23 @@ namespace ExperienceProject.Models
         public bool AllowMentions { get; set; } = true;
         public bool TwoFactorEnabled { get; set; } = false;
         public DateTime? LastLoginAt { get; set; }
+        
+        // Additional settings fields for extended functionality
+        public bool AllowMessages { get; set; } = true;
+        public bool AllowStoryReplies { get; set; } = true;
+        public bool AllowSharing { get; set; } = true;
+        public bool ShowLikeCounts { get; set; } = true;
+        public bool ShowShareCounts { get; set; } = true;
+        public string ContentFilter { get; set; } = "all";
+        public bool AutoArchive { get; set; } = false;
+        public string Theme { get; set; } = "light";
+        public bool AutoDownload { get; set; } = false;
+        public bool WebsitePermissions { get; set; } = true;
+        public bool AccessibilityMode { get; set; } = false;
+        public string AccountType { get; set; } = "personal";
+        public bool AnalyticsEnabled { get; set; } = false;
+        public bool InsightsEnabled { get; set; } = false;
+        public bool ProfessionalTools { get; set; } = false;
     }
 }
 

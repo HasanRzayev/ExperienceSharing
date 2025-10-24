@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        input, textarea { width: 100%; padding: 8px; margin: 5px 0; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Settings API Test Page</h1>
+    
+    <div class="test-section">
+        <h2>1. Login Test</h2>
+        <input type="text" id="username" placeholder="Username" value="admin">
+        <input type="password" id="password" placeholder="Password" value="admin123">
+        <button onclick="login()">Login</button>
+        <div id="loginResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Profile Settings Test</h2>
+        <button onclick="getProfile()">Get Profile</button>
+        <button onclick="updateProfile()">Update Profile</button>
+        <div id="profileResult" class="result"></div>
+        
+        <h3>Update Profile Data:</h3>
+        <input type="text" id="firstName" placeholder="First Name" value="Hasan">
+        <input type="text" id="lastName" placeholder="Last Name" value="Aliyev">
+        <textarea id="bio" placeholder="Bio" rows="3">Bu mənim bio-mdur. Mən səyahət sevən bir insanam.</textarea>
+        <input type="url" id="website" placeholder="Website" value="https://example.com">
+        <input type="tel" id="phoneNumber" placeholder="Phone Number" value="+994501234567">
+        <input type="date" id="birthDate" value="1990-01-01">
+        <select id="gender">
+            <option value="">Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+        </select>
+        <input type="text" id="country" placeholder="Country" value="Azerbaijan">
+    </div>
+
+    <div class="test-section">
+        <h2>3. Privacy Settings Test</h2>
+        <button onclick="getPrivacy()">Get Privacy</button>
+        <button onclick="updatePrivacy()">Update Privacy</button>
+        <div id="privacyResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Notification Settings Test</h2>
+        <button onclick="getNotifications()">Get Notifications</button>
+        <button onclick="updateNotifications()">Update Notifications</button>
+        <div id="notificationResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://experiencesharingbackend.runasp.net/api';
+        let token = localStorage.getItem('token');
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/Auth/Login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    token = data.token;
+                    localStorage.setItem('token', token);
+                    document.getElementById('loginResult').innerHTML = `<span class="success">Login successful! Token saved.</span>`;
+                } else {
+                    document.getElementById('loginResult').innerHTML = `<span class="error">Login failed: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = `<span class="error">Error: ${error.message}</span>`;
+            }
+        }
+
+        async function getProfile() {
+            if (!token) {
+                document.getElementById('profileResult').innerHTML = `<span class="error">Please login first</span>`;
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/Settings/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('profileResult').innerHTML = `<span class="success">Profile loaded successfully!</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('profileResult').innerHTML = `<span class="error">Failed to load profile: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('profileResult').innerHTML = `<span class="error">Error: ${error.message}</span>`;
+            }
+        }
+
+        async function updateProfile() {
+            if (!token) {
+                document.getElementById('profileResult').innerHTML = `<span class="error">Please login first</span>`;
+                return;
+            }
+
+            const profileData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                bio: document.getElementById('bio').value,
+                website: document.getElementById('website').value,
+                phoneNumber: document.getElementById('phoneNumber').value,
+                birthDate: document.getElementById('birthDate').value,
+                gender: document.getElementById('gender').value,
+                country: document.getElementById('country').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/Settings/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(profileData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('profileResult').innerHTML = `<span class="success">Profile updated successfully!</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('profileResult').innerHTML = `<span class="error">Failed to update profile: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('profileResult').innerHTML = `<span class="error">Error: ${error.message}</span>`;
+            }
+        }
+
+        async function getPrivacy() {
+            if (!token) {
+                document.getElementById('privacyResult').innerHTML = `<span class="error">Please login first</span>`;
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/Settings/privacy`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('privacyResult').innerHTML = `<span class="success">Privacy settings loaded!</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('privacyResult').innerHTML = `<span class="error">Failed to load privacy: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('privacyResult').innerHTML = `<span class="error">Error: ${error.message}</span>`;
+            }
+        }
+
+        async function updatePrivacy() {
+            if (!token) {
+                document.getElementById('privacyResult').innerHTML = `<span class="error">Please login first</span>`;
+                return;
+            }
+
+            const privacyData = {
+                isPrivate: false,
+                allowComments: true,
+                allowTags: true,
+                allowMentions: true,
+                showActivityStatus: true
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/Settings/privacy`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(privacyData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('privacyResult').innerHTML = `<span class="success">Privacy settings updated!</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('privacyResult').innerHTML = `<span class="error">Failed to update privacy: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('privacyResult').innerHTML = `<span class="error">Error: ${error.message}</span>`;
+            }
+        }
+
+        async function getNotifications() {
+            if (!token) {
+                document.getElementById('notificationResult').innerHTML = `<span class="error">Please login first</span>`;
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/Settings/notifications`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('notificationResult').innerHTML = `<span class="success">Notification settings loaded!</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('notificationResult').innerHTML = `<span class="error">Failed to load notifications: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('notificationResult').innerHTML = `<span class="error">Error: ${error.message}</span>`;
+            }
+        }
+
+        async function updateNotifications() {
+            if (!token) {
+                document.getElementById('notificationResult').innerHTML = `<span class="error">Please login first</span>`;
+                return;
+            }
+
+            const notificationData = {
+                emailNotifications: true,
+                pushNotifications: true
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/Settings/notifications`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(notificationData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('notificationResult').innerHTML = `<span class="success">Notification settings updated!</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('notificationResult').innerHTML = `<span class="error">Failed to update notifications: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('notificationResult').innerHTML = `<span class="error">Error: ${error.message}</span>`;
+            }
+        }
+
+        // Sayfa yüklendiğinde token kontrolü
+        window.onload = function() {
+            if (token) {
+                document.getElementById('loginResult').innerHTML = `<span class="info">Token found in localStorage. You can test the APIs.</span>`;
+            }
+        };
+    </script>
+</body>
+</html>

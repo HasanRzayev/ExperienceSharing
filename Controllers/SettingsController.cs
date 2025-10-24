@@ -54,26 +54,47 @@ namespace ExperienceProject.Controllers
         [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized();
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId == null)
+                    return Unauthorized();
 
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-                return NotFound();
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                    return NotFound();
 
-            user.FirstName = request.FirstName;
-            user.LastName = request.LastName;
-            user.Bio = request.Bio;
-            user.Website = request.Website;
-            user.PhoneNumber = request.PhoneNumber;
-            user.BirthDate = request.BirthDate;
-            user.Gender = request.Gender;
-            user.Country = request.Country;
+                // Log the request data
+                Console.WriteLine($"Updating profile for user {userId}:");
+                Console.WriteLine($"FirstName: {request.FirstName}");
+                Console.WriteLine($"LastName: {request.LastName}");
+                Console.WriteLine($"Bio: {request.Bio}");
+                Console.WriteLine($"Website: {request.Website}");
+                Console.WriteLine($"PhoneNumber: {request.PhoneNumber}");
+                Console.WriteLine($"BirthDate: {request.BirthDate}");
+                Console.WriteLine($"Gender: {request.Gender}");
+                Console.WriteLine($"Country: {request.Country}");
 
-            await _context.SaveChangesAsync();
+                user.FirstName = request.FirstName;
+                user.LastName = request.LastName;
+                user.Bio = request.Bio;
+                user.Website = request.Website;
+                user.PhoneNumber = request.PhoneNumber;
+                user.BirthDate = request.BirthDate;
+                user.Gender = request.Gender;
+                user.Country = request.Country;
 
-            return Ok(new { message = "Profile updated successfully" });
+                var result = await _context.SaveChangesAsync();
+                Console.WriteLine($"SaveChangesAsync result: {result}");
+
+                return Ok(new { message = "Profile updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating profile: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return StatusCode(500, new { message = "Error updating profile", error = ex.Message });
+            }
         }
 
         // Get privacy settings
@@ -225,6 +246,253 @@ namespace ExperienceProject.Controllers
             return Ok(new { message = "Password changed successfully" });
         }
 
+        // Get interaction settings
+        [HttpGet("interaction")]
+        public async Task<IActionResult> GetInteractionSettings()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized();
+
+            var settings = await _context.InteractionSettings.FirstOrDefaultAsync(s => s.UserId == userId);
+            if (settings == null)
+            {
+                // Create default settings if none exist
+                settings = new InteractionSettings
+                {
+                    UserId = userId.Value,
+                    AllowMessages = true,
+                    AllowStoryReplies = true,
+                    AllowTags = true,
+                    AllowMentions = true,
+                    AllowComments = true,
+                    AllowSharing = true,
+                    RestrictedAccounts = "[]",
+                    HiddenWords = "[]"
+                };
+                _context.InteractionSettings.Add(settings);
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(new
+            {
+                settings.AllowMessages,
+                settings.AllowStoryReplies,
+                settings.AllowTags,
+                settings.AllowMentions,
+                settings.AllowComments,
+                settings.AllowSharing,
+                restrictedAccounts = System.Text.Json.JsonSerializer.Deserialize<string[]>(settings.RestrictedAccounts ?? "[]"),
+                hiddenWords = System.Text.Json.JsonSerializer.Deserialize<string[]>(settings.HiddenWords ?? "[]")
+            });
+        }
+
+        // Update interaction settings
+        [HttpPut("interaction")]
+        public async Task<IActionResult> UpdateInteractionSettings([FromBody] UpdateInteractionRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized();
+
+            var settings = await _context.InteractionSettings.FirstOrDefaultAsync(s => s.UserId == userId);
+            if (settings == null)
+            {
+                settings = new InteractionSettings { UserId = userId.Value };
+                _context.InteractionSettings.Add(settings);
+            }
+
+            settings.AllowMessages = request.AllowMessages;
+            settings.AllowStoryReplies = request.AllowStoryReplies;
+            settings.AllowTags = request.AllowTags;
+            settings.AllowMentions = request.AllowMentions;
+            settings.AllowComments = request.AllowComments;
+            settings.AllowSharing = request.AllowSharing;
+            settings.RestrictedAccounts = System.Text.Json.JsonSerializer.Serialize(request.RestrictedAccounts ?? new string[0]);
+            settings.HiddenWords = System.Text.Json.JsonSerializer.Serialize(request.HiddenWords ?? new string[0]);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Interaction settings updated successfully" });
+        }
+
+        // Get content settings
+        [HttpGet("content")]
+        public async Task<IActionResult> GetContentSettings()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized();
+
+            var settings = await _context.ContentSettings.FirstOrDefaultAsync(s => s.UserId == userId);
+            if (settings == null)
+            {
+                settings = new ContentSettings
+                {
+                    UserId = userId.Value,
+                    MutedAccounts = "[]",
+                    ShowLikeCounts = true,
+                    ShowShareCounts = true,
+                    ContentFilter = "all",
+                    AutoArchive = false
+                };
+                _context.ContentSettings.Add(settings);
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(new
+            {
+                settings.ShowLikeCounts,
+                settings.ShowShareCounts,
+                settings.ContentFilter,
+                settings.AutoArchive,
+                mutedAccounts = System.Text.Json.JsonSerializer.Deserialize<string[]>(settings.MutedAccounts ?? "[]")
+            });
+        }
+
+        // Update content settings
+        [HttpPut("content")]
+        public async Task<IActionResult> UpdateContentSettings([FromBody] UpdateContentRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized();
+
+            var settings = await _context.ContentSettings.FirstOrDefaultAsync(s => s.UserId == userId);
+            if (settings == null)
+            {
+                settings = new ContentSettings { UserId = userId.Value };
+                _context.ContentSettings.Add(settings);
+            }
+
+            settings.ShowLikeCounts = request.ShowLikeCounts;
+            settings.ShowShareCounts = request.ShowShareCounts;
+            settings.ContentFilter = request.ContentFilter;
+            settings.AutoArchive = request.AutoArchive;
+            settings.MutedAccounts = System.Text.Json.JsonSerializer.Serialize(request.MutedAccounts ?? new string[0]);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Content settings updated successfully" });
+        }
+
+        // Get app settings
+        [HttpGet("app")]
+        public async Task<IActionResult> GetAppSettings()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized();
+
+            var settings = await _context.AppSettings.FirstOrDefaultAsync(s => s.UserId == userId);
+            if (settings == null)
+            {
+                settings = new AppSettings
+                {
+                    UserId = userId.Value,
+                    Language = "en",
+                    Theme = "light",
+                    AutoDownload = false,
+                    WebsitePermissions = true,
+                    AccessibilityMode = false
+                };
+                _context.AppSettings.Add(settings);
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(new
+            {
+                settings.Language,
+                settings.Theme,
+                settings.AutoDownload,
+                settings.WebsitePermissions,
+                settings.AccessibilityMode
+            });
+        }
+
+        // Update app settings
+        [HttpPut("app")]
+        public async Task<IActionResult> UpdateAppSettings([FromBody] UpdateAppRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized();
+
+            var settings = await _context.AppSettings.FirstOrDefaultAsync(s => s.UserId == userId);
+            if (settings == null)
+            {
+                settings = new AppSettings { UserId = userId.Value };
+                _context.AppSettings.Add(settings);
+            }
+
+            settings.Language = request.Language;
+            settings.Theme = request.Theme;
+            settings.AutoDownload = request.AutoDownload;
+            settings.WebsitePermissions = request.WebsitePermissions;
+            settings.AccessibilityMode = request.AccessibilityMode;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "App settings updated successfully" });
+        }
+
+        // Get account tools
+        [HttpGet("tools")]
+        public async Task<IActionResult> GetAccountTools()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized();
+
+            var tools = await _context.AccountTools.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (tools == null)
+            {
+                tools = new AccountTools
+                {
+                    UserId = userId.Value,
+                    AccountType = "personal",
+                    AnalyticsEnabled = false,
+                    InsightsEnabled = false,
+                    ProfessionalTools = false
+                };
+                _context.AccountTools.Add(tools);
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(new
+            {
+                tools.AccountType,
+                tools.AnalyticsEnabled,
+                tools.InsightsEnabled,
+                tools.ProfessionalTools
+            });
+        }
+
+        // Update account tools
+        [HttpPut("tools")]
+        public async Task<IActionResult> UpdateAccountTools([FromBody] UpdateAccountToolsRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized();
+
+            var tools = await _context.AccountTools.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (tools == null)
+            {
+                tools = new AccountTools { UserId = userId.Value };
+                _context.AccountTools.Add(tools);
+            }
+
+            tools.AccountType = request.AccountType;
+            tools.AnalyticsEnabled = request.AnalyticsEnabled;
+            tools.InsightsEnabled = request.InsightsEnabled;
+            tools.ProfessionalTools = request.ProfessionalTools;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Account tools updated successfully" });
+        }
+
         private int? GetCurrentUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -279,5 +547,43 @@ namespace ExperienceProject.Controllers
         public string OldPassword { get; set; }
         [Required]
         public string NewPassword { get; set; }
+    }
+
+    public class UpdateInteractionRequest
+    {
+        public bool AllowMessages { get; set; }
+        public bool AllowStoryReplies { get; set; }
+        public bool AllowTags { get; set; }
+        public bool AllowMentions { get; set; }
+        public bool AllowComments { get; set; }
+        public bool AllowSharing { get; set; }
+        public string[] RestrictedAccounts { get; set; }
+        public string[] HiddenWords { get; set; }
+    }
+
+    public class UpdateContentRequest
+    {
+        public bool ShowLikeCounts { get; set; }
+        public bool ShowShareCounts { get; set; }
+        public string ContentFilter { get; set; }
+        public bool AutoArchive { get; set; }
+        public string[] MutedAccounts { get; set; }
+    }
+
+    public class UpdateAppRequest
+    {
+        public string Language { get; set; }
+        public string Theme { get; set; }
+        public bool AutoDownload { get; set; }
+        public bool WebsitePermissions { get; set; }
+        public bool AccessibilityMode { get; set; }
+    }
+
+    public class UpdateAccountToolsRequest
+    {
+        public string AccountType { get; set; }
+        public bool AnalyticsEnabled { get; set; }
+        public bool InsightsEnabled { get; set; }
+        public bool ProfessionalTools { get; set; }
     }
 }

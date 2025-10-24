@@ -231,6 +231,11 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
               <p className="text-sm font-medium text-gray-800 cursor-pointer hover:text-purple-600 transition-colors" onClick={handleUserNameClick}>
                 {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.userName || "Unknown User"}
               </p>
+              {user?.country && (
+                <p className="text-xs text-gray-500">
+                  📍 {user.country}
+                </p>
+              )}
               <p className="text-xs text-gray-500">
                 {date && typeof date === 'string' 
                   ? new Date(date).toLocaleDateString('en-US', {
