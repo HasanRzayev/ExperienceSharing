@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import './Settings.css';
+import { SettingsIcons } from '../components/SettingsIcons';
 
 const Settings = () => {
     const navigate = useNavigate();
@@ -79,6 +80,30 @@ const Settings = () => {
         autoDownload: false,
         websitePermissions: true,
         accessibilityMode: false
+    });
+
+    // Close Friends
+    const [closeFriends, setCloseFriends] = useState([]);
+    const [newCloseFriend, setNewCloseFriend] = useState('');
+
+    // Blocked Accounts
+    const [blockedAccounts, setBlockedAccounts] = useState([]);
+    const [newBlockedUser, setNewBlockedUser] = useState('');
+
+    // Muted Accounts
+    const [mutedAccounts, setMutedAccounts] = useState([]);
+    const [newMutedUser, setNewMutedUser] = useState('');
+
+    // Hidden Words
+    const [hiddenWords, setHiddenWords] = useState([]);
+    const [newHiddenWord, setNewHiddenWord] = useState('');
+
+    // Account Tools
+    const [accountTools, setAccountTools] = useState({
+        accountType: 'personal', // personal, business, creator
+        analyticsEnabled: false,
+        insightsEnabled: false,
+        professionalTools: false
     });
 
     const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
@@ -173,15 +198,19 @@ const Settings = () => {
     };
 
     const settingsTabs = [
-        { id: 'profile', label: 'Personal Details', icon: '👤' },
-        { id: 'privacy', label: 'Account Privacy', icon: '🔒' },
-        { id: 'notifications', label: 'Notifications', icon: '🔔' },
-        { id: 'account', label: 'Account Settings', icon: '⚙️' },
-        { id: 'security', label: 'Password & Security', icon: '🛡️' },
-        { id: 'interaction', label: 'Interaction Settings', icon: '💬' },
-        { id: 'content', label: 'Content Management', icon: '📝' },
-        { id: 'app', label: 'App & Media', icon: '📱' },
-        { id: 'support', label: 'Support & Help', icon: '❓' }
+        { id: 'profile', label: 'Personal Details', icon: SettingsIcons.profile },
+        { id: 'privacy', label: 'Account Privacy', icon: SettingsIcons.privacy },
+        { id: 'notifications', label: 'Notifications', icon: SettingsIcons.notifications },
+        { id: 'account', label: 'Account Settings', icon: SettingsIcons.account },
+        { id: 'security', label: 'Password & Security', icon: SettingsIcons.security },
+        { id: 'interaction', label: 'Interaction Settings', icon: SettingsIcons.interaction },
+        { id: 'content', label: 'Content Management', icon: SettingsIcons.content },
+        { id: 'app', label: 'App & Media', icon: SettingsIcons.app },
+        { id: 'closeFriends', label: 'Close Friends', icon: SettingsIcons.closeFriends },
+        { id: 'blocked', label: 'Blocked Accounts', icon: SettingsIcons.blocked },
+        { id: 'muted', label: 'Muted Accounts', icon: SettingsIcons.muted },
+        { id: 'tools', label: 'Account Tools', icon: SettingsIcons.tools },
+        { id: 'support', label: 'Support & Help', icon: SettingsIcons.support }
     ];
 
     const renderProfileTab = () => (
@@ -605,6 +634,218 @@ const Settings = () => {
         </div>
     );
 
+    const renderCloseFriendsTab = () => (
+        <div className="settings-content">
+            <h3>Close Friends</h3>
+            <p className="section-description">Manage your close friends list. Only close friends can see your private experiences.</p>
+            
+            <div className="form-group">
+                <label>Add Close Friend</label>
+                <div className="input-group">
+                    <input
+                        type="text"
+                        value={newCloseFriend}
+                        onChange={(e) => setNewCloseFriend(e.target.value)}
+                        placeholder="Enter username or email"
+                    />
+                    <button 
+                        className="btn-secondary"
+                        onClick={() => {
+                            if (newCloseFriend.trim()) {
+                                setCloseFriends([...closeFriends, newCloseFriend.trim()]);
+                                setNewCloseFriend('');
+                            }
+                        }}
+                    >
+                        Add
+                    </button>
+                </div>
+            </div>
+
+            <div className="list-section">
+                <h4>Close Friends ({closeFriends.length})</h4>
+                {closeFriends.length === 0 ? (
+                    <p className="empty-state">No close friends added yet.</p>
+                ) : (
+                    <div className="list-items">
+                        {closeFriends.map((friend, index) => (
+                            <div key={index} className="list-item">
+                                <span>{friend}</span>
+                                <button 
+                                    className="btn-remove"
+                                    onClick={() => setCloseFriends(closeFriends.filter((_, i) => i !== index))}
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+
+    const renderBlockedTab = () => (
+        <div className="settings-content">
+            <h3>Blocked Accounts</h3>
+            <p className="section-description">Manage blocked users. Blocked users cannot see your content or interact with you.</p>
+            
+            <div className="form-group">
+                <label>Block User</label>
+                <div className="input-group">
+                    <input
+                        type="text"
+                        value={newBlockedUser}
+                        onChange={(e) => setNewBlockedUser(e.target.value)}
+                        placeholder="Enter username or email"
+                    />
+                    <button 
+                        className="btn-secondary"
+                        onClick={() => {
+                            if (newBlockedUser.trim()) {
+                                setBlockedAccounts([...blockedAccounts, newBlockedUser.trim()]);
+                                setNewBlockedUser('');
+                            }
+                        }}
+                    >
+                        Block
+                    </button>
+                </div>
+            </div>
+
+            <div className="list-section">
+                <h4>Blocked Users ({blockedAccounts.length})</h4>
+                {blockedAccounts.length === 0 ? (
+                    <p className="empty-state">No blocked users.</p>
+                ) : (
+                    <div className="list-items">
+                        {blockedAccounts.map((user, index) => (
+                            <div key={index} className="list-item">
+                                <span>{user}</span>
+                                <button 
+                                    className="btn-unblock"
+                                    onClick={() => setBlockedAccounts(blockedAccounts.filter((_, i) => i !== index))}
+                                >
+                                    Unblock
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+
+    const renderMutedTab = () => (
+        <div className="settings-content">
+            <h3>Muted Accounts</h3>
+            <p className="section-description">Muted users' content won't appear in your feed, but they can still see your content.</p>
+            
+            <div className="form-group">
+                <label>Mute User</label>
+                <div className="input-group">
+                    <input
+                        type="text"
+                        value={newMutedUser}
+                        onChange={(e) => setNewMutedUser(e.target.value)}
+                        placeholder="Enter username or email"
+                    />
+                    <button 
+                        className="btn-secondary"
+                        onClick={() => {
+                            if (newMutedUser.trim()) {
+                                setMutedAccounts([...mutedAccounts, newMutedUser.trim()]);
+                                setNewMutedUser('');
+                            }
+                        }}
+                    >
+                        Mute
+                    </button>
+                </div>
+            </div>
+
+            <div className="list-section">
+                <h4>Muted Users ({mutedAccounts.length})</h4>
+                {mutedAccounts.length === 0 ? (
+                    <p className="empty-state">No muted users.</p>
+                ) : (
+                    <div className="list-items">
+                        {mutedAccounts.map((user, index) => (
+                            <div key={index} className="list-item">
+                                <span>{user}</span>
+                                <button 
+                                    className="btn-unmute"
+                                    onClick={() => setMutedAccounts(mutedAccounts.filter((_, i) => i !== index))}
+                                >
+                                    Unmute
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+
+    const renderToolsTab = () => (
+        <div className="settings-content">
+            <h3>Account Tools</h3>
+            <p className="section-description">Professional tools and account type settings.</p>
+            
+            <div className="form-group">
+                <label>Account Type</label>
+                <select
+                    value={accountTools.accountType}
+                    onChange={(e) => setAccountTools({...accountTools, accountType: e.target.value})}
+                >
+                    <option value="personal">Personal</option>
+                    <option value="business">Business</option>
+                    <option value="creator">Creator</option>
+                </select>
+            </div>
+
+            <div className="toggle-group">
+                <label className="toggle-label">
+                    <input
+                        type="checkbox"
+                        checked={accountTools.analyticsEnabled}
+                        onChange={(e) => setAccountTools({...accountTools, analyticsEnabled: e.target.checked})}
+                    />
+                    <span className="toggle-text">Enable Analytics</span>
+                </label>
+                <p className="help-text">View detailed analytics about your experiences</p>
+            </div>
+
+            <div className="toggle-group">
+                <label className="toggle-label">
+                    <input
+                        type="checkbox"
+                        checked={accountTools.insightsEnabled}
+                        onChange={(e) => setAccountTools({...accountTools, insightsEnabled: e.target.checked})}
+                    />
+                    <span className="toggle-text">Enable Insights</span>
+                </label>
+                <p className="help-text">Get insights about your audience and engagement</p>
+            </div>
+
+            <div className="toggle-group">
+                <label className="toggle-label">
+                    <input
+                        type="checkbox"
+                        checked={accountTools.professionalTools}
+                        onChange={(e) => setAccountTools({...accountTools, professionalTools: e.target.checked})}
+                    />
+                    <span className="toggle-text">Professional Tools</span>
+                </label>
+                <p className="help-text">Access advanced features for content creators</p>
+            </div>
+
+            <button className="btn-primary" onClick={() => handleSave('tools')} disabled={loading}>
+                Save Changes
+            </button>
+        </div>
+    );
+
     const renderSupportTab = () => (
         <div className="settings-content">
             <h3>Support & Help</h3>
@@ -643,6 +884,10 @@ const Settings = () => {
             case 'interaction': return renderInteractionTab();
             case 'content': return renderContentTab();
             case 'app': return renderAppTab();
+            case 'closeFriends': return renderCloseFriendsTab();
+            case 'blocked': return renderBlockedTab();
+            case 'muted': return renderMutedTab();
+            case 'tools': return renderToolsTab();
             case 'support': return renderSupportTab();
             default: return renderProfileTab();
         }
