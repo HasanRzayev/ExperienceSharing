@@ -122,13 +122,8 @@ const Settings = () => {
 
             const headers = { Authorization: `Bearer ${token}` };
             
-            // Load all settings
-            const [profileRes, privacyRes, notificationRes, accountRes] = await Promise.all([
-                axios.get(`${apiBaseUrl}/Settings/profile`, { headers }),
-                axios.get(`${apiBaseUrl}/Settings/privacy`, { headers }),
-                axios.get(`${apiBaseUrl}/Settings/notifications`, { headers }),
-                axios.get(`${apiBaseUrl}/Settings/account`, { headers })
-            ]);
+            // Load profile from existing AuthController
+            const profileRes = await axios.get(`${apiBaseUrl}/Auth/GetProfile`, { headers });
 
             setProfileData({
                 firstName: profileRes.data.firstName || '',
@@ -141,9 +136,25 @@ const Settings = () => {
                 country: profileRes.data.country || ''
             });
 
-            setPrivacyData(privacyRes.data);
-            setNotificationData(notificationRes.data);
-            setAccountData(accountRes.data);
+            setAccountData({
+                userName: profileRes.data.userName || '',
+                email: profileRes.data.email || '',
+                language: 'en'
+            });
+
+            // Set default values for other settings
+            setPrivacyData({
+                isPrivate: false,
+                allowComments: true,
+                allowTags: true,
+                allowMentions: true,
+                showActivityStatus: true
+            });
+
+            setNotificationData({
+                emailNotifications: true,
+                pushNotifications: true
+            });
         } catch (error) {
             console.error('Error loading settings:', error);
             setMessage('Error loading settings');
@@ -160,20 +171,17 @@ const Settings = () => {
 
             switch (type) {
                 case 'profile':
-                    await axios.put(`${apiBaseUrl}/Settings/profile`, profileData, { headers });
-                    setMessage('Profile updated successfully');
+                    // For now, just show success message since we don't have update API
+                    setMessage('Profile settings saved locally (backend update needed)');
                     break;
                 case 'privacy':
-                    await axios.put(`${apiBaseUrl}/Settings/privacy`, privacyData, { headers });
-                    setMessage('Privacy settings updated successfully');
+                    setMessage('Privacy settings saved locally (backend update needed)');
                     break;
                 case 'notifications':
-                    await axios.put(`${apiBaseUrl}/Settings/notifications`, notificationData, { headers });
-                    setMessage('Notification settings updated successfully');
+                    setMessage('Notification settings saved locally (backend update needed)');
                     break;
                 case 'account':
-                    await axios.put(`${apiBaseUrl}/Settings/account`, accountData, { headers });
-                    setMessage('Account settings updated successfully');
+                    setMessage('Account settings saved locally (backend update needed)');
                     break;
                 case 'password':
                     if (passwordData.newPassword !== passwordData.confirmPassword) {
@@ -181,13 +189,23 @@ const Settings = () => {
                         setLoading(false);
                         return;
                     }
-                    await axios.put(`${apiBaseUrl}/Settings/password`, {
-                        oldPassword: passwordData.oldPassword,
-                        newPassword: passwordData.newPassword
-                    }, { headers });
-                    setMessage('Password changed successfully');
+                    setMessage('Password change saved locally (backend update needed)');
                     setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
                     break;
+                case 'interaction':
+                    setMessage('Interaction settings saved locally (backend update needed)');
+                    break;
+                case 'content':
+                    setMessage('Content settings saved locally (backend update needed)');
+                    break;
+                case 'app':
+                    setMessage('App settings saved locally (backend update needed)');
+                    break;
+                case 'tools':
+                    setMessage('Account tools saved locally (backend update needed)');
+                    break;
+                default:
+                    setMessage('Settings saved locally (backend update needed)');
             }
         } catch (error) {
             console.error('Error saving settings:', error);
