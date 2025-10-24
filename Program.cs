@@ -53,9 +53,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
+        
+        // Don't challenge on anonymous endpoints
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = context =>
+            {
+                // Skip challenge if endpoint allows anonymous
+                if (context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<Microsoft.AspNetCore.Authorization.IAllowAnonymous>() != null)
+                {
+                    context.HandleResponse();
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
-// Add Authorization
+// Add Authorization - NO global policy, only explicit [Authorize]
 builder.Services.AddAuthorization();
 
 // Add HttpContextAccessor
