@@ -12,7 +12,6 @@ namespace ExperienceProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [AllowAnonymous] // Tüm controller anonymous, sadece gerekli endpoint'lerde [Authorize]
     public class DeviceController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -26,6 +25,7 @@ namespace ExperienceProject.Controllers
 
         // Generate QR code for login (no auth required - desktop is not logged in)
         [HttpPost("generate-login-qr")]
+        [AllowAnonymous]
         public async Task<IActionResult> GenerateLoginQR()
         {
             try
@@ -110,6 +110,7 @@ namespace ExperienceProject.Controllers
 
         // Check if session is confirmed (polling endpoint - desktop checks)
         [HttpGet("check-session/{sessionId}")]
+        [AllowAnonymous]
         public async Task<IActionResult> CheckSession(string sessionId)
         {
             try

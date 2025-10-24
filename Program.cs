@@ -39,7 +39,7 @@ builder.Services.AddSignalR();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add JWT Authentication - but don't enforce it globally
+// Add JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -53,28 +53,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
-        
-        // Don't fail on missing token - let [Authorize] handle it
-        options.Events = new JwtBearerEvents
-        {
-            OnAuthenticationFailed = context =>
-            {
-                // Don't fail if no token is provided
-                if (context.Exception.GetType() == typeof(SecurityTokenException))
-                {
-                    context.NoResult();
-                }
-                return Task.CompletedTask;
-            }
-        };
     });
 
-// Add Authorization - NO global policy, only explicit [Authorize]
-builder.Services.AddAuthorization(options =>
-{
-    // NO default policy - endpoints are public by default
-    options.FallbackPolicy = null;
-});
+// Add Authorization
+builder.Services.AddAuthorization();
 
 // Add HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
