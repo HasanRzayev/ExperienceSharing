@@ -5,11 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Threading.Tasks;
-using ExperienceProject.Services;
 using Microsoft.AspNetCore.Http.Features;
 using Newtonsoft.Json;
 using ExperienceProject.Hubs;
-using Experience.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,8 +61,8 @@ builder.Services.AddAuthorization();
 // Add HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
 
-// Add Email Service
-builder.Services.AddScoped<EmailService>();
+// Add Email Service (commented out - service not implemented yet)
+// builder.Services.AddScoped<EmailService>();
 
 // Configure form options for file uploads
 builder.Services.Configure<FormOptions>(options =>
@@ -99,7 +97,6 @@ app.UseStaticFiles();
 
 // Map Controllers and Hubs
 app.MapControllers();
-app.MapHub<MessageHub>("api/hubs/message");
 app.MapHub<DeviceLinkHub>("api/deviceLinkHub");
 
 // Ensure database migrations are applied (with error handling)

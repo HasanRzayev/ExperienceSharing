@@ -1,15 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FaQrcode, FaTimes, FaCamera, FaStop } from 'react-icons/fa';
+import { FaQrcode, FaTimes, FaCamera, FaStop, FaCheckCircle } from 'react-icons/fa';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const QRCodeScanner = ({ onClose, onDeviceLinked }) => {
+const QRCodeScanner = ({ onClose, onLoginConfirmed }) => {
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
+  const [scannedData, setScannedData] = useState(null);
 
   useEffect(() => {
     return () => {
@@ -85,32 +86,43 @@ const QRCodeScanner = ({ onClose, onDeviceLinked }) => {
     try {
       setError(null);
       
+      // Get token from mobile (mobile must be logged in)
       const token = Cookies.get("token");
-      if (!token) throw new Error("No token found");
+      if (!token) {
+        throw new Error("You must be logged in to use QR login");
+      }
 
-      const deviceInfo = {
-        deviceName: navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop Device',
-        deviceType: navigator.userAgent.includes('Mobile') ? 'mobile' : 'desktop',
-        deviceInfo: navigator.userAgent
-      };
+      // Parse QR data
+      let sessionData;
+      try {
+        sessionData = typeof qrData === 'string' ? JSON.parse(qrData) : qrData;
+      } catch (e) {
+        throw new Error("Invalid QR code format");
+      }
 
-      // Confirm device link
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/Device/confirm-link`,
+      if (!sessionData.sessionId) {
+        throw new Error("Invalid QR code");
+      }
+
+      setScannedData(sessionData);
+
+      // Confirm login on desktop (token will be used to get user ID)
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const confirmResponse = await axios.post(
+        `${apiBaseUrl}/Device/confirm-login`,
         {
-          sessionId: qrData.sessionId,
-          ...deviceInfo
+          sessionId: sessionData.sessionId
         },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }
         }
       );
 
-      setSuccess('Device linked successfully!');
+      setSuccess('Login confirmed! The desktop device will now be logged in.');
       stopScanning();
       
-      if (onDeviceLinked) {
-        onDeviceLinked(response.data);
+      if (onLoginConfirmed) {
+        onLoginConfirmed(confirmResponse.data);
       }
 
       // Close scanner after 2 seconds
@@ -118,8 +130,8 @@ const QRCodeScanner = ({ onClose, onDeviceLinked }) => {
         onClose();
       }, 2000);
     } catch (error) {
-      console.error('Error linking device:', error);
-      setError(error.response?.data?.message || 'Failed to link device');
+      console.error('Error confirming login:', error);
+      setError(error.response?.data?.message || error.message || 'Failed to confirm login');
     }
   };
 
@@ -127,9 +139,8 @@ const QRCodeScanner = ({ onClose, onDeviceLinked }) => {
     // For demo purposes, simulate QR code detection
     const mockQRData = {
       sessionId: 'demo-session-123',
-      userId: 1,
-      timestamp: Date.now(),
-      action: 'device_link'
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+      action: 'login_device'
     };
     handleQRCodeDetected(mockQRData);
   };
@@ -149,7 +160,7 @@ const QRCodeScanner = ({ onClose, onDeviceLinked }) => {
 
         <div className="text-center">
           <p className="text-gray-600 mb-6">
-            Point your camera at a QR code to link a device
+            Point your camera at the QR code on your desktop to login
           </p>
 
           {/* Camera Preview */}
@@ -185,7 +196,10 @@ const QRCodeScanner = ({ onClose, onDeviceLinked }) => {
 
           {success && (
             <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-              {success}
+              <div className="flex items-center justify-center gap-2">
+                <FaCheckCircle className="text-green-600" />
+                <span>{success}</span>
+              </div>
             </div>
           )}
 

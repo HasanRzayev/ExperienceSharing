@@ -15,39 +15,18 @@ namespace ExperienceProject.Controllers
     public class DeviceController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public DeviceController(ApplicationDbContext context)
+        public DeviceController(ApplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
-        private int GetUserIdFromHeader()
-        {
-            // First try to get from JWT token - check different claim names
-            var userIdClaim = User.FindFirst("nameidentifier")?.Value ?? 
-                             User.FindFirst("sub")?.Value ?? 
-                             User.FindFirst("user_id")?.Value ??
-                             User.FindFirst("id")?.Value;
-                             
-            if (int.TryParse(userIdClaim, out int userId))
-            {
-                return userId;
-            }
-
-            // Fallback to header
-            var userIdHeader = Request.Headers["X-User-Id"].FirstOrDefault();
-            if (int.TryParse(userIdHeader, out int userIdFromHeader))
-            {
-                return userIdFromHeader;
-            }
-            
-            return 0;
-        }
-
-        // Public endpoint for generating QR code for login (no auth required)
-        [HttpPost("generate-login-qr-public")]
+        // Generate QR code for login (no auth required - desktop is not logged in)
+        [HttpPost("generate-login-qr")]
         [AllowAnonymous]
-        public async Task<IActionResult> GenerateLoginQRCodePublic()
+        public async Task<IActionResult> GenerateLoginQR()
         {
             try
             {
@@ -57,7 +36,7 @@ namespace ExperienceProject.Controllers
                 var deviceSession = new DeviceSession
                 {
                     SessionId = sessionId,
-                    UserId = 0, // Will be set when user scans QR
+                    UserId = 0, // Will be set when mobile scans QR
                     CreatedAt = DateTime.UtcNow,
                     ExpiresAt = expiresAt,
                     IsConfirmed = false,
@@ -74,7 +53,11 @@ namespace ExperienceProject.Controllers
                     action = "login_device"
                 };
 
-                return Ok(new { qrData = qrData, expiresIn = 300 });
+                return Ok(new { 
+                    sessionId = sessionId,
+                    qrData = qrData, 
+                    expiresIn = 300 
+                });
             }
             catch (Exception ex)
             {
@@ -82,13 +65,20 @@ namespace ExperienceProject.Controllers
             }
         }
 
-        // Public endpoint for confirming login (mobile app sends userId)
+        // Confirm login from mobile device (mobile is logged in with token)
         [HttpPost("confirm-login")]
-        [AllowAnonymous]
+        [Authorize] // Mobile must be logged in
         public async Task<IActionResult> ConfirmLogin([FromBody] ConfirmLoginRequest request)
         {
             try
             {
+                // Get user ID from token
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                {
+                    return Unauthorized(new { message = "Invalid token" });
+                }
+
                 var session = await _context.DeviceSessions
                     .FirstOrDefaultAsync(s => s.SessionId == request.SessionId && s.IsActive);
 
@@ -97,24 +87,19 @@ namespace ExperienceProject.Controllers
                     return BadRequest(new { message = "Invalid or expired session" });
                 }
 
-                // Update session with user ID
-                session.UserId = request.UserId;
+                if (session.IsConfirmed)
+                {
+                    return BadRequest(new { message = "Session already confirmed" });
+                }
 
-                // Generate JWT token for the new device
-                var token = GenerateJWTToken(request.UserId, request.UserName, request.Email);
-
-                // Mark session as confirmed
+                // Update session with user ID from mobile token
+                session.UserId = userId;
                 session.IsConfirmed = true;
                 await _context.SaveChangesAsync();
 
                 return Ok(new { 
-                    message = "Login successful", 
-                    token = token,
-                    user = new {
-                        id = request.UserId,
-                        username = request.UserName,
-                        email = request.Email
-                    }
+                    message = "Login confirmed successfully",
+                    sessionId = session.SessionId
                 });
             }
             catch (Exception ex)
@@ -123,21 +108,59 @@ namespace ExperienceProject.Controllers
             }
         }
 
-        private string GenerateJWTToken(int userId, string userName, string email)
+        // Check if session is confirmed (polling endpoint - desktop checks)
+        [HttpGet("check-session/{sessionId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CheckSession(string sessionId)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your-secret-key-that-is-at-least-32-characters-long"));
+            try
+            {
+                var session = await _context.DeviceSessions
+                    .FirstOrDefaultAsync(s => s.SessionId == sessionId && s.IsActive);
+
+                if (session == null)
+                {
+                    return NotFound(new { message = "Session not found" });
+                }
+
+                if (session.ExpiresAt < DateTime.UtcNow)
+                {
+                    return BadRequest(new { message = "Session expired" });
+                }
+
+                if (session.IsConfirmed && session.UserId > 0)
+                {
+                    // Generate JWT token for desktop
+                    var token = GenerateJWTToken(session.UserId);
+
+                    return Ok(new { 
+                        confirmed = true,
+                        token = token,
+                        userId = session.UserId
+                    });
+                }
+
+                return Ok(new { confirmed = false });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error checking session", error = ex.Message });
+            }
+        }
+
+        private string GenerateJWTToken(int userId)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-                new Claim(ClaimTypes.Name, userName),
-                new Claim(ClaimTypes.Email, email)
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString())
             };
 
             var token = new JwtSecurityToken(
-                issuer: "ExperienceProject",
-                audience: "ExperienceProject",
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
                 claims: claims,
                 expires: DateTime.UtcNow.AddDays(7),
                 signingCredentials: creds
@@ -150,8 +173,5 @@ namespace ExperienceProject.Controllers
     public class ConfirmLoginRequest
     {
         public string SessionId { get; set; }
-        public int UserId { get; set; }
-        public string UserName { get; set; }
-        public string Email { get; set; }
     }
 }

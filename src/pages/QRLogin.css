@@ -60,6 +60,37 @@
   margin: 20px 0;
 }
 
+.success-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 40px 20px;
+}
+
+.success-icon {
+  font-size: 4rem;
+  color: #27ae60;
+  animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.success-message h3 {
+  color: #27ae60;
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.success-message p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
 .retry-btn {
   background: #e74c3c;
   color: white;
@@ -111,6 +142,22 @@
 
 .timer-text {
   font-family: 'Courier New', monospace;
+}
+
+.qr-status {
+  margin: 15px 0;
+}
+
+.waiting-text {
+  color: #667eea;
+  font-size: 1.1rem;
+  font-weight: 500;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .qr-instructions {
