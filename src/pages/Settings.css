@@ -1,45 +1,36 @@
-.settings-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    background: #f8f9fa;
+/* Settings Page Styles */
+.settings-page {
     min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 40px 20px;
+}
+
+.settings-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
 }
 
 .settings-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #e9ecef;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 30px;
+    text-align: center;
 }
 
 .settings-header h1 {
-    color: #333;
+    color: white;
     font-size: 2rem;
     margin: 0;
-}
-
-.back-btn {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s;
-}
-
-.back-btn:hover {
-    background: #0056b3;
+    font-weight: 600;
 }
 
 .message {
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
+    padding: 15px 20px;
+    margin: 20px;
+    border-radius: 10px;
     font-weight: 500;
 }
 
@@ -57,11 +48,7 @@
 
 .settings-layout {
     display: flex;
-    gap: 30px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    min-height: 600px;
 }
 
 .settings-sidebar {
@@ -84,6 +71,7 @@
     transition: all 0.3s;
     color: #666;
     font-size: 14px;
+    border-left: 3px solid transparent;
 }
 
 .settings-tab:hover {
@@ -92,9 +80,10 @@
 }
 
 .settings-tab.active {
-    background: #007bff;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     font-weight: 500;
+    border-left-color: #764ba2;
 }
 
 .tab-icon {
@@ -107,18 +96,20 @@
 
 .settings-main {
     flex: 1;
-    padding: 30px;
+    padding: 40px;
 }
 
 .settings-content h3 {
     color: #333;
-    margin-bottom: 25px;
-    font-size: 1.5rem;
+    margin-bottom: 30px;
+    font-size: 1.8rem;
     font-weight: 600;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 10px;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
 .form-group label {
@@ -134,28 +125,39 @@
 .form-group select {
     width: 100%;
     padding: 12px 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
     font-size: 14px;
-    transition: border-color 0.3s;
+    transition: all 0.3s;
     background: white;
+    font-family: inherit;
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .form-group textarea {
     resize: vertical;
-    min-height: 80px;
+    min-height: 100px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
 }
 
 .toggle-group {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
 }
 
 .toggle-label {
@@ -163,56 +165,70 @@
     align-items: center;
     gap: 12px;
     cursor: pointer;
-    padding: 15px;
-    border-radius: 8px;
-    transition: background-color 0.3s;
-}
-
-.toggle-label:hover {
-    background: #f8f9fa;
 }
 
 .toggle-label input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     margin: 0;
     cursor: pointer;
+    accent-color: #667eea;
 }
 
 .toggle-text {
-    font-size: 14px;
+    font-size: 15px;
     color: #555;
     font-weight: 500;
 }
 
-button {
-    background: #007bff;
+.help-text {
+    margin: 8px 0 0 36px;
+    font-size: 13px;
+    color: #999;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    padding: 12px 25px;
-    border-radius: 8px;
+    padding: 14px 35px;
+    border-radius: 10px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
     transition: all 0.3s;
     margin-top: 10px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-button:hover:not(:disabled) {
-    background: #0056b3;
-    transform: translateY(-1px);
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-button:disabled {
+.btn-primary:disabled {
     background: #6c757d;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .settings-page {
+        padding: 20px 10px;
+    }
+    
     .settings-container {
-        padding: 10px;
+        border-radius: 15px;
+    }
+    
+    .settings-header {
+        padding: 20px;
+    }
+    
+    .settings-header h1 {
+        font-size: 1.5rem;
     }
     
     .settings-layout {
@@ -224,37 +240,57 @@ button:disabled {
         display: flex;
         overflow-x: auto;
         padding: 10px 0;
+        border-right: none;
+        border-bottom: 1px solid #e9ecef;
     }
     
     .settings-tab {
         min-width: 150px;
         justify-content: center;
         padding: 10px 15px;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+    }
+    
+    .settings-tab.active {
+        border-left: none;
+        border-bottom-color: #764ba2;
     }
     
     .settings-main {
-        padding: 20px;
+        padding: 25px 20px;
     }
     
-    .settings-header {
-        flex-direction: column;
-        gap: 15px;
-        align-items: flex-start;
+    .settings-content h3 {
+        font-size: 1.5rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
     }
 }
 
 @media (max-width: 480px) {
     .settings-header h1 {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
     
     .settings-main {
-        padding: 15px;
+        padding: 20px 15px;
     }
     
     .form-group input,
     .form-group textarea,
     .form-group select {
         padding: 10px 12px;
+    }
+    
+    .settings-tab {
+        min-width: 120px;
+        font-size: 12px;
+    }
+    
+    .tab-icon {
+        font-size: 16px;
     }
 }

@@ -51,7 +51,7 @@ const Settings = () => {
         confirmPassword: ''
     });
 
-    const apiBaseUrl = 'https://experiencesharingbackend.runasp.net/api';
+    const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
 
     useEffect(() => {
         loadSettings();
@@ -175,6 +175,7 @@ const Settings = () => {
                     value={profileData.bio}
                     onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
                     rows="3"
+                    placeholder="Tell us about yourself..."
                 />
             </div>
             <div className="form-group">
@@ -183,6 +184,7 @@ const Settings = () => {
                     type="url"
                     value={profileData.website}
                     onChange={(e) => setProfileData({...profileData, website: e.target.value})}
+                    placeholder="https://example.com"
                 />
             </div>
             <div className="form-group">
@@ -193,25 +195,27 @@ const Settings = () => {
                     onChange={(e) => setProfileData({...profileData, phoneNumber: e.target.value})}
                 />
             </div>
-            <div className="form-group">
-                <label>Birth Date</label>
-                <input
-                    type="date"
-                    value={profileData.birthDate}
-                    onChange={(e) => setProfileData({...profileData, birthDate: e.target.value})}
-                />
-            </div>
-            <div className="form-group">
-                <label>Gender</label>
-                <select
-                    value={profileData.gender}
-                    onChange={(e) => setProfileData({...profileData, gender: e.target.value})}
-                >
-                    <option value="">Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                </select>
+            <div className="form-row">
+                <div className="form-group">
+                    <label>Birth Date</label>
+                    <input
+                        type="date"
+                        value={profileData.birthDate}
+                        onChange={(e) => setProfileData({...profileData, birthDate: e.target.value})}
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Gender</label>
+                    <select
+                        value={profileData.gender}
+                        onChange={(e) => setProfileData({...profileData, gender: e.target.value})}
+                    >
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
             </div>
             <div className="form-group">
                 <label>Country</label>
@@ -221,7 +225,7 @@ const Settings = () => {
                     onChange={(e) => setProfileData({...profileData, country: e.target.value})}
                 />
             </div>
-            <button onClick={() => handleSave('profile')} disabled={loading}>
+            <button className="btn-primary" onClick={() => handleSave('profile')} disabled={loading}>
                 Save Changes
             </button>
         </div>
@@ -239,6 +243,7 @@ const Settings = () => {
                     />
                     <span className="toggle-text">Private Account</span>
                 </label>
+                <p className="help-text">Only approved followers can see your experiences</p>
             </div>
             <div className="toggle-group">
                 <label className="toggle-label">
@@ -280,7 +285,7 @@ const Settings = () => {
                     <span className="toggle-text">Show Activity Status</span>
                 </label>
             </div>
-            <button onClick={() => handleSave('privacy')} disabled={loading}>
+            <button className="btn-primary" onClick={() => handleSave('privacy')} disabled={loading}>
                 Save Changes
             </button>
         </div>
@@ -309,7 +314,7 @@ const Settings = () => {
                     <span className="toggle-text">Push Notifications</span>
                 </label>
             </div>
-            <button onClick={() => handleSave('notifications')} disabled={loading}>
+            <button className="btn-primary" onClick={() => handleSave('notifications')} disabled={loading}>
                 Save Changes
             </button>
         </div>
@@ -346,7 +351,7 @@ const Settings = () => {
                     <option value="ru">Русский</option>
                 </select>
             </div>
-            <button onClick={() => handleSave('account')} disabled={loading}>
+            <button className="btn-primary" onClick={() => handleSave('account')} disabled={loading}>
                 Save Changes
             </button>
         </div>
@@ -379,7 +384,7 @@ const Settings = () => {
                     onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
                 />
             </div>
-            <button onClick={() => handleSave('password')} disabled={loading}>
+            <button className="btn-primary" onClick={() => handleSave('password')} disabled={loading}>
                 Change Password
             </button>
         </div>
@@ -397,36 +402,35 @@ const Settings = () => {
     };
 
     return (
-        <div className="settings-container">
-            <div className="settings-header">
-                <h1>Settings</h1>
-                <button className="back-btn" onClick={() => navigate(-1)}>
-                    ← Back
-                </button>
-            </div>
-
-            {message && (
-                <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
-                    {message}
-                </div>
-            )}
-
-            <div className="settings-layout">
-                <div className="settings-sidebar">
-                    {settingsTabs.map(tab => (
-                        <button
-                            key={tab.id}
-                            className={`settings-tab ${activeTab === tab.id ? 'active' : ''}`}
-                            onClick={() => setActiveTab(tab.id)}
-                        >
-                            <span className="tab-icon">{tab.icon}</span>
-                            <span className="tab-label">{tab.label}</span>
-                        </button>
-                    ))}
+        <div className="settings-page">
+            <div className="settings-container">
+                <div className="settings-header">
+                    <h1>Settings</h1>
                 </div>
 
-                <div className="settings-main">
-                    {renderContent()}
+                {message && (
+                    <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
+                        {message}
+                    </div>
+                )}
+
+                <div className="settings-layout">
+                    <div className="settings-sidebar">
+                        {settingsTabs.map(tab => (
+                            <button
+                                key={tab.id}
+                                className={`settings-tab ${activeTab === tab.id ? 'active' : ''}`}
+                                onClick={() => setActiveTab(tab.id)}
+                            >
+                                <span className="tab-icon">{tab.icon}</span>
+                                <span className="tab-label">{tab.label}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="settings-main">
+                        {renderContent()}
+                    </div>
                 </div>
             </div>
         </div>
