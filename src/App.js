@@ -21,7 +21,7 @@ const NewExperience = lazy(() => import("./pages/NewExperience"));
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
 const Notification = lazy(() => import('./pages/Notification'));
 const ChatPage = lazy(() => import('./pages/ChatPageV2'));
-const Settings = lazy(() => import('./pages/Setting'));
+const Settings = lazy(() => import('./pages/Settings'));
 const FollowersPage = lazy(() => import('./pages/Follow'));
 const FollowingPage = lazy(() => import('./pages/Following'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));

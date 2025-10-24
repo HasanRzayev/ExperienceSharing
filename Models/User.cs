@@ -35,6 +35,23 @@ namespace ExperienceProject.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
         public bool IsActive { get; set; } = true;
+        
+        // Settings fields
+        public string Bio { get; set; }
+        public string Website { get; set; }
+        public string PhoneNumber { get; set; }
+        public DateTime? BirthDate { get; set; }
+        public string Gender { get; set; }
+        public string Language { get; set; } = "en";
+        public bool IsPrivate { get; set; } = false;
+        public bool EmailNotifications { get; set; } = true;
+        public bool PushNotifications { get; set; } = true;
+        public bool ShowActivityStatus { get; set; } = true;
+        public bool AllowComments { get; set; } = true;
+        public bool AllowTags { get; set; } = true;
+        public bool AllowMentions { get; set; } = true;
+        public bool TwoFactorEnabled { get; set; } = false;
+        public DateTime? LastLoginAt { get; set; }
     }
 }
 
