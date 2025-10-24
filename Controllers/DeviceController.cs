@@ -23,15 +23,14 @@ namespace ExperienceProject.Controllers
             _configuration = configuration;
         }
 
-        // Generate QR code for login (no auth required - desktop is not logged in)
+        // Generate QR code for login - NO TOKEN REQUIRED
         [HttpPost("generate-login-qr")]
-        [AllowAnonymous]
         public async Task<IActionResult> GenerateLoginQR()
         {
             try
             {
                 var sessionId = Guid.NewGuid().ToString();
-                var expiresAt = DateTime.UtcNow.AddMinutes(5); // 5 minute expiry
+                var expiresAt = DateTime.UtcNow.AddMinutes(5);
 
                 var deviceSession = new DeviceSession
                 {
@@ -108,9 +107,8 @@ namespace ExperienceProject.Controllers
             }
         }
 
-        // Check if session is confirmed (polling endpoint - desktop checks)
+        // Check if session is confirmed - NO TOKEN REQUIRED
         [HttpGet("check-session/{sessionId}")]
-        [AllowAnonymous]
         public async Task<IActionResult> CheckSession(string sessionId)
         {
             try
