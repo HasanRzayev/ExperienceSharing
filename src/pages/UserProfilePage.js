@@ -44,31 +44,47 @@ const UserProfilePage = () => {
   const { firstName, lastName, email, country, profileImage, userExperiences: userExperiencesFromData } = userData;
 
   return (
-    <div className="bg-gray-100 min-h-screen flex flex-col items-center p-8">
-      <div className="bg-white w-full max-w-4xl shadow-md rounded-lg overflow-hidden">
-        <div className="relative bg-gray-300 h-48">
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="w-24 h-24 border-4 border-white rounded-full overflow-hidden">
-              <img src={profileImage || 'https://via.placeholder.com/150'} alt="Profile" className="w-full h-full object-cover" />
-            </div>
-          </div>
-        </div>
-        <div className="p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700"></div>
+        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+        
+        {/* Floating Elements */}
+        <div className="absolute top-20 left-10 w-16 h-16 bg-white bg-opacity-10 rounded-full animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-12 h-12 bg-white bg-opacity-10 rounded-full animate-pulse delay-1000"></div>
+        <div className="absolute bottom-20 left-1/4 w-8 h-8 bg-white bg-opacity-10 rounded-full animate-pulse delay-2000"></div>
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
-            <h2 className="text-2xl font-semibold text-gray-800">{firstName} {lastName}</h2>
-            
-            {/* Bio Section */}
-            {userData.bio && (
-              <div className="mt-3 mb-4">
-                <p className="text-gray-700 text-base leading-relaxed max-w-lg mx-auto">
-                  {userData.bio}
-                </p>
+            <div className="inline-block relative">
+              <img
+                className="w-28 h-28 rounded-full border-4 border-white shadow-2xl mx-auto mb-6"
+                src={profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"}
+                alt="Profile"
+              />
+              <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-white flex items-center justify-center">
+                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
               </div>
+            </div>
+            
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              {firstName} {lastName}
+            </h1>
+            
+            {userData.bio && (
+              <p className="text-lg text-white text-opacity-90 max-w-xl mx-auto mb-6 leading-relaxed">
+                {userData.bio}
+              </p>
             )}
-
-            <div className="space-y-2">
+            
+            {/* Quick Info */}
+            <div className="flex flex-wrap justify-center gap-4 text-white text-opacity-80 mb-6">
               {country && (
-                <div className="flex items-center justify-center text-gray-600">
+                <div className="flex items-center">
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -77,98 +93,109 @@ const UserProfilePage = () => {
                 </div>
               )}
               {userData.website && (
-                <div className="flex items-center justify-center text-gray-600">
+                <div className="flex items-center">
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
-                  <a href={userData.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  <a href={userData.website} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
                     Website
                   </a>
                 </div>
               )}
-              {userData.phoneNumber && (
-                <div className="flex items-center justify-center text-gray-600">
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  {userData.phoneNumber}
-                </div>
-              )}
-              {userData.gender && (
-                <div className="flex items-center justify-center text-gray-600">
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  {userData.gender}
-                </div>
-              )}
-              {userData.birthDate && (
-                <div className="flex items-center justify-center text-gray-600">
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  {new Date(userData.birthDate).toLocaleDateString()}
-                </div>
-              )}
-              <p className="text-gray-500">{email}</p>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex flex-wrap justify-center gap-4">
+              <button 
+                onClick={handleMessageClick}
+                className="bg-white text-blue-600 px-6 py-3 rounded-full font-semibold hover:bg-gray-50 transition-all duration-300 flex items-center"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                Message
+              </button>
+              <FollowButton userId={userId} />
             </div>
           </div>
-          <div className="flex justify-center gap-4 mt-4">
-            <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Settings</button>
-            <button className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600" onClick={handleMessageClick}>MESSAGE</button>
-            <FollowButton userId={userId} />
-          </div>
         </div>
-   {/* Statistikalar */}
-<div className="mt-6 flex justify-around border-t pt-4 text-center text-gray-600 dark:text-gray-300">
-  <div>
-    <span className="block text-lg font-semibold">0</span>
-    Followers
-  </div>
-  <div>
-    <span className="block text-lg font-semibold">0</span>
-    Following
-  </div>
-</div>
-
       </div>
 
-    {/* Paylaşımlar */}
-<div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-  {userExperiences.length > 0 ? (
-    userExperiences.map((post, index) => {
-      console.log("UserProfilePage.js - Post data:", post);
-      console.log("UserProfilePage.js - Post ID:", post.id);
-      console.log("UserProfilePage.js - Post userId:", post.userId);
-      console.log("UserProfilePage.js - Post user:", post.user);
-      console.log("UserProfilePage.js - User firstName:", post.user?.firstName);
-      console.log("UserProfilePage.js - User lastName:", post.user?.lastName);
-      console.log("UserProfilePage.js - User userName:", post.user?.userName);
-      console.log("UserProfilePage.js - All post keys:", Object.keys(post));
-      
-      // Müvəqqəti həll: userId istifadə et
-      const cardId = post.id || post.userId || `temp-${index}`;
-      console.log("UserProfilePage.js - Using cardId:", cardId);
-      
-      return (
-        <CustomCard
-          key={`${cardId}-${index}`}
-          id={cardId}
-          imageUrls={post.imageUrls?.length > 0 ? post.imageUrls[0]?.url : ""}
-          date={post.date}
-          title={post.title}
-          description={post.description}
-          location={post.location}
-          rating={post.rating}
-          user={userData}
-        />
-      );
-    })
-  ) : (
-    <p className="text-gray-500 dark:text-gray-400 text-center">Loading...</p>
-  )}
-</div>
+      {/* Stats Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20">
+        <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+          <div className="grid grid-cols-2 gap-8 text-center">
+            <div className="cursor-pointer group">
+              <div className="text-3xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors mb-1">
+                0
+              </div>
+              <div className="text-gray-600 font-medium">Followers</div>
+            </div>
+            <div className="cursor-pointer group">
+              <div className="text-3xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors mb-1">
+                0
+              </div>
+              <div className="text-gray-600 font-medium">Following</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
+      {/* Experiences Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-12">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="p-6 border-b border-gray-100">
+            <h2 className="text-2xl font-bold text-gray-800">Experiences</h2>
+            <p className="text-gray-600 mt-1">Shared experiences by {firstName}</p>
+          </div>
+          
+          <div className="p-6">
+            {userExperiences.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {userExperiences.map((post, index) => {
+                  console.log("UserProfilePage.js - Post data:", post);
+                  console.log("UserProfilePage.js - Post ID:", post.id);
+                  console.log("UserProfilePage.js - Post userId:", post.userId);
+                  console.log("UserProfilePage.js - Post user:", post.user);
+                  console.log("UserProfilePage.js - User firstName:", post.user?.firstName);
+                  console.log("UserProfilePage.js - User lastName:", post.user?.lastName);
+                  console.log("UserProfilePage.js - User userName:", post.user?.userName);
+                  console.log("UserProfilePage.js - All post keys:", Object.keys(post));
+                  
+                  // Müvəqqəti həll: userId istifadə et
+                  const cardId = post.id || post.userId || `temp-${index}`;
+                  console.log("UserProfilePage.js - Using cardId:", cardId);
+                  
+                  return (
+                    <div key={`${cardId}-${index}`} className="animate-fadeInUp" style={{animationDelay: `${index * 0.1}s`}}>
+                      <CustomCard
+                        id={cardId}
+                        imageUrls={post.imageUrls?.length > 0 ? post.imageUrls[0]?.url : ""}
+                        date={post.date}
+                        title={post.title}
+                        description={post.description}
+                        location={post.location}
+                        rating={post.rating}
+                        user={userData}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-2xl max-w-md mx-auto border border-blue-100">
+                  <div className="text-4xl mb-4">📸</div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">No experiences yet</h3>
+                  <p className="text-gray-600">
+                    {firstName} hasn't shared any experiences yet.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
