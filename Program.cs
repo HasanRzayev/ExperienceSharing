@@ -88,12 +88,12 @@ if (app.Environment.IsDevelopment())
 // Enable CORS
 app.UseCors("AllowAll");
 
+// Enable static files
+app.UseStaticFiles();
+
 // Enable authentication and authorization
 app.UseAuthentication();
 app.UseAuthorization();
-
-// Enable static files
-app.UseStaticFiles();
 
 // Map Controllers and Hubs
 app.MapControllers();
