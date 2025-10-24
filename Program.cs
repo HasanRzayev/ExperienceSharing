@@ -54,15 +54,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
         
-        // Don't challenge on anonymous endpoints
+        // Don't fail on anonymous endpoints
         options.Events = new JwtBearerEvents
         {
-            OnChallenge = context =>
+            OnAuthenticationFailed = context =>
             {
-                // Skip challenge if endpoint allows anonymous
+                // Skip authentication if endpoint allows anonymous
                 if (context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<Microsoft.AspNetCore.Authorization.IAllowAnonymous>() != null)
                 {
-                    context.HandleResponse();
+                    context.NoResult();
                 }
                 return Task.CompletedTask;
             }
