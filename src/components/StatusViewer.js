@@ -121,13 +121,6 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
   return (
     <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
       <div className="relative w-full h-full flex items-center">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-50 text-white bg-black/30 hover:bg-black/50 rounded-full p-3 transition-all"
-        >
-          <FaTimes className="text-xl" />
-        </button>
 
         {/* Previous Button */}
         {currentIndex > 0 && (
@@ -163,16 +156,26 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
                 <h3 className="text-white font-bold">{currentStatus.user?.firstName} {currentStatus.user?.lastName}</h3>
                 <p className="text-white/80 text-sm">@{currentStatus.user?.userName}</p>
               </div>
-              {isOwnStatus && (
+              <div className="flex items-center gap-2">
+                {isOwnStatus && (
+                  <button
+                    onClick={handleDelete}
+                    className="text-red-400 hover:text-red-500 hover:bg-red-500/20 p-2 rounded-full transition-all cursor-pointer"
+                    title="Delete status"
+                    style={{ minWidth: '40px', minHeight: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <FaTrash className="text-xl" />
+                  </button>
+                )}
                 <button
-                  onClick={handleDelete}
-                  className="text-red-400 hover:text-red-500 hover:bg-red-500/20 p-2 rounded-full transition-all cursor-pointer"
-                  title="Delete status"
+                  onClick={onClose}
+                  className="text-white hover:text-gray-300 hover:bg-black/30 p-2 rounded-full transition-all"
+                  title="Close"
                   style={{ minWidth: '40px', minHeight: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <FaTrash className="text-xl" />
+                  <FaTimes className="text-xl" />
                 </button>
-              )}
+              </div>
             </div>
           </div>
 
