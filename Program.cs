@@ -135,6 +135,7 @@ app.UseAuthorization();
 // Map Controllers and Hubs
 app.MapControllers();
 app.MapHub<MessageHub>("api/hubs/message");
+app.MapHub<DeviceLinkHub>("api/deviceLinkHub");
 
 // Ensure database migrations are applied (with error handling)
 try

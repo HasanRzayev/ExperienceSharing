@@ -86,6 +86,8 @@ namespace ExperienceProject.Controllers
                 Location = e.Location,
                 Rating = e.Rating,
                 ImageUrls = e.ImageUrls.ToList(),
+                VideoUrl = e.VideoUrl,
+                VideoThumbnail = e.VideoThumbnail,
                 TagsName = e.ExperienceTags.Select(et => et.Tag.TagName).ToList(), // Tag-ların adları
                 Likes = e.Likes.Count, // Like sayı
                 Comments = e.Comments.Select(c => new
@@ -163,6 +165,8 @@ namespace ExperienceProject.Controllers
                 Location = experience.Location,
                 Rating = experience.Rating,
                 ImageUrls = experience.ImageUrls.ToList(),
+                VideoUrl = experience.VideoUrl,
+                VideoThumbnail = experience.VideoThumbnail,
                 User = new
                 {
                     Id = experience.User.Id,
@@ -282,6 +286,36 @@ public async Task<ActionResult<ExperienceModel>> PostExperienceWithCook([FromFor
             }
         }
 
+        // Video upload
+        if (experienceDto.Video != null)
+        {
+            using (var stream = experienceDto.Video.OpenReadStream())
+            {
+                var uploadParams = new VideoUploadParams()
+                {
+                    File = new FileDescription(experienceDto.Video.FileName, stream),
+                    Folder = "experiences/videos"
+                };
+
+                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+                if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    experience.VideoUrl = uploadResult.SecureUrl.AbsoluteUri;
+                    
+                    // Video thumbnail
+                    if (uploadResult.JsonObj["thumbnail_url"] != null)
+                    {
+                        experience.VideoThumbnail = uploadResult.JsonObj["thumbnail_url"].ToString();
+                    }
+                }
+                else
+                {
+                    return BadRequest($"Video yükleme başarısız oldu: {uploadResult.Error?.Message}");
+                }
+            }
+        }
+
         _context.Experiences.Add(experience);
         await _context.SaveChangesAsync();
 
@@ -393,6 +427,36 @@ public async Task<ActionResult<ExperienceModel>> PostExperienceWithCook([FromFor
 
                 await _context.ExperienceImages.AddRangeAsync(newImageUrls);
                 await _context.SaveChangesAsync();
+            }
+
+            // **Video yenilə**
+            if (experienceDto.Video != null)
+            {
+                using (var stream = experienceDto.Video.OpenReadStream())
+                {
+                    var uploadParams = new VideoUploadParams()
+                    {
+                        File = new FileDescription(experienceDto.Video.FileName, stream),
+                        Folder = "experiences/videos"
+                    };
+
+                    var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+                    if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        experience.VideoUrl = uploadResult.SecureUrl.AbsoluteUri;
+                        
+                        // Video thumbnail
+                        if (uploadResult.JsonObj["thumbnail_url"] != null)
+                        {
+                            experience.VideoThumbnail = uploadResult.JsonObj["thumbnail_url"].ToString();
+                        }
+                    }
+                    else
+                    {
+                        return BadRequest($"Video yüklənmədi: {uploadResult.Error?.Message}");
+                    }
+                }
             }
 
             _context.Entry(experience).State = EntityState.Modified;

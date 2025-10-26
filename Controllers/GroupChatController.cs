@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ExperienceProject.Controllers
 {
@@ -126,7 +127,7 @@ namespace ExperienceProject.Controllers
 
                 if (!isMember)
                 {
-                    return Forbid();
+                    return StatusCode(403, new { message = "Access denied" });
                 }
 
                 var messages = await _context.GroupMessages
@@ -165,7 +166,7 @@ namespace ExperienceProject.Controllers
 
                 if (!isMember)
                 {
-                    return Forbid();
+                    return StatusCode(403, new { message = "Access denied" });
                 }
 
                 var message = new GroupMessage
@@ -204,9 +205,9 @@ namespace ExperienceProject.Controllers
 
                 // Check if reaction already exists
                 var existingReaction = await _context.MessageReactions
-                    .FirstOrDefaultAsync(r => 
-                        (r.MessageId == messageId || r.GroupMessageId == messageId) && 
-                        r.UserId == userId.Value && 
+                    .FirstOrDefaultAsync(r =>
+                        (r.MessageId == messageId || r.GroupMessageId == messageId) &&
+                        r.UserId == userId.Value &&
                         r.Emoji == dto.Emoji);
 
                 if (existingReaction != null)
@@ -236,6 +237,170 @@ namespace ExperienceProject.Controllers
             {
                 Console.WriteLine($"Error adding reaction: {ex.Message}");
                 return StatusCode(500, new { error = "Failed to add reaction" });
+            }
+        }
+
+        // Get group details with members
+        [HttpGet("{groupId}")]
+        public async Task<IActionResult> GetGroupDetails(int groupId)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "User ID not found in token" });
+                }
+
+                // Check if user is member
+                var isMember = await _context.GroupMembers
+                    .AnyAsync(gm => gm.GroupChatId == groupId && gm.UserId == userId.Value);
+
+                if (!isMember)
+                {
+                    return StatusCode(403, new { message = "Access denied" });
+                }
+
+                var group = await _context.GroupChats
+                    .Where(g => g.Id == groupId)
+                    .Include(g => g.CreatedBy)
+                    .Include(g => g.Members)
+                        .ThenInclude(m => m.User)
+                    .FirstOrDefaultAsync();
+
+                if (group == null)
+                {
+                    return NotFound(new { message = "Group not found" });
+                }
+
+                return Ok(group);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching group details: {ex.Message}");
+                return StatusCode(500, new { error = "Failed to fetch group details" });
+            }
+        }
+
+        // Leave group
+        [HttpPost("{groupId}/leave")]
+        public async Task<IActionResult> LeaveGroup(int groupId)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "User ID not found in token" });
+                }
+
+                var member = await _context.GroupMembers
+                    .FirstOrDefaultAsync(gm => gm.GroupChatId == groupId && gm.UserId == userId.Value);
+
+                if (member == null)
+                {
+                    return NotFound(new { message = "You are not a member of this group" });
+                }
+
+                _context.GroupMembers.Remove(member);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Successfully left the group" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error leaving group: {ex.Message}");
+                return StatusCode(500, new { error = "Failed to leave group" });
+            }
+        }
+
+        // Remove member from group (admin only)
+        [HttpDelete("{groupId}/members/{memberUserId}")]
+        public async Task<IActionResult> RemoveMember(int groupId, int memberUserId)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "User ID not found in token" });
+                }
+
+                // Check if current user is admin
+                var currentUserMember = await _context.GroupMembers
+                    .FirstOrDefaultAsync(gm => gm.GroupChatId == groupId && gm.UserId == userId.Value);
+
+                if (currentUserMember == null || currentUserMember.Role != "Admin")
+                {
+                    return StatusCode(403, new { message = "Only admins can remove members" });
+                }
+
+                // Check if member exists
+                var memberToRemove = await _context.GroupMembers
+                    .FirstOrDefaultAsync(gm => gm.GroupChatId == groupId && gm.UserId == memberUserId);
+
+                if (memberToRemove == null)
+                {
+                    return NotFound(new { message = "Member not found in this group" });
+                }
+
+                // Don't allow removing admin
+                if (memberToRemove.Role == "Admin")
+                {
+                    return BadRequest(new { message = "Cannot remove admin from group" });
+                }
+
+                _context.GroupMembers.Remove(memberToRemove);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Member removed successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error removing member: {ex.Message}");
+                return StatusCode(500, new { error = "Failed to remove member" });
+            }
+        }
+
+        // Clear group messages
+        [HttpDelete("{groupId}/messages")]
+        public async Task<IActionResult> ClearGroupMessages(int groupId)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "User ID not found in token" });
+                }
+
+                // Check if user is member
+                var isMember = await _context.GroupMembers
+                    .AnyAsync(gm => gm.GroupChatId == groupId && gm.UserId == userId.Value);
+
+                if (!isMember)
+                {
+                    return StatusCode(403, new { message = "Access denied" });
+                }
+
+                var messages = await _context.GroupMessages
+                    .Where(m => m.GroupChatId == groupId)
+                    .ToListAsync();
+
+                if (!messages.Any())
+                {
+                    return NotFound(new { message = "No messages found" });
+                }
+
+                _context.GroupMessages.RemoveRange(messages);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Group messages cleared successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error clearing group messages: {ex.Message}");
+                return StatusCode(500, new { error = "Failed to clear group messages" });
             }
         }
 
@@ -283,4 +448,3 @@ namespace ExperienceProject.Controllers
         public bool IsGroupMessage { get; set; }
     }
 }
-

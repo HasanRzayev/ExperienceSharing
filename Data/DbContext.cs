@@ -39,7 +39,17 @@ namespace ExperienceProject.Data
         public DbSet<SavedExperience> SavedExperiences { get; set; } // Save/Bookmark
         public DbSet<Collection> Collections { get; set; } // Collections/Albums
         public DbSet<ExperienceRating> ExperienceRatings { get; set; } // Enhanced Rating
-        public DbSet<RatingHelpful> RatingHelpfuls { get; set; } // Rating Helpful votes  
+        public DbSet<RatingHelpful> RatingHelpfuls { get; set; } // Rating Helpful votes
+        
+        // Device Linking
+        public DbSet<DeviceSession> DeviceSessions { get; set; }
+        public DbSet<DeviceLink> DeviceLinks { get; set; }
+        
+        // Status
+        public DbSet<Status> Statuses { get; set; }
+        public DbSet<StatusView> StatusViews { get; set; }
+        
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -293,6 +303,25 @@ namespace ExperienceProject.Data
             modelBuilder.Entity<RatingHelpful>()
                 .HasIndex(rh => new { rh.UserId, rh.RatingId })
                 .IsUnique();
+
+            // Status relationships
+            modelBuilder.Entity<Status>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StatusView>()
+                .HasOne(sv => sv.Status)
+                .WithMany(s => s.Views)
+                .HasForeignKey(sv => sv.StatusId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StatusView>()
+                .HasOne(sv => sv.User)
+                .WithMany()
+                .HasForeignKey(sv => sv.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
 
         }
