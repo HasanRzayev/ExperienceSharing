@@ -123,6 +123,7 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
     hasCurrentUser: !!currentUser,
     currentStatusUserId: currentStatus.userId,
     currentUserID: currentUser?.id,
+    currentUserFull: currentUser, // Show full currentUser object
     currentStatusUserID: currentStatus.user?.id,
     isOwnStatus: isOwnStatus
   });
