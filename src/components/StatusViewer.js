@@ -53,19 +53,29 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
   };
 
   const handleDelete = async () => {
-    const result = await swal({
-      title: "Are you sure?",
-      text: "You won't be able to recover this status!",
-      icon: "warning",
-      buttons: true,
-      dangerMode: true,
-    });
+    // First confirm with swal or native confirm
+    let confirmed = false;
+    try {
+      const result = await swal({
+        title: "Delete Status?",
+        text: "You won't be able to recover this status!",
+        icon: "warning",
+        buttons: true,
+        dangerMode: true,
+      });
+      confirmed = result;
+    } catch (error) {
+      // Fallback to native confirm
+      confirmed = window.confirm('Are you sure you want to delete this status?');
+    }
 
-    if (!result) return;
+    if (!confirmed) return;
 
     try {
       const token = Cookies.get('token');
-      await axios.delete(`${process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api'}/Status/${currentStatus.id}`, {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      
+      await axios.delete(`${apiBaseUrl}/Status/${currentStatus.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -73,13 +83,18 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
       const newStatuses = statusesList.filter((_, idx) => idx !== currentIndex);
       setStatusesList(newStatuses);
 
-      swal("Deleted!", "Status deleted successfully!", "success");
+      try {
+        await swal("Deleted!", "Status deleted successfully!", "success");
+      } catch (e) {
+        alert("Status deleted successfully!");
+      }
+      
       onStatusDelete();
 
       // Handle navigation after delete
       if (newStatuses.length === 0) {
         // No more statuses, close the viewer
-        onClose();
+        setTimeout(() => onClose(), 1000);
       } else if (currentIndex >= newStatuses.length) {
         // We deleted the last status, go to the previous one
         setCurrentIndex(currentIndex - 1);
@@ -87,7 +102,11 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
       // Otherwise, currentIndex remains the same and shows the next status
     } catch (error) {
       console.error('Error deleting status:', error);
-      swal("Error!", "Failed to delete status.", "error");
+      try {
+        await swal("Error!", "Failed to delete status.", "error");
+      } catch (e) {
+        alert("Failed to delete status.");
+      }
     }
   };
 
@@ -148,8 +167,9 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
                 <button
                   onClick={handleDelete}
                   className="text-white hover:text-red-400 p-2 rounded-full hover:bg-black/30 transition-all"
+                  title="Delete status"
                 >
-                  <FaTrash />
+                  <FaTrash className="text-lg" />
                 </button>
               )}
             </div>
