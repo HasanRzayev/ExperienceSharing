@@ -287,6 +287,49 @@ function Home() {
   const [selectedStatusUserId, setSelectedStatusUserId] = useState(null);
   const [userStatuses, setUserStatuses] = useState([]);
 
+  const handleYourStatusClick = async () => {
+    try {
+      const token = Cookies.get("token");
+      if (!token) return;
+
+      // Fetch own statuses from /my endpoint
+      try {
+        const response = await axios.get(`${apiBaseUrl}/Status/my`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        // If user has active status, show it
+        if (response.data && response.data.id) {
+          // Get all own statuses
+          const allStatusesResponse = await axios.get(`${apiBaseUrl}/Status`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          const ownStatuses = allStatusesResponse.data.filter(
+            status => status.userId === currentUser?.id
+          );
+
+          if (ownStatuses.length > 0) {
+            setUserStatuses(ownStatuses);
+            setSelectedStatusIndex(0);
+            setSelectedStatusUserId(currentUser?.id);
+            setShowStatusViewer(true);
+          } else {
+            setShowStatusModal(true);
+          }
+        } else {
+          setShowStatusModal(true);
+        }
+      } catch (myStatusError) {
+        // If /my returns 404 or no status, open modal
+        setShowStatusModal(true);
+      }
+    } catch (error) {
+      console.error("Error fetching your statuses:", error);
+      setShowStatusModal(true);
+    }
+  };
+
   const handleStatusClick = async (userId) => {
     try {
       const token = Cookies.get("token");
@@ -364,13 +407,13 @@ function Home() {
           <div className="mb-8 bg-white rounded-2xl shadow-md p-4 overflow-x-auto">
             <div className="flex gap-4">
               <button
-                onClick={() => setShowStatusModal(true)}
+                onClick={handleYourStatusClick}
                 className="flex flex-col items-center gap-2 min-w-[60px]"
               >
                 <div className="relative">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-0.5">
-                    <div className="w-full h-full rounded-full bg-white p-0.5">
-                      <FaPlus className="w-full h-full text-gray-400" />
+                    <div className="w-full h-full rounded-full bg-white p-0.5 flex items-center justify-center">
+                      <FaPlus className="w-8 h-8 text-gray-400" />
                     </div>
                   </div>
                 </div>

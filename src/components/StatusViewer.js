@@ -82,7 +82,11 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
 
   if (!isOpen || !currentStatus) return null;
 
-  const isOwnStatus = currentUser && currentStatus.user?.id === currentUser.id;
+  // Check if the status belongs to the current user
+  const isOwnStatus = currentUser && (
+    currentStatus.user?.id === currentUser.id || 
+    currentStatus.userId === currentUser.id
+  );
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
