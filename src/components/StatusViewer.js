@@ -118,12 +118,13 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
     currentStatus.userId === currentUser.id
   );
 
-  // Debug
+  // Debug - Show all fields in currentUser
   console.log('STATUS VIEWER DEBUG:', {
     hasCurrentUser: !!currentUser,
     currentStatusUserId: currentStatus.userId,
     currentUserID: currentUser?.id,
-    currentUserFull: currentUser, // Show full currentUser object
+    currentUserFields: currentUser ? Object.keys(currentUser) : 'null',
+    currentUserFull: currentUser,
     currentStatusUserID: currentStatus.user?.id,
     isOwnStatus: isOwnStatus
   });
