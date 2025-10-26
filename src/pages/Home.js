@@ -396,7 +396,13 @@ function Home() {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      setCurrentUser(response.data);
+      // Add id field from userExperiences
+      const userData = response.data;
+      if (userData.userExperiences && userData.userExperiences.length > 0) {
+        userData.id = userData.userExperiences[0].userId;
+      }
+      
+      setCurrentUser(userData);
     } catch (error) {
       console.error("Error fetching current user:", error);
     }

@@ -118,17 +118,6 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
     currentStatus.userId === currentUser.id
   );
 
-  // Debug - Show all fields in currentUser
-  console.log('STATUS VIEWER DEBUG:', {
-    hasCurrentUser: !!currentUser,
-    currentStatusUserId: currentStatus.userId,
-    currentUserID: currentUser?.id,
-    currentUserFields: currentUser ? Object.keys(currentUser) : 'null',
-    currentUserFull: currentUser,
-    currentStatusUserID: currentStatus.user?.id,
-    isOwnStatus: isOwnStatus
-  });
-
   return (
     <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
       <div className="relative w-full h-full flex items-center">
