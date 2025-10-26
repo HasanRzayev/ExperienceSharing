@@ -1,43 +1,54 @@
-import React, { useState } from 'react';
-import { FaTimes, FaCheck, FaTextHeight, FaSmile, FaMapMarkerAlt, FaClock, FaHashtag, FaTrash } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaTimes, FaCheck, FaTextHeight, FaSmile, FaMapMarkerAlt, FaClock, FaHashtag, FaTrash, FaPalette } from 'react-icons/fa';
+import EmojiPicker from 'emoji-picker-react';
 
 const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
   const [elements, setElements] = useState([]);
   const [selectedElement, setSelectedElement] = useState(null);
   const [selectedTool, setSelectedTool] = useState(null);
   const [selectedColor, setSelectedColor] = useState('#FFFFFF');
-  const [selectedFont, setSelectedFont] = useState('normal');
+  const [selectedFont, setSelectedFont] = useState('bold');
   const [dragging, setDragging] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [showLocationInput, setShowLocationInput] = useState(false);
   const [showTagInput, setShowTagInput] = useState(false);
   const [showStickers, setShowStickers] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [locationSearch, setLocationSearch] = useState('');
   const [tagSearch, setTagSearch] = useState('');
+  const [filters, setFilters] = useState([]);
 
   const colors = [
     '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
-    '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080'
+    '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080', '#FFC0CB', '#A52A2A'
   ];
 
   const fonts = [
     { name: 'Bold', style: 'bold' },
     { name: 'Medium', style: 'normal' },
-    { name: 'Thin', style: '100' },
-    { name: 'Serif', style: 'normal', fontFamily: 'serif' }
+    { name: 'Thin', style: '100' }
   ];
 
-  const stickers = ['📍', '😊', '❤️', '🔥', '🎉', '✨', '⭐', '💯', '👍', '👏', '🎈', '💎', '🌟', '💰', '🏆'];
-
   const locationSuggestions = [
-    'Baku, Azerbaijan',
-    'Istanbul, Turkey',
-    'Paris, France',
-    'London, UK',
-    'New York, USA',
-    'Tokyo, Japan',
-    'Dubai, UAE',
-    'Moscow, Russia'
+    'Oslo',
+    'Tokyo',
+    'Paris',
+    'New York',
+    'Lagos',
+    'Jakarta',
+    'Cairo',
+    'Abu Dhabi',
+    'Melbourne',
+    'Rio de Janeiro',
+    'Bombay'
+  ];
+
+  const filters = [
+    { name: 'Original', class: '' },
+    { name: 'Vintage', class: 'grayscale' },
+    { name: 'Bright', class: 'brightness-150 contrast-125' },
+    { name: 'Dark', class: 'brightness-75' },
+    { name: 'Sepia', class: 'sepia' }
   ];
 
   const addLocation = (location) => {
@@ -48,10 +59,11 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
       x: window.innerWidth / 2 - 80,
       y: window.innerHeight / 2 - 30,
       color: selectedColor,
-      fontSize: 24,
+      fontSize: 32,
       fontStyle: selectedFont
     };
     setElements([...elements, newElement]);
+    setSelectedElement(newElement);
     setShowLocationInput(false);
     setLocationSearch('');
   };
@@ -69,6 +81,7 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
       fontStyle: selectedFont
     };
     setElements([...elements, newElement]);
+    setSelectedElement(newElement);
     setShowTagInput(false);
     setTagSearch('');
   };
@@ -81,26 +94,30 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
       x: window.innerWidth / 2 - 60,
       y: window.innerHeight / 2 - 30,
       color: selectedColor,
-      fontSize: 24,
+      fontSize: 28,
       fontStyle: selectedFont
     };
     setElements([...elements, newElement]);
+    setSelectedElement(newElement);
   };
 
-  const addSticker = (sticker) => {
+  const addSticker = (emoji) => {
     const newElement = {
       id: Date.now(),
       type: 'sticker',
-      content: sticker,
-      x: window.innerWidth / 2 - 30,
-      y: window.innerHeight / 2 - 30,
+      content: emoji,
+      x: window.innerWidth / 2 - 40,
+      y: window.innerHeight / 2 - 40,
       fontSize: 60
     };
     setElements([...elements, newElement]);
+    setSelectedElement(newElement);
     setShowStickers(false);
+    setShowEmojiPicker(false);
   };
 
   const handleMouseDown = (id, e) => {
+    e.stopPropagation();
     const element = elements.find(el => el.id === id);
     if (element) {
       setSelectedElement(element);
@@ -140,20 +157,36 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
     });
   };
 
-  const updateElementFont = (id, fontStyle) => {
-    setElements(elements.map(el => 
-      el.id === id ? { ...el, fontStyle } : el
-    ));
+  const updateElementFont = (fontStyle) => {
+    if (selectedElement) {
+      setElements(elements.map(el => 
+        el.id === selectedElement.id ? { ...el, fontStyle } : el
+      ));
+      setSelectedElement({ ...selectedElement, fontStyle });
+    }
+  };
+
+  const updateElementColor = (color) => {
+    if (selectedElement && selectedElement.type !== 'sticker') {
+      setElements(elements.map(el => 
+        el.id === selectedElement.id ? { ...el, color } : el
+      ));
+      setSelectedElement({ ...selectedElement, color });
+    }
   };
 
   const getFontStyle = (fontStyle) => {
-    if (typeof fontStyle === 'string') {
-      if (fontStyle === 'bold') return { fontWeight: 'bold' };
-      if (fontStyle === '100') return { fontWeight: '100' };
-      return { fontWeight: 'normal' };
-    }
-    return {};
+    if (fontStyle === 'bold') return { fontWeight: 'bold' };
+    if (fontStyle === '100') return { fontWeight: '100' };
+    return { fontWeight: 'normal' };
   };
+
+  // Auto-select newly added elements
+  useEffect(() => {
+    if (elements.length > 0) {
+      setSelectedElement(elements[elements.length - 1]);
+    }
+  }, [elements.length]);
 
   return (
     <div 
@@ -161,10 +194,14 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
-      onClick={() => setSelectedElement(null)}
+      onClick={(e) => {
+        if (e.target.classList.contains('media-wrapper')) {
+          setSelectedElement(null);
+        }
+      }}
     >
-      {/* Media Display */}
-      <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+      {/* Media Display with filters */}
+      <div className="relative w-full h-full flex items-center justify-center overflow-hidden media-wrapper">
         {mediaType === 'image' ? (
           <img
             src={mediaUrl}
@@ -195,89 +232,101 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
               cursor: 'move',
               userSelect: 'none',
               pointerEvents: 'all',
-              textShadow: element.type === 'sticker' ? '' : '2px 2px 6px rgba(0,0,0,0.9)',
+              textShadow: element.type === 'sticker' ? '' : '3px 3px 8px rgba(0,0,0,1)',
               padding: '8px',
-              outline: selectedElement?.id === element.id ? '3px solid #8B5CF6' : 'none',
-              borderRadius: selectedElement?.id === element.id ? '8px' : '0px'
+              outline: selectedElement?.id === element.id ? '4px solid #8B5CF6' : 'none',
+              borderRadius: selectedElement?.id === element.id ? '8px' : '0px',
+              backgroundColor: selectedElement?.id === element.id ? 'rgba(139, 92, 246, 0.1)' : 'transparent'
             }}
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              handleMouseDown(element.id, e);
-            }}
+            onMouseDown={(e) => handleMouseDown(element.id, e)}
           >
             {element.type === 'sticker' ? element.content : element.content}
           </div>
         ))}
       </div>
 
-      {/* Top bar with delete button */}
+      {/* Trash button in center */}
       {selectedElement && (
-        <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black to-transparent p-4 z-50">
-          <div className="flex justify-between items-center">
-            <button
-              onClick={onClose}
-              className="text-white bg-black/30 hover:bg-black/50 rounded-full p-3"
-            >
-              <FaTimes className="text-xl" />
-            </button>
-            
-            <div className="flex gap-4">
-              {/* Font selector for text elements */}
-              {selectedElement.type !== 'sticker' && (
-                <select
-                  value={selectedFont}
-                  onChange={(e) => {
-                    setSelectedFont(e.target.value);
-                    updateElementFont(selectedElement.id, e.target.value);
-                  }}
-                  className="bg-black/30 text-white rounded-lg px-3 py-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {fonts.map(font => (
-                    <option key={font.name} value={font.style}>{font.name}</option>
-                  ))}
-                </select>
-              )}
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteElement();
-                }}
-                className="text-white bg-red-500/30 hover:bg-red-500/50 rounded-full p-3"
-              >
-                <FaTrash className="text-xl" />
-              </button>
-            </div>
-          </div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteElement();
+            }}
+            className="bg-red-500 text-white rounded-full w-16 h-16 flex items-center justify-center shadow-lg hover:bg-red-600 transition-all hover:scale-110"
+          >
+            <FaTrash className="text-2xl" />
+          </button>
         </div>
       )}
 
-      {/* Top bar without selection */}
-      {!selectedElement && (
-        <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black to-transparent p-4 z-50">
-          <div className="flex justify-between items-center">
-            <button
-              onClick={onClose}
-              className="text-white bg-black/30 hover:bg-black/50 rounded-full p-3"
-            >
-              <FaTimes className="text-xl" />
-            </button>
-            
+      {/* Top bar */}
+      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black to-transparent p-4 z-50">
+        <div className="flex justify-between items-center">
+          <button
+            onClick={onClose}
+            className="text-white bg-black/30 hover:bg-black/50 rounded-full p-3"
+          >
+            <FaTimes className="text-xl" />
+          </button>
+          
+          {!selectedElement && (
             <button
               onClick={handleSave}
               className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold px-6 py-2 rounded-full hover:from-purple-700 hover:to-pink-700"
             >
               <FaCheck className="text-xl" />
             </button>
+          )}
+        </div>
+      </div>
+
+      {/* Font and Color selector when element selected */}
+      {selectedElement && selectedElement.type !== 'sticker' && (
+        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-black/80 rounded-xl p-4 z-50 flex gap-4 items-center">
+          {/* Font selector */}
+          <div className="flex gap-2 border-r border-gray-600 pr-4">
+            {fonts.map(font => (
+              <button
+                key={font.name}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  updateElementFont(font.style);
+                  setSelectedFont(font.style);
+                }}
+                className={`px-3 py-1 rounded-lg text-white text-sm ${
+                  selectedElement.fontStyle === font.style ? 'bg-purple-600' : 'bg-gray-700 hover:bg-gray-600'
+                }`}
+              >
+                {font.name}
+              </button>
+            ))}
+          </div>
+
+          {/* Color picker */}
+          <div className="flex gap-2">
+            {colors.map(color => (
+              <button
+                key={color}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  updateElementColor(color);
+                  setSelectedColor(color);
+                }}
+                className={`w-8 h-8 rounded-full border-2 transition-all ${
+                  selectedElement.color === color ? 'border-white scale-125' : 'border-gray-500'
+                }`}
+                style={{ backgroundColor: color }}
+              />
+            ))}
           </div>
         </div>
       )}
 
       {/* Location Input Modal */}
       {showLocationInput && (
-        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-gray-900 rounded-2xl p-6 w-80">
+        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50" onClick={() => setShowLocationInput(false)}>
+          <div className="bg-gray-900 rounded-2xl p-6 w-80 max-h-96" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-white font-bold mb-4">Add Location</h3>
             <input
               type="text"
@@ -294,7 +343,7 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
             />
             
             {/* Suggestions */}
-            <div className="max-h-48 overflow-y-auto">
+            <div className="max-h-64 overflow-y-auto">
               {locationSuggestions.filter(loc => 
                 loc.toLowerCase().includes(locationSearch.toLowerCase())
               ).map((loc, idx) => (
@@ -328,8 +377,8 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
 
       {/* Tag Input Modal */}
       {showTagInput && (
-        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-gray-900 rounded-2xl p-6 w-80">
+        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50" onClick={() => setShowTagInput(false)}>
+          <div className="bg-gray-900 rounded-2xl p-6 w-80" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-white font-bold mb-4">Add Tag</h3>
             <input
               type="text"
@@ -362,20 +411,16 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
         </div>
       )}
 
-      {/* Stickers at bottom */}
-      {showStickers && (
-        <div className="absolute bottom-32 left-0 right-0 bg-black/90 rounded-t-2xl p-4 z-50">
-          <div className="grid grid-cols-5 gap-4 max-h-60 overflow-y-auto">
-            {stickers.map((sticker, idx) => (
-              <button
-                key={idx}
-                onClick={() => addSticker(sticker)}
-                className="text-5xl hover:scale-125 transition-transform p-2"
-              >
-                {sticker}
-              </button>
-            ))}
-          </div>
+      {/* Emoji Picker */}
+      {showEmojiPicker && (
+        <div className="absolute bottom-32 left-0 right-0 bg-black/90 rounded-t-2xl p-4 z-50" onClick={(e) => e.stopPropagation()}>
+          <EmojiPicker
+            onEmojiClick={(emojiData) => {
+              addSticker(emojiData.emoji);
+            }}
+            width="100%"
+            height={400}
+          />
         </div>
       )}
 
@@ -414,8 +459,7 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
 
           <button
             onClick={() => {
-              setShowStickers(!showStickers);
-              setSelectedTool('emoji');
+              setShowEmojiPicker(!showEmojiPicker);
             }}
             className="flex flex-col items-center gap-2 text-white hover:text-purple-400 transition-all"
           >
@@ -424,23 +468,6 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
             </div>
             <span className="text-xs font-medium">Emoji</span>
           </button>
-        </div>
-
-        {/* Color Picker */}
-        <div className="flex justify-center gap-3 mt-4">
-          {colors.map(color => (
-            <button
-              key={color}
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedColor(color);
-              }}
-              className={`w-8 h-8 rounded-full border-2 transition-all ${
-                selectedColor === color ? 'border-white scale-125' : 'border-gray-500'
-              }`}
-              style={{ backgroundColor: color }}
-            />
-          ))}
         </div>
       </div>
     </div>
