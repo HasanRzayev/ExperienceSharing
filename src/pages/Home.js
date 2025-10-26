@@ -292,18 +292,21 @@ function Home() {
       const token = Cookies.get("token");
       if (!token) return;
 
-      // Fetch all statuses for this user
-      const response = await axios.get(`${apiBaseUrl}/Status/user/${userId}`, {
+      // Fetch all statuses first
+      const response = await axios.get(`${apiBaseUrl}/Status`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (response.data && response.data.length > 0) {
-        setUserStatuses(response.data);
+      // Filter statuses for the selected user
+      const userStatusesList = response.data.filter(status => status.userId === userId);
+
+      if (userStatusesList && userStatusesList.length > 0) {
+        setUserStatuses(userStatusesList);
         setSelectedStatusIndex(0); // Start with first status
         setSelectedStatusUserId(userId);
         setShowStatusViewer(true);
       } else {
-        // No active statuses
+        // No active statuses for this user
       }
     } catch (error) {
       console.error("Error fetching user statuses:", error);
