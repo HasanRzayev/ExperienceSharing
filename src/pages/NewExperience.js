@@ -315,7 +315,7 @@ const NewExperience = () => {
       clearForm();
       swal({
         title: "Success!",
-        text: id ? "Experience updated successfully!" : "Experience added successfully after AI moderation",
+        text: id ? "Experience updated successfully!" : "Experience shared successfully!",
         icon: "success",
         timer: 3000,
         button: false,
@@ -351,30 +351,6 @@ const NewExperience = () => {
         </div>
 
         <div className="card-modern p-8 relative">
-          {/* Loading Overlay */}
-          {isLoading && (
-            <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50 rounded-lg">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">AI Content Moderation</h3>
-                <p className="text-gray-600">Checking content for appropriateness...</p>
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse"></div>
-                    <span className="text-sm text-gray-600">Analyzing text content</span>
-                  </div>
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
-                    <span className="text-sm text-gray-600">Checking images</span>
-                  </div>
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
-                    <span className="text-sm text-gray-600">Verifying relevance</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="grid md:grid-cols-2 gap-6">
@@ -662,44 +638,6 @@ const NewExperience = () => {
               </div>
             )}
 
-            {/* AI Moderation Results */}
-            {moderationResults && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start">
-                  <svg className="w-5 h-5 text-blue-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                  <div className="flex-1">
-                    <h4 className="text-blue-800 font-semibold mb-2">AI Content Moderation Results</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center">
-                        <span className={`w-2 h-2 rounded-full mr-2 ${moderationResults.textModeration.isAppropriate ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                        <span className="text-gray-700">Text Content: {moderationResults.textModeration.isAppropriate ? 'Approved' : 'Rejected'}</span>
-                      </div>
-                      {moderationResults.imageModeration && (
-                        <div className="flex items-center">
-                          <span className={`w-2 h-2 rounded-full mr-2 ${moderationResults.imageModeration.every(img => img.isAppropriate) ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                          <span className="text-gray-700">Images: {moderationResults.imageModeration.every(img => img.isAppropriate) ? 'Approved' : 'Rejected'}</span>
-                        </div>
-                      )}
-                      {moderationResults.relevanceCheck && (
-                        <div className="flex items-center">
-                          <span className={`w-2 h-2 rounded-full mr-2 ${moderationResults.relevanceCheck.isRelevant ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                          <span className="text-gray-700">Content Relevance: {moderationResults.relevanceCheck.isRelevant ? 'Approved' : 'Rejected'}</span>
-                        </div>
-                      )}
-                      <div className="mt-2 p-2 bg-white rounded border">
-                        <span className="font-medium text-gray-800">Overall Status: </span>
-                        <span className={moderationResults.overallApproved ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
-                          {moderationResults.overallApproved ? '✓ Approved' : '✗ Rejected'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            
             <div className="flex justify-end space-x-4 pt-6 border-t">
               <button 
                 type="button"
@@ -728,7 +666,7 @@ const NewExperience = () => {
                 {isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    AI Checking...
+                    Uploading...
                   </>
                 ) : (
                   <>
