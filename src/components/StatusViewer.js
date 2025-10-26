@@ -8,13 +8,19 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [viewCount, setViewCount] = useState(0);
   const [isViewing, setIsViewing] = useState(false);
+  const [statusesList, setStatusesList] = useState(statuses);
 
   // Update currentIndex when initialIndex changes
   useEffect(() => {
     setCurrentIndex(initialIndex);
   }, [initialIndex]);
 
-  const currentStatus = statuses[currentIndex];
+  // Update statusesList when statuses prop changes
+  useEffect(() => {
+    setStatusesList(statuses);
+  }, [statuses]);
+
+  const currentStatus = statusesList[currentIndex];
 
   useEffect(() => {
     if (!isOpen || !currentStatus) return;
@@ -35,7 +41,7 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
   }, [isOpen, currentStatus?.id, currentIndex]);
 
   const handleNext = () => {
-    if (currentIndex < statuses.length - 1) {
+    if (currentIndex < statusesList.length - 1) {
       setCurrentIndex(currentIndex + 1);
     }
   };
@@ -63,17 +69,22 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
         headers: { Authorization: `Bearer ${token}` }
       });
 
+      // Remove the deleted status from the list locally
+      const newStatuses = statusesList.filter((_, idx) => idx !== currentIndex);
+      setStatusesList(newStatuses);
+
       swal("Deleted!", "Status deleted successfully!", "success");
       onStatusDelete();
-      
-      // Go to next status or close
-      if (statuses.length > 1) {
-        if (currentIndex === statuses.length - 1) {
-          setCurrentIndex(currentIndex - 1);
-        }
-      } else {
+
+      // Handle navigation after delete
+      if (newStatuses.length === 0) {
+        // No more statuses, close the viewer
         onClose();
+      } else if (currentIndex >= newStatuses.length) {
+        // We deleted the last status, go to the previous one
+        setCurrentIndex(currentIndex - 1);
       }
+      // Otherwise, currentIndex remains the same and shows the next status
     } catch (error) {
       console.error('Error deleting status:', error);
       swal("Error!", "Failed to delete status.", "error");
@@ -110,7 +121,7 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
         )}
 
         {/* Next Button */}
-        {currentIndex < statuses.length - 1 && (
+        {currentIndex < statusesList.length - 1 && (
           <button
             onClick={handleNext}
             className="absolute right-4 text-white bg-black/30 hover:bg-black/50 rounded-full p-4 transition-all z-50"
@@ -179,7 +190,7 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
             
             {/* Progress Dots */}
             <div className="flex gap-1">
-              {statuses.map((_, idx) => (
+              {statusesList.map((_, idx) => (
                 <div
                   key={idx}
                   className={`h-1 rounded-full transition-all ${
