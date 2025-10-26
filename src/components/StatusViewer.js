@@ -163,7 +163,7 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
                 <h3 className="text-white font-bold">{currentStatus.user?.firstName} {currentStatus.user?.lastName}</h3>
                 <p className="text-white/80 text-sm">@{currentStatus.user?.userName}</p>
               </div>
-              {isOwnStatus && (
+              {isOwnStatus ? (
                 <button
                   onClick={handleDelete}
                   className="text-red-400 hover:text-red-500 hover:bg-red-500/20 p-2 rounded-full transition-all"
@@ -171,6 +171,8 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
                 >
                   <FaTrash className="text-xl" />
                 </button>
+              ) : (
+                <div className="w-10 h-10" /> // Spacer for alignment
               )}
             </div>
           </div>
