@@ -356,8 +356,35 @@ function Home() {
     }
   };
 
-  const handleStatusDelete = () => {
-    fetchStatuses();
+  const handleStatusDelete = async () => {
+    // Fetch fresh statuses from server
+    await fetchStatuses();
+    
+    // If viewing a specific user's statuses, refresh them
+    if (selectedStatusUserId) {
+      try {
+        const token = Cookies.get("token");
+        if (token) {
+          const response = await axios.get(`${apiBaseUrl}/Status`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          const userStatusesList = response.data.filter(
+            status => status.userId === selectedStatusUserId
+          );
+          
+          if (userStatusesList.length > 0) {
+            setUserStatuses(userStatusesList);
+          } else {
+            // No more statuses, close viewer
+            setShowStatusViewer(false);
+            setUserStatuses([]);
+          }
+        }
+      } catch (error) {
+        console.error("Error refreshing user statuses:", error);
+      }
+    }
   };
 
   const fetchCurrentUser = useCallback(async () => {
