@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { FaTimes, FaCheck, FaTextHeight, FaSmile, FaMapMarkerAlt, FaClock, FaHashtag, FaTrash, FaPalette } from 'react-icons/fa';
+import React, { useState, useEffect, useRef } from 'react';
+import { FaTimes, FaCheck, FaTextHeight, FaSmile, FaMapMarkerAlt, FaClock, FaHashtag, FaTrash, FaDownload, FaShare, FaBars, FaUndo, FaRedo } from 'react-icons/fa';
 import EmojiPicker from 'emoji-picker-react';
 
 const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
@@ -8,15 +8,24 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
   const [selectedTool, setSelectedTool] = useState(null);
   const [selectedColor, setSelectedColor] = useState('#FFFFFF');
   const [selectedFont, setSelectedFont] = useState('bold');
+  const [brushSize, setBrushSize] = useState(5);
+  const [drawing, setDrawing] = useState(false);
+  const [drawPaths, setDrawPaths] = useState([]);
+  const [currentPath, setCurrentPath] = useState([]);
   const [dragging, setDragging] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [showLocationInput, setShowLocationInput] = useState(false);
   const [showTagInput, setShowTagInput] = useState(false);
   const [showStickers, setShowStickers] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showDrawer, setShowDrawer] = useState(false);
   const [locationSearch, setLocationSearch] = useState('');
   const [tagSearch, setTagSearch] = useState('');
-  const [filters, setFilters] = useState([]);
+  const [activeFilter, setActiveFilter] = useState('original');
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const canvasRef = useRef(null);
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
 
   const colors = [
     '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
@@ -24,23 +33,15 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
   ];
 
   const fonts = [
-    { name: 'Bold', style: 'bold' },
-    { name: 'Medium', style: 'normal' },
-    { name: 'Thin', style: '100' }
+    { name: 'Bold', style: 'bold', size: 32 },
+    { name: 'Medium', style: 'normal', size: 28 },
+    { name: 'Thin', style: '100', size: 24 },
+    { name: 'Serif', style: 'normal', size: 30, family: 'serif' }
   ];
 
   const locationSuggestions = [
-    'Oslo',
-    'Tokyo',
-    'Paris',
-    'New York',
-    'Lagos',
-    'Jakarta',
-    'Cairo',
-    'Abu Dhabi',
-    'Melbourne',
-    'Rio de Janeiro',
-    'Bombay'
+    'Oslo', 'Tokyo', 'Paris', 'New York', 'Lagos', 
+    'Jakarta', 'Cairo', 'Abu Dhabi', 'Melbourne', 'Rio de Janeiro', 'Bombay'
   ];
 
   const filters = [
@@ -48,7 +49,8 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
     { name: 'Vintage', class: 'grayscale' },
     { name: 'Bright', class: 'brightness-150 contrast-125' },
     { name: 'Dark', class: 'brightness-75' },
-    { name: 'Sepia', class: 'sepia' }
+    { name: 'Warm', class: 'sepia brightness-110' },
+    { name: 'Cool', class: 'hue-rotate-180' }
   ];
 
   const addLocation = (location) => {
@@ -60,8 +62,11 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
       y: window.innerHeight / 2 - 30,
       color: selectedColor,
       fontSize: 32,
-      fontStyle: selectedFont
+      fontStyle: selectedFont,
+      rotation: 0,
+      scale: 1
     };
+    addToHistory();
     setElements([...elements, newElement]);
     setSelectedElement(newElement);
     setShowLocationInput(false);
@@ -78,8 +83,11 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
       y: window.innerHeight / 2 - 30,
       color: selectedColor,
       fontSize: 28,
-      fontStyle: selectedFont
+      fontStyle: selectedFont,
+      rotation: 0,
+      scale: 1
     };
+    addToHistory();
     setElements([...elements, newElement]);
     setSelectedElement(newElement);
     setShowTagInput(false);
@@ -95,8 +103,11 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
       y: window.innerHeight / 2 - 30,
       color: selectedColor,
       fontSize: 28,
-      fontStyle: selectedFont
+      fontStyle: selectedFont,
+      rotation: 0,
+      scale: 1
     };
+    addToHistory();
     setElements([...elements, newElement]);
     setSelectedElement(newElement);
   };
@@ -108,12 +119,71 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
       content: emoji,
       x: window.innerWidth / 2 - 40,
       y: window.innerHeight / 2 - 40,
-      fontSize: 60
+      fontSize: 60,
+      rotation: 0,
+      scale: 1
     };
+    addToHistory();
     setElements([...elements, newElement]);
     setSelectedElement(newElement);
     setShowStickers(false);
     setShowEmojiPicker(false);
+  };
+
+  const addToHistory = () => {
+    const newHistory = [...history.slice(0, historyIndex + 1), { elements, drawPaths }];
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+  };
+
+  const undo = () => {
+    if (historyIndex > 0) {
+      const prevState = history[historyIndex - 1];
+      setElements(prevState.elements || []);
+      setDrawPaths(prevState.drawPaths || []);
+      setHistoryIndex(historyIndex - 1);
+    }
+  };
+
+  const redo = () => {
+    if (historyIndex < history.length - 1) {
+      const nextState = history[historyIndex + 1];
+      setElements(nextState.elements || []);
+      setDrawPaths(nextState.drawPaths || []);
+      setHistoryIndex(historyIndex + 1);
+    }
+  };
+
+  const startDrawing = (e) => {
+    if (!showDrawer) return;
+    setDrawing(true);
+    const point = {
+      x: e.clientX,
+      y: e.clientY,
+      color: selectedColor,
+      size: brushSize
+    };
+    setCurrentPath([point]);
+  };
+
+  const draw = (e) => {
+    if (!drawing || !showDrawer) return;
+    const point = {
+      x: e.clientX,
+      y: e.clientY,
+      color: selectedColor,
+      size: brushSize
+    };
+    setCurrentPath([...currentPath, point]);
+  };
+
+  const endDrawing = () => {
+    if (drawing && currentPath.length > 0) {
+      addToHistory();
+      setDrawPaths([...drawPaths, { id: Date.now(), path: currentPath }]);
+      setCurrentPath([]);
+    }
+    setDrawing(false);
   };
 
   const handleMouseDown = (id, e) => {
@@ -137,14 +207,17 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
           : el
       ));
     }
+    draw(e);
   };
 
   const handleMouseUp = () => {
     setDragging(null);
+    endDrawing();
   };
 
   const deleteElement = () => {
     if (selectedElement) {
+      addToHistory();
       setElements(elements.filter(el => el.id !== selectedElement.id));
       setSelectedElement(null);
     }
@@ -153,37 +226,30 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
   const handleSave = () => {
     onSave({
       elements,
-      originalMedia: mediaUrl
+      drawPaths,
+      originalMedia: mediaUrl,
+      filter: activeFilter
     });
   };
 
-  const updateElementFont = (fontStyle) => {
+  const updateElement = (updates) => {
     if (selectedElement) {
+      addToHistory();
       setElements(elements.map(el => 
-        el.id === selectedElement.id ? { ...el, fontStyle } : el
+        el.id === selectedElement.id ? { ...el, ...updates } : el
       ));
-      setSelectedElement({ ...selectedElement, fontStyle });
+      setSelectedElement({ ...selectedElement, ...updates });
     }
   };
 
-  const updateElementColor = (color) => {
-    if (selectedElement && selectedElement.type !== 'sticker') {
-      setElements(elements.map(el => 
-        el.id === selectedElement.id ? { ...el, color } : el
-      ));
-      setSelectedElement({ ...selectedElement, color });
-    }
-  };
-
-  const getFontStyle = (fontStyle) => {
-    if (fontStyle === 'bold') return { fontWeight: 'bold' };
-    if (fontStyle === '100') return { fontWeight: '100' };
+  const getFontStyle = (font) => {
+    if (font === 'bold') return { fontWeight: 'bold' };
+    if (font === '100') return { fontWeight: '100' };
     return { fontWeight: 'normal' };
   };
 
-  // Auto-select newly added elements
   useEffect(() => {
-    if (elements.length > 0) {
+    if (elements.length > 0 && !selectedElement) {
       setSelectedElement(elements[elements.length - 1]);
     }
   }, [elements.length]);
@@ -195,54 +261,98 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
       onClick={(e) => {
-        if (e.target.classList.contains('media-wrapper')) {
+        if (e.target.classList.contains('editor-media-wrapper')) {
           setSelectedElement(null);
         }
       }}
+      onMouseDown={startDrawing}
     >
       {/* Media Display with filters */}
-      <div className="relative w-full h-full flex items-center justify-center overflow-hidden media-wrapper">
-        {mediaType === 'image' ? (
-          <img
-            src={mediaUrl}
-            alt="Status"
-            className="max-w-full max-h-full object-contain"
-            draggable="false"
-          />
-        ) : (
-          <video
-            src={mediaUrl}
-            className="max-w-full max-h-full object-contain"
-            controls
-            draggable="false"
-          />
-        )}
+      <div className="relative w-full h-full flex items-center justify-center overflow-hidden editor-media-wrapper">
+        <div className="relative">
+          {mediaType === 'image' ? (
+            <img
+              src={mediaUrl}
+              alt="Status"
+              className={`max-w-full max-h-full object-contain ${activeFilter !== 'original' ? filters.find(f => f.name === activeFilter)?.class : ''}`}
+              draggable="false"
+            />
+          ) : (
+            <video
+              src={mediaUrl}
+              className="max-w-full max-h-full object-contain"
+              controls
+              draggable="false"
+            />
+          )}
 
-        {/* Floating Elements */}
-        {elements.map(element => (
-          <div
-            key={element.id}
-            style={{
-              position: 'absolute',
-              left: `${element.x}px`,
-              top: `${element.y}px`,
-              color: element.color || '#FFFFFF',
-              fontSize: `${element.fontSize}px`,
-              ...getFontStyle(element.fontStyle),
-              cursor: 'move',
-              userSelect: 'none',
-              pointerEvents: 'all',
-              textShadow: element.type === 'sticker' ? '' : '3px 3px 8px rgba(0,0,0,1)',
-              padding: '8px',
-              outline: selectedElement?.id === element.id ? '4px solid #8B5CF6' : 'none',
-              borderRadius: selectedElement?.id === element.id ? '8px' : '0px',
-              backgroundColor: selectedElement?.id === element.id ? 'rgba(139, 92, 246, 0.1)' : 'transparent'
-            }}
-            onMouseDown={(e) => handleMouseDown(element.id, e)}
-          >
-            {element.type === 'sticker' ? element.content : element.content}
-          </div>
-        ))}
+          {/* Draw paths */}
+          <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%' }}>
+            {drawPaths.map((pathData, idx) => (
+              <g key={idx}>
+                {pathData.path.map((point, i) => {
+                  if (i === 0) return null;
+                  const prevPoint = pathData.path[i - 1];
+                  return (
+                    <line
+                      key={i}
+                      x1={prevPoint.x}
+                      y1={prevPoint.y}
+                      x2={point.x}
+                      y2={point.y}
+                      stroke={point.color}
+                      strokeWidth={point.size}
+                      strokeLinecap="round"
+                    />
+                  );
+                })}
+              </g>
+            ))}
+            {currentPath.map((point, i) => {
+              if (i === 0) return null;
+              const prevPoint = currentPath[i - 1];
+              return (
+                <line
+                  key={i}
+                  x1={prevPoint.x}
+                  y1={prevPoint.y}
+                  x2={point.x}
+                  y2={point.y}
+                  stroke={point.color}
+                  strokeWidth={point.size}
+                  strokeLinecap="round"
+                />
+              );
+            })}
+          </svg>
+
+          {/* Floating Elements */}
+          {elements.map(element => (
+            <div
+              key={element.id}
+              style={{
+                position: 'absolute',
+                left: `${element.x}px`,
+                top: `${element.y}px`,
+                color: element.color || '#FFFFFF',
+                fontSize: `${element.fontSize * (element.scale || 1)}px`,
+                ...getFontStyle(element.fontStyle),
+                cursor: 'move',
+                userSelect: 'none',
+                pointerEvents: 'all',
+                textShadow: element.type === 'sticker' ? '' : '3px 3px 8px rgba(0,0,0,1)',
+                padding: '8px',
+                outline: selectedElement?.id === element.id ? '4px solid #8B5CF6' : 'none',
+                borderRadius: selectedElement?.id === element.id ? '8px' : '0px',
+                backgroundColor: selectedElement?.id === element.id ? 'rgba(139, 92, 246, 0.1)' : 'transparent',
+                transform: `rotate(${element.rotation || 0}deg) scale(${element.scale || 1})`
+              }}
+              onMouseDown={(e) => handleMouseDown(element.id, e)}
+            >
+              {element.type === 'sticker' ? element.content : element.content}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Trash button in center */}
@@ -270,31 +380,63 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
             <FaTimes className="text-xl" />
           </button>
           
-          {!selectedElement && (
+          <div className="flex gap-3">
             <button
-              onClick={handleSave}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold px-6 py-2 rounded-full hover:from-purple-700 hover:to-pink-700"
+              onClick={() => setShowDrawer(!showDrawer)}
+              className="text-white bg-black/30 hover:bg-black/50 rounded-full p-3"
             >
-              <FaCheck className="text-xl" />
+              ✏️
             </button>
+            <button
+              onClick={undo}
+              disabled={historyIndex <= 0}
+              className="text-white bg-black/30 hover:bg-black/50 rounded-full p-3 disabled:opacity-50"
+            >
+              <FaUndo />
+            </button>
+            <button
+              onClick={redo}
+              disabled={historyIndex >= history.length - 1}
+              className="text-white bg-black/30 hover:bg-black/50 rounded-full p-3 disabled:opacity-50"
+            >
+              <FaRedo />
+            </button>
+          </div>
+
+          {!selectedElement && (
+            <>
+              <button
+                onClick={() => setShowPrivacy(!showPrivacy)}
+                className="text-white bg-black/30 hover:bg-black/50 rounded-full p-3"
+              >
+                <FaBars className="text-xl" />
+              </button>
+              
+              <button
+                onClick={handleSave}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold px-6 py-2 rounded-full hover:from-purple-700 hover:to-pink-700"
+              >
+                <FaShare className="text-xl" />
+              </button>
+            </>
           )}
         </div>
       </div>
 
-      {/* Font and Color selector when element selected */}
+      {/* Font, Color, and Size selector when element selected */}
       {selectedElement && selectedElement.type !== 'sticker' && (
-        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-black/80 rounded-xl p-4 z-50 flex gap-4 items-center">
+        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-black/90 rounded-xl p-4 z-50 flex flex-col gap-4">
           {/* Font selector */}
-          <div className="flex gap-2 border-r border-gray-600 pr-4">
+          <div className="flex gap-2 justify-center">
             {fonts.map(font => (
               <button
                 key={font.name}
                 onClick={(e) => {
                   e.stopPropagation();
-                  updateElementFont(font.style);
+                  updateElement({ fontStyle: font.style, fontSize: font.size });
                   setSelectedFont(font.style);
                 }}
-                className={`px-3 py-1 rounded-lg text-white text-sm ${
+                className={`px-3 py-2 rounded-lg text-white text-xs ${
                   selectedElement.fontStyle === font.style ? 'bg-purple-600' : 'bg-gray-700 hover:bg-gray-600'
                 }`}
               >
@@ -304,21 +446,36 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
           </div>
 
           {/* Color picker */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-center">
             {colors.map(color => (
               <button
                 key={color}
                 onClick={(e) => {
                   e.stopPropagation();
-                  updateElementColor(color);
+                  updateElement({ color });
                   setSelectedColor(color);
                 }}
-                className={`w-8 h-8 rounded-full border-2 transition-all ${
+                className={`w-10 h-10 rounded-full border-2 transition-all ${
                   selectedElement.color === color ? 'border-white scale-125' : 'border-gray-500'
                 }`}
                 style={{ backgroundColor: color }}
               />
             ))}
+          </div>
+
+          {/* Size slider */}
+          <div className="flex items-center gap-4">
+            <span className="text-white text-xs">Size</span>
+            <input
+              type="range"
+              min="20"
+              max="80"
+              value={selectedElement.fontSize || 32}
+              onChange={(e) => {
+                updateElement({ fontSize: parseInt(e.target.value) });
+              }}
+              className="flex-1"
+            />
           </div>
         </div>
       )}
@@ -335,14 +492,7 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
               placeholder="Search location..."
               className="w-full p-3 rounded-lg bg-gray-800 text-white mb-4"
               autoFocus
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && locationSearch.trim()) {
-                  addLocation(locationSearch.trim());
-                }
-              }}
             />
-            
-            {/* Suggestions */}
             <div className="max-h-64 overflow-y-auto">
               {locationSuggestions.filter(loc => 
                 loc.toLowerCase().includes(locationSearch.toLowerCase())
@@ -355,21 +505,6 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
                   📍 {loc}
                 </button>
               ))}
-            </div>
-            
-            <div className="flex gap-4 justify-end mt-4">
-              <button
-                onClick={() => setShowLocationInput(false)}
-                className="px-4 py-2 text-gray-400 hover:text-white"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => locationSearch.trim() && addLocation(locationSearch.trim())}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-              >
-                Add
-              </button>
             </div>
           </div>
         </div>
@@ -387,22 +522,17 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
               placeholder="#trending"
               className="w-full p-3 rounded-lg bg-gray-800 text-white mb-4"
               autoFocus
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && tagSearch.trim()) {
-                  addTag(tagSearch.trim());
-                }
-              }}
             />
             <div className="flex gap-4 justify-end">
               <button
                 onClick={() => setShowTagInput(false)}
-                className="px-4 py-2 text-gray-400 hover:text-white"
+                className="px-4 py-2 text-gray-400"
               >
                 Cancel
               </button>
               <button
                 onClick={() => tagSearch.trim() && addTag(tagSearch.trim())}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg"
               >
                 Add
               </button>
@@ -415,12 +545,56 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
       {showEmojiPicker && (
         <div className="absolute bottom-32 left-0 right-0 bg-black/90 rounded-t-2xl p-4 z-50" onClick={(e) => e.stopPropagation()}>
           <EmojiPicker
-            onEmojiClick={(emojiData) => {
-              addSticker(emojiData.emoji);
-            }}
+            onEmojiClick={(emojiData) => addSticker(emojiData.emoji)}
             width="100%"
-            height={400}
+            height={350}
           />
+        </div>
+      )}
+
+      {/* Filter Swiper */}
+      <div className="absolute bottom-24 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 z-50">
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          {filters.map(filter => (
+            <button
+              key={filter.name}
+              onClick={() => setActiveFilter(filter.name)}
+              className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-all ${
+                activeFilter === filter.name ? 'bg-purple-600 text-white' : 'bg-black/30 text-white hover:bg-black/50'
+              }`}
+            >
+              {filter.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Drawing toolbar */}
+      {showDrawer && (
+        <div className="absolute bottom-48 left-0 right-0 bg-black/90 rounded-t-2xl p-4 z-50">
+          <div className="flex items-center gap-4">
+            <span className="text-white text-sm">Brush Size</span>
+            <input
+              type="range"
+              min="3"
+              max="20"
+              value={brushSize}
+              onChange={(e) => setBrushSize(parseInt(e.target.value))}
+              className="flex-1"
+            />
+            <div className="flex gap-2">
+              {colors.map(color => (
+                <button
+                  key={color}
+                  onClick={() => setSelectedColor(color)}
+                  className={`w-8 h-8 rounded-full border-2 ${
+                    selectedColor === color ? 'border-white scale-125' : 'border-gray-500'
+                  }`}
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
@@ -429,7 +603,7 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
         <div className="flex justify-center gap-6">
           <button
             onClick={() => setShowLocationInput(true)}
-            className="flex flex-col items-center gap-2 text-white hover:text-purple-400 transition-all"
+            className="flex flex-col items-center gap-2 text-white hover:text-purple-400"
           >
             <div className="w-14 h-14 bg-black/30 rounded-full flex items-center justify-center hover:bg-black/50">
               <FaMapMarkerAlt className="text-2xl" />
@@ -439,7 +613,7 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
 
           <button
             onClick={addTime}
-            className="flex flex-col items-center gap-2 text-white hover:text-purple-400 transition-all"
+            className="flex flex-col items-center gap-2 text-white hover:text-purple-400"
           >
             <div className="w-14 h-14 bg-black/30 rounded-full flex items-center justify-center hover:bg-black/50">
               <FaClock className="text-2xl" />
@@ -449,7 +623,7 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
 
           <button
             onClick={() => setShowTagInput(true)}
-            className="flex flex-col items-center gap-2 text-white hover:text-purple-400 transition-all"
+            className="flex flex-col items-center gap-2 text-white hover:text-purple-400"
           >
             <div className="w-14 h-14 bg-black/30 rounded-full flex items-center justify-center hover:bg-black/50">
               <FaHashtag className="text-2xl" />
@@ -458,10 +632,8 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
           </button>
 
           <button
-            onClick={() => {
-              setShowEmojiPicker(!showEmojiPicker);
-            }}
-            className="flex flex-col items-center gap-2 text-white hover:text-purple-400 transition-all"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            className="flex flex-col items-center gap-2 text-white hover:text-purple-400"
           >
             <div className="w-14 h-14 bg-black/30 rounded-full flex items-center justify-center hover:bg-black/50">
               <FaSmile className="text-2xl" />
