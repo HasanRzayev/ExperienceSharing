@@ -118,6 +118,15 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
     currentStatus.userId === currentUser.id
   );
 
+  // Debug
+  console.log('STATUS VIEWER DEBUG:', {
+    hasCurrentUser: !!currentUser,
+    currentStatusUserId: currentStatus.userId,
+    currentUserID: currentUser?.id,
+    currentStatusUserID: currentStatus.user?.id,
+    isOwnStatus: isOwnStatus
+  });
+
   return (
     <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
       <div className="relative w-full h-full flex items-center">
@@ -163,16 +172,15 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
                 <h3 className="text-white font-bold">{currentStatus.user?.firstName} {currentStatus.user?.lastName}</h3>
                 <p className="text-white/80 text-sm">@{currentStatus.user?.userName}</p>
               </div>
-              {isOwnStatus ? (
+              {isOwnStatus && (
                 <button
                   onClick={handleDelete}
-                  className="text-red-400 hover:text-red-500 hover:bg-red-500/20 p-2 rounded-full transition-all"
+                  className="text-red-400 hover:text-red-500 hover:bg-red-500/20 p-2 rounded-full transition-all cursor-pointer"
                   title="Delete status"
+                  style={{ minWidth: '40px', minHeight: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
                   <FaTrash className="text-xl" />
                 </button>
-              ) : (
-                <div className="w-10 h-10" /> // Spacer for alignment
               )}
             </div>
           </div>
