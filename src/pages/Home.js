@@ -7,6 +7,7 @@ import AddToTripButton from "../components/AddToTripButton";
 import SaveButton from "../components/SaveButton";
 import AIRecommendations from "../components/AIRecommendations";
 import StatusUploadModal from "../components/StatusUploadModal";
+import StatusViewer from "../components/StatusViewer";
 import EmojiPicker from 'emoji-picker-react';
 import axios from "axios";
 
@@ -38,6 +39,9 @@ function Home() {
   // Status states
   const [statuses, setStatuses] = useState([]);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [selectedStatusIndex, setSelectedStatusIndex] = useState(null);
+  const [showStatusViewer, setShowStatusViewer] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   
   const apiBaseUrl = useMemo(() => 
     process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api',
@@ -258,7 +262,19 @@ function Home() {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      setStatuses(response.data);
+      // Group statuses by user and get the latest one for each user
+      const statusMap = new Map();
+      response.data.forEach(status => {
+        const userId = status.userId;
+        if (!statusMap.has(userId) || new Date(status.createdAt) > new Date(statusMap.get(userId).createdAt)) {
+          statusMap.set(userId, status);
+        }
+      });
+      
+      // Convert back to array
+      const uniqueStatuses = Array.from(statusMap.values());
+      
+      setStatuses(uniqueStatuses);
     } catch (error) {
       console.error("Error fetching statuses:", error);
     }
@@ -268,10 +284,56 @@ function Home() {
     fetchStatuses();
   };
 
+  const [selectedStatusUserId, setSelectedStatusUserId] = useState(null);
+  const [userStatuses, setUserStatuses] = useState([]);
+
+  const handleStatusClick = async (userId) => {
+    try {
+      const token = Cookies.get("token");
+      if (!token) return;
+
+      // Fetch all statuses for this user
+      const response = await axios.get(`${apiBaseUrl}/Status/user/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data && response.data.length > 0) {
+        setUserStatuses(response.data);
+        setSelectedStatusIndex(0); // Start with first status
+        setSelectedStatusUserId(userId);
+        setShowStatusViewer(true);
+      } else {
+        // No active statuses
+      }
+    } catch (error) {
+      console.error("Error fetching user statuses:", error);
+    }
+  };
+
+  const handleStatusDelete = () => {
+    fetchStatuses();
+  };
+
+  const fetchCurrentUser = useCallback(async () => {
+    try {
+      const token = Cookies.get("token");
+      if (!token) return;
+      
+      const response = await axios.get(`${apiBaseUrl}/Auth/GetProfile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setCurrentUser(response.data);
+    } catch (error) {
+      console.error("Error fetching current user:", error);
+    }
+  }, [apiBaseUrl]);
+
   useEffect(() => {
     fetchPosts(page);
     fetchStatuses();
-  }, [page, fetchPosts, fetchStatuses]);
+    fetchCurrentUser();
+  }, [page, fetchPosts, fetchStatuses, fetchCurrentUser]);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -316,15 +378,9 @@ function Home() {
                 const hasUnviewed = !status.isViewed;
                 return (
                   <button
-                    key={status.id}
-                    className="flex flex-col items-center gap-2 min-w-[60px]"
-                    onClick={() => {
-                      // TODO: Open status viewer
-                      axios.post(`${apiBaseUrl}/Status/${status.id}/view`, {}, {
-                        headers: { Authorization: `Bearer ${Cookies.get("token")}` }
-                      });
-                      fetchStatuses();
-                    }}
+                    key={status.userId}
+                    className="flex flex-col items-center gap-2 min-w-[60px] cursor-pointer transition-transform hover:scale-105"
+                    onClick={() => handleStatusClick(status.userId)}
                   >
                     <div className="relative">
                       <div className={`w-16 h-16 rounded-full ${hasUnviewed ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-0.5' : 'bg-gray-200 p-0.5'}`}>
@@ -819,6 +875,22 @@ function Home() {
         onClose={() => setShowStatusModal(false)}
         onUpload={handleStatusUpload}
       />
+
+      {/* Status Viewer */}
+      {showStatusViewer && userStatuses.length > 0 && (
+        <StatusViewer
+          isOpen={showStatusViewer}
+          onClose={() => {
+            setShowStatusViewer(false);
+            setUserStatuses([]);
+            fetchStatuses();
+          }}
+          statuses={userStatuses}
+          currentUser={currentUser}
+          onStatusDelete={handleStatusDelete}
+          initialIndex={selectedStatusIndex}
+        />
+      )}
     </main>
   );
 }
