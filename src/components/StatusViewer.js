@@ -166,10 +166,10 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
               {isOwnStatus && (
                 <button
                   onClick={handleDelete}
-                  className="text-white hover:text-red-400 p-2 rounded-full hover:bg-black/30 transition-all"
+                  className="text-red-400 hover:text-red-500 hover:bg-red-500/20 p-2 rounded-full transition-all"
                   title="Delete status"
                 >
-                  <FaTrash className="text-lg" />
+                  <FaTrash className="text-xl" />
                 </button>
               )}
             </div>
