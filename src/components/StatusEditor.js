@@ -371,33 +371,33 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
       )}
 
       {/* Top bar */}
-      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black to-transparent p-4 z-50">
+      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black to-transparent p-2 sm:p-4 z-50">
         <div className="flex justify-between items-center">
           <button
             onClick={onClose}
-            className="text-white bg-black/30 hover:bg-black/50 rounded-full p-3"
+            className="text-white bg-black/30 hover:bg-black/50 rounded-full p-2 sm:p-3"
           >
-            <FaTimes className="text-xl" />
+            <FaTimes className="text-lg sm:text-xl" />
           </button>
           
-          <div className="flex gap-3">
+          <div className="flex gap-1 sm:gap-3">
             <button
               onClick={() => setShowDrawer(!showDrawer)}
-              className="text-white bg-black/30 hover:bg-black/50 rounded-full p-3"
+              className="text-white bg-black/30 hover:bg-black/50 rounded-full p-2 sm:p-3 text-sm sm:text-base"
             >
               ✏️
             </button>
             <button
               onClick={undo}
               disabled={historyIndex <= 0}
-              className="text-white bg-black/30 hover:bg-black/50 rounded-full p-3 disabled:opacity-50"
+              className="text-white bg-black/30 hover:bg-black/50 rounded-full p-2 sm:p-3 disabled:opacity-50 hidden sm:block"
             >
               <FaUndo />
             </button>
             <button
               onClick={redo}
               disabled={historyIndex >= history.length - 1}
-              className="text-white bg-black/30 hover:bg-black/50 rounded-full p-3 disabled:opacity-50"
+              className="text-white bg-black/30 hover:bg-black/50 rounded-full p-2 sm:p-3 disabled:opacity-50 hidden sm:block"
             >
               <FaRedo />
             </button>
@@ -407,16 +407,16 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
             <>
               <button
                 onClick={() => setShowPrivacy(!showPrivacy)}
-                className="text-white bg-black/30 hover:bg-black/50 rounded-full p-3"
+                className="text-white bg-black/30 hover:bg-black/50 rounded-full p-2 sm:p-3 hidden sm:block"
               >
-                <FaBars className="text-xl" />
+                <FaBars className="text-lg sm:text-xl" />
               </button>
               
               <button
                 onClick={handleSave}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold px-6 py-2 rounded-full hover:from-purple-700 hover:to-pink-700"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold px-3 sm:px-6 py-2 rounded-full hover:from-purple-700 hover:to-pink-700"
               >
-                <FaShare className="text-xl" />
+                <FaShare className="text-lg sm:text-xl" />
               </button>
             </>
           )}
@@ -599,46 +599,46 @@ const StatusEditor = ({ mediaUrl, mediaType, onSave, onClose }) => {
       )}
 
       {/* Bottom Toolbar */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-6 z-50">
-        <div className="flex justify-center gap-6">
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-3 sm:p-6 z-50">
+        <div className="flex justify-center gap-3 sm:gap-6">
           <button
             onClick={() => setShowLocationInput(true)}
-            className="flex flex-col items-center gap-2 text-white hover:text-purple-400"
+            className="flex flex-col items-center gap-1 sm:gap-2 text-white hover:text-purple-400"
           >
-            <div className="w-14 h-14 bg-black/30 rounded-full flex items-center justify-center hover:bg-black/50">
-              <FaMapMarkerAlt className="text-2xl" />
+            <div className="w-10 h-10 sm:w-14 sm:h-14 bg-black/30 rounded-full flex items-center justify-center hover:bg-black/50">
+              <FaMapMarkerAlt className="text-lg sm:text-2xl" />
             </div>
-            <span className="text-xs font-medium">Location</span>
+            <span className="text-xs font-medium hidden sm:inline">Location</span>
           </button>
 
           <button
             onClick={addTime}
-            className="flex flex-col items-center gap-2 text-white hover:text-purple-400"
+            className="flex flex-col items-center gap-1 sm:gap-2 text-white hover:text-purple-400"
           >
-            <div className="w-14 h-14 bg-black/30 rounded-full flex items-center justify-center hover:bg-black/50">
-              <FaClock className="text-2xl" />
+            <div className="w-10 h-10 sm:w-14 sm:h-14 bg-black/30 rounded-full flex items-center justify-center hover:bg-black/50">
+              <FaClock className="text-lg sm:text-2xl" />
             </div>
-            <span className="text-xs font-medium">Time</span>
+            <span className="text-xs font-medium hidden sm:inline">Time</span>
           </button>
 
           <button
             onClick={() => setShowTagInput(true)}
-            className="flex flex-col items-center gap-2 text-white hover:text-purple-400"
+            className="flex flex-col items-center gap-1 sm:gap-2 text-white hover:text-purple-400"
           >
-            <div className="w-14 h-14 bg-black/30 rounded-full flex items-center justify-center hover:bg-black/50">
-              <FaHashtag className="text-2xl" />
+            <div className="w-10 h-10 sm:w-14 sm:h-14 bg-black/30 rounded-full flex items-center justify-center hover:bg-black/50">
+              <FaHashtag className="text-lg sm:text-2xl" />
             </div>
-            <span className="text-xs font-medium">Tag</span>
+            <span className="text-xs font-medium hidden sm:inline">Tag</span>
           </button>
 
           <button
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className="flex flex-col items-center gap-2 text-white hover:text-purple-400"
+            className="flex flex-col items-center gap-1 sm:gap-2 text-white hover:text-purple-400"
           >
-            <div className="w-14 h-14 bg-black/30 rounded-full flex items-center justify-center hover:bg-black/50">
-              <FaSmile className="text-2xl" />
+            <div className="w-10 h-10 sm:w-14 sm:h-14 bg-black/30 rounded-full flex items-center justify-center hover:bg-black/50">
+              <FaSmile className="text-lg sm:text-2xl" />
             </div>
-            <span className="text-xs font-medium">Emoji</span>
+            <span className="text-xs font-medium hidden sm:inline">Emoji</span>
           </button>
         </div>
       </div>

@@ -416,37 +416,37 @@ function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <FaUsers className="text-3xl text-indigo-600" />
-              <h1 className="text-3xl font-bold text-gray-800">Feed</h1>
+        <div className="mb-4 sm:mb-8">
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <FaUsers className="text-2xl sm:text-3xl text-indigo-600" />
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-800">Feed</h1>
             </div>
             <button
               onClick={() => setShowStatusModal(true)}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:from-purple-700 hover:to-pink-700 transition-all"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 sm:px-4 py-2 rounded-full flex items-center gap-1 sm:gap-2 hover:from-purple-700 hover:to-pink-700 transition-all text-sm sm:text-base"
             >
               <FaPlus />
-              Status
+              <span className="hidden sm:inline">Status</span>
             </button>
           </div>
-          <p className="text-gray-600">Latest posts from people you follow</p>
+          <p className="text-gray-600 text-sm sm:text-base hidden sm:block">Latest posts from people you follow</p>
         </div>
 
         {/* Status Feed - Instagram style circular profiles */}
         {statuses.length > 0 && (
-          <div className="mb-8 bg-white rounded-2xl shadow-md p-4 overflow-x-auto">
-            <div className="flex gap-4">
+          <div className="mb-4 sm:mb-8 bg-white rounded-xl sm:rounded-2xl shadow-md p-3 sm:p-4 overflow-x-auto">
+            <div className="flex gap-3 sm:gap-4">
               <button
                 onClick={handleYourStatusClick}
-                className="flex flex-col items-center gap-2 min-w-[60px]"
+                className="flex flex-col items-center gap-2 min-w-[50px] sm:min-w-[60px]"
               >
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-0.5">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-0.5">
                     <div className="w-full h-full rounded-full bg-white p-0.5 flex items-center justify-center">
-                      <FaPlus className="w-8 h-8 text-gray-400" />
+                      <FaPlus className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                     </div>
                   </div>
                 </div>
@@ -458,11 +458,11 @@ function Home() {
                 return (
                   <button
                     key={status.userId}
-                    className="flex flex-col items-center gap-2 min-w-[60px] cursor-pointer transition-transform hover:scale-105"
+                    className="flex flex-col items-center gap-2 min-w-[50px] sm:min-w-[60px] cursor-pointer transition-transform hover:scale-105"
                     onClick={() => handleStatusClick(status.userId)}
                   >
                     <div className="relative">
-                      <div className={`w-16 h-16 rounded-full ${hasUnviewed ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-0.5' : 'bg-gray-200 p-0.5'}`}>
+                      <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full ${hasUnviewed ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-0.5' : 'bg-gray-200 p-0.5'}`}>
                         <img
                           src={status.user?.profileImage || "https://via.placeholder.com/60"}
                           alt={status.user?.firstName}
@@ -470,10 +470,10 @@ function Home() {
                         />
                       </div>
                       {hasUnviewed && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white"></div>
+                        <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded-full border-2 border-white"></div>
                       )}
                     </div>
-                    <span className="text-xs text-gray-600 truncate max-w-[60px]">
+                    <span className="text-xs text-gray-600 truncate max-w-[50px] sm:max-w-[60px]">
                       {status.user?.firstName || 'User'}
                     </span>
                   </button>
@@ -487,33 +487,33 @@ function Home() {
         <div className="space-y-6">
           {posts.map((post, index) => (
             <div key={post.id} className="animate-fadeInUp" style={{animationDelay: `${index * 0.05}s`}}>
-              <article className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300">
+              <article className="bg-white rounded-xl sm:rounded-2xl shadow-md border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300">
                 {/* User Header */}
-                <div className="flex items-center gap-3 p-4 border-b border-gray-100">
+                <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-b border-gray-100">
                   <img
                     src={post.user?.profileImage || "https://via.placeholder.com/40"}
                     alt={post.user?.userName}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-indigo-100 cursor-pointer hover:border-indigo-400 transition-colors"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-indigo-100 cursor-pointer hover:border-indigo-400 transition-colors"
                     onClick={() => navigate(`/profile/${post.user?.id}`)}
                   />
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <h3 
-                      className="font-bold text-gray-800 hover:text-indigo-600 cursor-pointer transition-colors"
+                      className="font-bold text-sm sm:text-base text-gray-800 hover:text-indigo-600 cursor-pointer transition-colors truncate"
                       onClick={() => navigate(`/profile/${post.user?.id}`)}
                     >
                       {post.user?.userName}
                     </h3>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-500">
                       <FaMapMarkerAlt className="text-xs" />
-                      <span>{post.location}</span>
+                      <span className="truncate">{post.location}</span>
                       <span>•</span>
-                      <span>{new Date(post.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>
+                      <span className="hidden sm:inline">{new Date(post.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>
                     </div>
                   </div>
                   {post.rating && (
-                    <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1 rounded-full">
-                      <span className="text-yellow-500 font-bold">★</span>
-                      <span className="font-bold text-gray-700">{post.rating}</span>
+                    <div className="flex items-center gap-1 bg-yellow-50 px-2 sm:px-3 py-1 rounded-full">
+                      <span className="text-yellow-500 font-bold text-xs sm:text-sm">★</span>
+                      <span className="font-bold text-gray-700 text-xs sm:text-sm">{post.rating}</span>
                     </div>
                   )}
                 </div>
@@ -521,7 +521,7 @@ function Home() {
                 {/* Post Image */}
                 {post.imageUrls?.length > 0 && (
                   <div 
-                    className="relative h-96 bg-gray-100 group"
+                    className="relative h-64 sm:h-80 md:h-96 bg-gray-100 group"
                   >
                     <img
                       src={post.imageUrls[0]?.url}
@@ -589,14 +589,14 @@ function Home() {
                 )}
 
                 {/* Post Content */}
-                <div className="p-4">
+                <div className="p-3 sm:p-4">
                   <h2 
-                    className="text-2xl font-bold text-gray-900 mb-2 cursor-pointer hover:text-indigo-600 transition-colors"
+                    className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 cursor-pointer hover:text-indigo-600 transition-colors line-clamp-2"
                     onClick={() => navigate(`/card/${post.id}`)}
                   >
                     {post.title}
                   </h2>
-                  <p className="text-gray-700 mb-4 line-clamp-3 leading-relaxed">
+                  <p className="text-sm sm:text-base text-gray-700 mb-4 line-clamp-3 leading-relaxed">
                     {post.description}
                   </p>
                   
@@ -604,12 +604,12 @@ function Home() {
                   {post.tagsName?.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-4">
                       {post.tagsName.slice(0, 3).map((tag, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-indigo-50 text-indigo-600 text-sm rounded-full font-medium hover:bg-indigo-100 transition-colors cursor-pointer">
+                        <span key={idx} className="px-2 sm:px-3 py-1 bg-indigo-50 text-indigo-600 text-xs sm:text-sm rounded-full font-medium hover:bg-indigo-100 transition-colors cursor-pointer">
                           #{tag}
                         </span>
                       ))}
                       {post.tagsName.length > 3 && (
-                        <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full font-medium">
+                        <span className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-600 text-xs sm:text-sm rounded-full font-medium">
                           +{post.tagsName.length - 3} more
                         </span>
                       )}
@@ -617,7 +617,7 @@ function Home() {
                   )}
 
                   {/* Action Buttons */}
-                  <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+                  <div className="flex items-center gap-2 sm:gap-4 pt-4 border-t border-gray-100">
                     {/* Like Button */}
                     <div className="flex-1">
                       <LikeButton experienceId={post.id} initialLikes={post.likes} />
@@ -626,23 +626,23 @@ function Home() {
                     {/* Comment Button */}
                     <button
                       onClick={() => toggleComments(post.id)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+                      className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg font-semibold transition-all text-xs sm:text-base ${
                         expandedComments[post.id]
                           ? 'bg-blue-100 text-blue-600'
                           : 'bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-600'
                       }`}
                     >
-                      <FaComment />
+                      <FaComment className="text-sm sm:text-base" />
                       <span>{post.commentsCount || 0}</span>
                     </button>
 
                     {/* Share Button */}
                     <button
                       onClick={() => handleShare(post)}
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-semibold hover:bg-purple-50 hover:text-purple-600 transition-all"
+                      className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-semibold hover:bg-purple-50 hover:text-purple-600 transition-all text-xs sm:text-base"
                     >
-                      <FaShare />
-                      <span>Share</span>
+                      <FaShare className="text-sm sm:text-base" />
+                      <span className="hidden sm:inline">Share</span>
                     </button>
                   </div>
 
