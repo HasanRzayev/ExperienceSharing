@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Cookies from "js-cookie";
-import { FaUsers, FaHeart, FaComment, FaShare, FaPaperPlane, FaSmile, FaMapMarkerAlt, FaCheck, FaWhatsapp, FaInstagram, FaTiktok, FaCopy } from "react-icons/fa";
+import { FaUsers, FaHeart, FaComment, FaShare, FaPaperPlane, FaSmile, FaMapMarkerAlt, FaCheck, FaWhatsapp, FaInstagram, FaTiktok, FaCopy, FaPlus } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import LikeButton from "../components/LikeButton";
 import AddToTripButton from "../components/AddToTripButton";
 import SaveButton from "../components/SaveButton";
 import AIRecommendations from "../components/AIRecommendations";
+import StatusUploadModal from "../components/StatusUploadModal";
 import EmojiPicker from 'emoji-picker-react';
 import axios from "axios";
 
@@ -33,6 +34,10 @@ function Home() {
   
   // Options menu state (3 dots)
   const [showOptionsMenu, setShowOptionsMenu] = useState({});
+  
+  // Status states
+  const [statuses, setStatuses] = useState([]);
+  const [showStatusModal, setShowStatusModal] = useState(false);
   
   const apiBaseUrl = useMemo(() => 
     process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api',
@@ -244,21 +249,104 @@ function Home() {
     return () => observer.disconnect();
   }, [hasMore, loading]);
 
+  const fetchStatuses = useCallback(async () => {
+    try {
+      const token = Cookies.get("token");
+      if (!token) return;
+      
+      const response = await axios.get(`${apiBaseUrl}/Status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setStatuses(response.data);
+    } catch (error) {
+      console.error("Error fetching statuses:", error);
+    }
+  }, [apiBaseUrl]);
+
+  const handleStatusUpload = () => {
+    fetchStatuses();
+  };
+
   useEffect(() => {
     fetchPosts(page);
-  }, [page, fetchPosts]);
+    fetchStatuses();
+  }, [page, fetchPosts, fetchStatuses]);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-3">
-            <FaUsers className="text-3xl text-indigo-600" />
-            <h1 className="text-3xl font-bold text-gray-800">Feed</h1>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <FaUsers className="text-3xl text-indigo-600" />
+              <h1 className="text-3xl font-bold text-gray-800">Feed</h1>
+            </div>
+            <button
+              onClick={() => setShowStatusModal(true)}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:from-purple-700 hover:to-pink-700 transition-all"
+            >
+              <FaPlus />
+              Status
+            </button>
           </div>
           <p className="text-gray-600">Latest posts from people you follow</p>
         </div>
+
+        {/* Status Feed - Instagram style circular profiles */}
+        {statuses.length > 0 && (
+          <div className="mb-8 bg-white rounded-2xl shadow-md p-4 overflow-x-auto">
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowStatusModal(true)}
+                className="flex flex-col items-center gap-2 min-w-[60px]"
+              >
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-0.5">
+                    <div className="w-full h-full rounded-full bg-white p-0.5">
+                      <FaPlus className="w-full h-full text-gray-400" />
+                    </div>
+                  </div>
+                </div>
+                <span className="text-xs text-gray-600">Your Status</span>
+              </button>
+              
+              {statuses.map((status) => {
+                const hasUnviewed = !status.isViewed;
+                return (
+                  <button
+                    key={status.id}
+                    className="flex flex-col items-center gap-2 min-w-[60px]"
+                    onClick={() => {
+                      // TODO: Open status viewer
+                      axios.post(`${apiBaseUrl}/Status/${status.id}/view`, {}, {
+                        headers: { Authorization: `Bearer ${Cookies.get("token")}` }
+                      });
+                      fetchStatuses();
+                    }}
+                  >
+                    <div className="relative">
+                      <div className={`w-16 h-16 rounded-full ${hasUnviewed ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-0.5' : 'bg-gray-200 p-0.5'}`}>
+                        <img
+                          src={status.user?.profileImage || "https://via.placeholder.com/60"}
+                          alt={status.user?.firstName}
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      </div>
+                      {hasUnviewed && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white"></div>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-600 truncate max-w-[60px]">
+                      {status.user?.firstName || 'User'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Posts Feed */}
         <div className="space-y-6">
@@ -724,6 +812,13 @@ function Home() {
           overflow: hidden;
         }
       `}</style>
+
+      {/* Status Upload Modal */}
+      <StatusUploadModal
+        isOpen={showStatusModal}
+        onClose={() => setShowStatusModal(false)}
+        onUpload={handleStatusUpload}
+      />
     </main>
   );
 }
