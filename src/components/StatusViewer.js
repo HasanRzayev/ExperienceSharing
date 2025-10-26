@@ -9,6 +9,8 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
   const [viewCount, setViewCount] = useState(0);
   const [isViewing, setIsViewing] = useState(false);
   const [statusesList, setStatusesList] = useState(statuses);
+  const [progress, setProgress] = useState(0);
+  const [autoPlaying, setAutoPlaying] = useState(false);
 
   // Update currentIndex when initialIndex changes
   useEffect(() => {
@@ -26,6 +28,8 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
     if (!isOpen || !currentStatus) return;
 
     setIsViewing(true);
+    setProgress(0);
+    
     // Mark as viewed
     axios.post(`${process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api'}/Status/${currentStatus.id}/view`, {}, {
       headers: { Authorization: `Bearer ${Cookies.get('token')}` }
@@ -39,6 +43,50 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
 
     return () => setIsViewing(false);
   }, [isOpen, currentStatus?.id, currentIndex]);
+
+  // Auto-progress for images
+  useEffect(() => {
+    if (!isOpen || !currentStatus) return;
+    if (currentStatus.videoUrl) {
+      setAutoPlaying(false);
+      return; // Don't auto-progress for videos
+    }
+    
+    const duration = 5000; // 5 seconds per image
+    setProgress(0);
+    setAutoPlaying(true);
+    
+    let timeoutId;
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          // Go to next status or close
+          if (currentIndex < statusesList.length - 1) {
+            timeoutId = setTimeout(() => setCurrentIndex(currentIndex + 1), 100);
+          } else {
+            timeoutId = setTimeout(() => onClose(), 100);
+          }
+          return 100;
+        }
+        return prev + (100 / (duration / 100));
+      });
+    }, 100);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeoutId);
+      setAutoPlaying(false);
+    };
+  }, [isOpen, currentStatus?.id, currentIndex]);
+
+  const handleAutoNext = () => {
+    if (currentIndex < statusesList.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      onClose();
+    }
+  };
 
   const handleNext = () => {
     if (currentIndex < statusesList.length - 1) {
@@ -144,6 +192,18 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
 
         {/* Status Content */}
         <div className="w-full h-full flex items-center justify-center relative">
+          {/* Progress Bar */}
+          {autoPlaying && (
+            <div className="absolute top-0 left-0 right-0 z-50">
+              <div className="h-1 bg-black/30">
+                <div 
+                  className="h-full bg-white transition-all"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+          )}
+          
           {/* User Info at Top */}
           <div className="absolute top-4 left-4 right-4 z-40">
             <div className="flex items-center gap-3">
@@ -186,6 +246,7 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
               poster={currentStatus.thumbnailUrl}
               controls
               autoPlay
+              onEnded={handleAutoNext}
               className="max-w-full max-h-full w-auto h-auto object-contain"
             />
           ) : currentStatus.imageUrl ? (
