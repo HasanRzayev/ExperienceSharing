@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { FileInput } from 'flowbite-react';
+import StatusEditor from './StatusEditor';
 
 const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
   const [text, setText] = useState('');
@@ -10,6 +11,7 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -19,6 +21,7 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
       setVideoPreview(null);
       const preview = URL.createObjectURL(file);
       setImagePreview(preview);
+      setShowEditor(true);
     }
   };
 
@@ -30,6 +33,7 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
       setImagePreview(null);
       const preview = URL.createObjectURL(file);
       setVideoPreview(preview);
+      setShowEditor(true);
     }
   };
 
@@ -43,7 +47,9 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
     
     if (!text.trim() && !image && !video) {
       alert('Please add text, image, or video to your status');
@@ -84,10 +90,29 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
     setVideo(null);
     setImagePreview(null);
     setVideoPreview(null);
+    setShowEditor(false);
     onClose();
   };
 
+  const handleEditorSave = () => {
+    // After editing, upload the status
+    handleSubmit(new Event('submit'));
+    setShowEditor(false);
+  };
+
   if (!isOpen) return null;
+
+  // Show editor if media is uploaded
+  if (showEditor && (imagePreview || videoPreview)) {
+    return (
+      <StatusEditor
+        mediaUrl={imagePreview || videoPreview}
+        mediaType={imagePreview ? 'image' : 'video'}
+        onSave={handleEditorSave}
+        onClose={() => setShowEditor(false)}
+      />
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
