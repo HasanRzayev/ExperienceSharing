@@ -183,11 +183,6 @@ const ProfilePage = () => {
                   src={profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"}
                   alt="Profile"
                 />
-                <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-green-500 rounded-full border-4 border-white flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
               </div>
 
               <div className="flex-1 text-center md:text-left">
@@ -379,6 +374,8 @@ const ProfilePage = () => {
                           isOwner={true}
                           onDelete={handleDeleteExperience}
                           onEdit={handleEditExperience}
+                          videoUrl={post.videoUrl}
+                          videoThumbnail={post.videoThumbnail}
                         />
                       </div>
                     );
@@ -435,6 +432,8 @@ const ProfilePage = () => {
                           }}
                           likesCount={experience.likesCount}
                           commentsCount={experience.commentsCount}
+                          videoUrl={experience.videoUrl}
+                          videoThumbnail={experience.videoThumbnail}
                         />
                       </div>
                     );

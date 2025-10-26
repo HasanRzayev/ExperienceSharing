@@ -27,7 +27,7 @@ const getUserIdFromToken = () => {
   }
 };
 
-const CustomCard = ({ imageUrls, date, title, description, location, rating, user, id, isOwner, onDelete, onEdit }) => {
+const CustomCard = ({ imageUrls, date, title, description, location, rating, user, id, isOwner, onDelete, onEdit, videoUrl, videoThumbnail }) => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -86,15 +86,33 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Image Container */}
+      {/* Media Container */}
       <div className="relative h-64 overflow-hidden rounded-t-2xl">
-        <img 
-          className={`w-full h-full object-cover transition-all duration-700 ${isHovered ? 'scale-110 opacity-80' : 'opacity-100'}`} 
-          src={imageUrls || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"} 
-          alt={title}
-          loading="lazy"
-          decoding="async"
-        />
+        {videoUrl ? (
+          <div className="relative w-full h-full">
+            <video
+              className={`w-full h-full object-cover transition-all duration-700 ${isHovered ? 'scale-110 opacity-80' : 'opacity-100'}`}
+              src={videoUrl}
+              poster={videoThumbnail}
+              controls={false}
+              muted
+              playsInline
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+              <svg className="w-16 h-16 text-white opacity-80" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </div>
+          </div>
+        ) : (
+          <img 
+            className={`w-full h-full object-cover transition-all duration-700 ${isHovered ? 'scale-110 opacity-80' : 'opacity-100'}`} 
+            src={imageUrls || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"} 
+            alt={title}
+            loading="lazy"
+            decoding="async"
+          />
+        )}
         
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>

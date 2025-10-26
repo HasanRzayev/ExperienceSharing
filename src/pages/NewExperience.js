@@ -12,6 +12,8 @@ const NewExperience = () => {
   const [tags, setTags] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [images, setImages] = useState([]);
+  const [video, setVideo] = useState(null); // Video file
+  const [videoPreview, setVideoPreview] = useState(null); // Video preview URL
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
@@ -20,6 +22,7 @@ const NewExperience = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [moderationResults, setModerationResults] = useState(null);
   const [existingImages, setExistingImages] = useState([]); // Köhnə şəkillər
+  const [existingVideo, setExistingVideo] = useState(null); // Köhnə video
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && inputValue.trim()) {
@@ -45,12 +48,30 @@ const NewExperience = () => {
     setTags([]);
     setInputValue('');
     setImages([]);
+    setVideo(null);
+    setVideoPreview(null);
     setTitle('');
     setDescription('');
     setLocation('');
     setDate('');
     setError('');
     setModerationResults(null);
+  };
+
+  const handleVideoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setVideo(file);
+      const previewUrl = URL.createObjectURL(file);
+      setVideoPreview(previewUrl);
+    }
+  };
+
+  const handleVideoRemove = () => {
+    setVideo(null);
+    setVideoPreview(null);
+    const fileInput = document.getElementById('video-upload');
+    if (fileInput) fileInput.value = '';
   };
 
   const handleDrop = (e) => {
@@ -98,6 +119,7 @@ const NewExperience = () => {
           
           setTags(parsedTags);
           setExistingImages(data.imageUrls || []);
+          setExistingVideo(data.videoUrl || null);
         } catch (error) {
           console.error('Error fetching experience:', error);
           swal({
@@ -171,9 +193,12 @@ const NewExperience = () => {
       return;
     }
   
-    // Ən azı bir şəkil əlavə olunubmu? (Edit mode-da köhnə şəkillər də sayılır)
-    if (images.length === 0 && (!id || existingImages.length === 0)) {
-      setError("Ən azı 1 şəkil əlavə edin!");
+    // Ən azı bir şəkil VƏYA video əlavə olunubmu?
+    const hasImages = images.length > 0 || (id && existingImages.length > 0);
+    const hasVideo = video !== null || (id && existingVideo);
+    
+    if (!hasImages && !hasVideo) {
+      setError("Ən azı 1 şəkil VƏYA 1 video əlavə edin!");
       return;
     }
   
@@ -259,6 +284,11 @@ const NewExperience = () => {
       images.forEach((image) => {
         formData.append("Images", image);
       });
+    
+      // Video upload if video exists
+      if (video) {
+        formData.append("Video", video);
+      }
     
       let response;
       if (id) {
@@ -539,6 +569,86 @@ const NewExperience = () => {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Video Upload Section */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Video (Optional)
+              </label>
+              
+              {/* Existing Video */}
+              {id && existingVideo && !video && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Current Video</h4>
+                  <div className="relative">
+                    <video 
+                      src={existingVideo} 
+                      controls 
+                      className="w-full max-w-md rounded-lg shadow-md"
+                    />
+                    <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded-md text-xs font-medium">
+                      Current Video
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">
+                    💡 Upload a new video below to replace the current one
+                  </p>
+                </div>
+              )}
+
+              {/* Video Upload */}
+              <div className="relative group">
+                {!video ? (
+                  <Label
+                    htmlFor="video-upload"
+                    className="flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100 hover:from-purple-50 hover:to-blue-50 hover:border-purple-400 transition-all duration-300"
+                  >
+                    <div className="flex flex-col items-center justify-center pb-6 pt-5">
+                      <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <p className="mb-1 text-base font-semibold text-gray-700">
+                        <span className="text-purple-600">Click to upload</span> a video
+                      </p>
+                      <p className="text-xs text-gray-500">MP4, MOV up to 100MB</p>
+                    </div>
+                    <FileInput 
+                      id="video-upload" 
+                      type="file"
+                      accept="video/*"
+                      className="hidden" 
+                      onChange={handleVideoChange} 
+                      disabled={isLoading} 
+                    />
+                  </Label>
+                ) : (
+                  <div className="relative">
+                    <video 
+                      src={videoPreview} 
+                      controls 
+                      className="w-full max-w-md rounded-lg shadow-md border-2 border-green-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVideoRemove}
+                      className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition-colors shadow-lg"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                    <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-medium">
+                      New Video
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             
             {error && (

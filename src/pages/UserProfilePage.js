@@ -107,6 +107,8 @@ const UserProfilePage = () => {
           location={post.location}
           rating={post.rating}
           user={userData}
+          videoUrl={post.videoUrl}
+          videoThumbnail={post.videoThumbnail}
         />
       );
     })
