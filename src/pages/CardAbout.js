@@ -46,7 +46,6 @@ const CardAbout = () => {
   const fetchComments = async () => {
     if (!id) return;
 
-    console.log('fetchComments called');
     setLoadingComments(true);
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
@@ -59,12 +58,8 @@ const CardAbout = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Fetched comments:', data);
-        console.log('Comments count:', data?.length || 0);
-        console.log('Comments with details:', data.map(c => ({ id: c.id, content: c.content, userId: c.userId, userName: c.user?.userName })));
         setComments(data || []);
       } else {
-        console.log('Failed to fetch comments, status:', response.status);
         setComments([]);
       }
     } catch (error) {
@@ -72,7 +67,6 @@ const CardAbout = () => {
       setComments([]);
     } finally {
       setLoadingComments(false);
-      console.log('fetchComments completed');
     }
   };
 
@@ -85,21 +79,12 @@ const CardAbout = () => {
 
   const handleSubmitComment = async (e) => {
     e.preventDefault();
-    console.log('handleSubmitComment called');
-    console.log('newComment:', newComment);
-    console.log('token exists:', !!token);
     
-    if (!newComment.trim() || !token) {
-      console.log('Returning early - validation failed');
-      return;
-    }
+    if (!newComment.trim() || !token) return;
 
     setSubmittingComment(true);
     try {
-      console.log('Starting comment submission...');
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
-      
-      console.log('Sending comment to:', `${apiBaseUrl}/Experiences/${id}/comments`);
       
       // Submit comment
       const response = await fetch(`${apiBaseUrl}/Experiences/${id}/comments`, {
@@ -113,30 +98,17 @@ const CardAbout = () => {
         })
       });
 
-      console.log('Response received, status:', response.status);
-
       if (response.ok) {
         const commentData = await response.json();
-        console.log('Comment posted successfully:', commentData);
         
+        // TODO: Re-enable notification system when needed
         // Send notification to mentioned users
-        console.log('mentionedUserIds length:', mentionedUserIds.length);
+        /*
         if (mentionedUserIds.length > 0) {
-          console.log('Sending notifications to:', mentionedUserIds);
           for (const mentionedId of mentionedUserIds) {
             try {
               const currentUserId = getCurrentUserId();
-              console.log('Sending notification to user:', mentionedId);
-              console.log('Notification payload:', {
-                UserId: mentionedId,
-                Type: 'mention',
-                Message: 'mentioned you in a comment',
-                FromUserId: currentUserId,
-                ExperienceId: parseInt(id),
-                CommentId: commentData.id
-              });
-              
-              const notificationResponse = await axios.post(`${apiBaseUrl}/Notification`, {
+              await axios.post(`${apiBaseUrl}/Notification`, {
                 UserId: mentionedId,
                 Type: 'mention',
                 Message: `mentioned you in a comment`,
@@ -146,24 +118,18 @@ const CardAbout = () => {
               }, {
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
               });
-              
-              console.log('Notification sent successfully to user:', mentionedId, 'Response:', notificationResponse.data);
             } catch (error) {
               console.error('Error sending mention notification:', error);
-              console.error('Error response:', error.response?.data);
               // Silently fail - don't block comment submission
             }
           }
-        } else {
-          console.log('No mentioned users to notify');
         }
+        */
         
         setNewComment('');
         setShowEmojiPicker(false);
         setMentionedUserIds([]);
-        console.log('Calling fetchComments to refresh comments...');
         await fetchComments(); // Refresh comments
-        console.log('Comments refreshed after submission');
       } else {
         console.error('Failed to submit comment');
       }
@@ -171,9 +137,7 @@ const CardAbout = () => {
       console.error('Error submitting comment:', error);
       alert('Error submitting comment. Please try again.');
     } finally {
-      console.log('Setting submittingComment to false');
       setSubmittingComment(false);
-      console.log('Comment submission process completed');
     }
   };
 
@@ -930,7 +894,6 @@ const CardAbout = () => {
                 <button
                   type="submit"
                   disabled={!newComment.trim() || submittingComment}
-                  onClick={() => console.log('Button clicked - newComment:', newComment, 'disabled:', !newComment.trim() || submittingComment)}
                   className="self-start px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {submittingComment ? (
