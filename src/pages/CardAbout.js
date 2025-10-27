@@ -46,6 +46,7 @@ const CardAbout = () => {
   const fetchComments = async () => {
     if (!id) return;
 
+    console.log('fetchComments called');
     setLoadingComments(true);
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
@@ -58,8 +59,11 @@ const CardAbout = () => {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Fetched comments:', data);
+        console.log('Comments count:', data?.length || 0);
         setComments(data || []);
       } else {
+        console.log('Failed to fetch comments, status:', response.status);
         setComments([]);
       }
     } catch (error) {
@@ -67,6 +71,7 @@ const CardAbout = () => {
       setComments([]);
     } finally {
       setLoadingComments(false);
+      console.log('fetchComments completed');
     }
   };
 
@@ -155,7 +160,9 @@ const CardAbout = () => {
         setNewComment('');
         setShowEmojiPicker(false);
         setMentionedUserIds([]);
-        fetchComments(); // Refresh comments
+        console.log('Calling fetchComments to refresh comments...');
+        await fetchComments(); // Refresh comments
+        console.log('Comments refreshed after submission');
       } else {
         console.error('Failed to submit comment');
       }
