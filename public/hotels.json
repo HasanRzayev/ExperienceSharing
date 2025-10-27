@@ -1,4 +1,4 @@
-{
+[{
     "hotel_id": 1,
     "chain_id": 421,
     "chain_name": "Samed Resorts Group",
@@ -2007,4 +2007,4 @@
     "number_of_reviews": 21,
     "rating_average": 7.8,
     "rates_currency": "USD"
-  },
+  },]
