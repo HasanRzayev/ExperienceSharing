@@ -361,13 +361,10 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
               </div>
             )}
 
-            {/* Location Input with Real-world Suggestions */}
+            {/* Location Input - Instagram Style */}
             <div className="relative mb-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                📍 Add Location
-              </label>
-              <div className="flex items-center border-2 border-gray-300 rounded-xl focus-within:border-purple-500 bg-gradient-to-r from-white to-purple-50/30 transition-all">
-                <FaMapMarkerAlt className="text-purple-600 ml-4 text-lg" />
+              <div className="flex items-center border-b border-gray-300 pb-2">
+                <FaMapMarkerAlt className="text-gray-400 mr-3 text-lg" />
                 <input
                   type="text"
                   value={locationQuery}
@@ -375,46 +372,33 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
                     setLocationQuery(e.target.value);
                     searchLocations(e.target.value);
                   }}
-                  onFocus={() => searchLocations(locationQuery)}
-                  placeholder="Search any country, state, or city..."
-                  className="w-full p-4 focus:outline-none bg-transparent"
+                  onFocus={() => setShowLocationSuggestions(true)}
+                  placeholder="Add a location"
+                  className="w-full focus:outline-none text-base bg-transparent"
                   disabled={uploading}
                 />
               </div>
 
-              {/* Location Suggestions Dropdown */}
+              {/* Location Suggestions Dropdown - Instagram Style */}
               {showLocationSuggestions && locationSuggestions.length > 0 && (
-                <div className="absolute z-20 w-full bg-white border-2 border-purple-200 rounded-xl shadow-xl mt-1 max-h-80 overflow-y-auto">
+                <div className="absolute z-20 w-full bg-white border border-gray-200 mt-2 shadow-lg max-h-96 overflow-y-auto">
                   {locationSuggestions.map((loc, idx) => (
                     <button
                       key={idx}
                       type="button"
                       onClick={() => handleLocationSelect(loc)}
-                      className="w-full text-left px-4 py-3 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 border-b border-gray-100 last:border-b-0 flex items-start gap-3 transition-all duration-200 group"
+                      className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100 last:border-b-0 transition-colors"
                     >
-                      <div className="text-2xl flex-shrink-0 group-hover:scale-110 transition-transform">
-                        {loc.icon}
-                      </div>
+                      <FaMapMarkerAlt className="text-gray-400 text-xl flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-gray-900 truncate group-hover:text-purple-600 transition-colors">
+                        <div className="font-medium text-gray-900 truncate">
                           {loc.name}
                         </div>
-                        {loc.city && (
-                          <div className="text-sm text-gray-600 truncate mt-0.5">
-                            {loc.city}{loc.country ? `, ${loc.country}` : ''}
+                        {(loc.city || loc.country) && (
+                          <div className="text-sm text-gray-500 truncate">
+                            {loc.city && loc.country ? `${loc.city}, ${loc.country}` : loc.country || loc.city}
                           </div>
                         )}
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
-                            {loc.type}
-                          </span>
-                          {loc.country && loc.type !== 'Country' && (
-                            <span className="text-xs text-gray-500">📍 {loc.country}</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                        →
                       </div>
                     </button>
                   ))}
