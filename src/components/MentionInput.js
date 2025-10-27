@@ -45,11 +45,14 @@ const MentionInput = ({
       
       // Filter users based on mention string
       if (mentionStr) {
-        const filteredUsers = userList.filter(user => 
-          user.userName?.toLowerCase().includes(mentionStr.toLowerCase()) ||
-          user.firstName?.toLowerCase().includes(mentionStr.toLowerCase()) ||
-          user.lastName?.toLowerCase().includes(mentionStr.toLowerCase())
-        );
+        const filteredUsers = userList.filter(user => {
+          const username = user.userName || user.username;
+          return (
+            username?.toLowerCase().includes(mentionStr.toLowerCase()) ||
+            user.firstName?.toLowerCase().includes(mentionStr.toLowerCase()) ||
+            user.lastName?.toLowerCase().includes(mentionStr.toLowerCase())
+          );
+        });
         setSuggestions(filteredUsers.slice(0, 5));
         setShowSuggestions(true);
       } else {
@@ -66,14 +69,15 @@ const MentionInput = ({
   // Handle suggestion selection
   const handleSelectSuggestion = (user) => {
     console.log('handleSelectSuggestion called with user:', user);
-    if (!user || !user.userName) {
+    const username = user?.userName || user?.username;
+    if (!user || !username) {
       console.error('Invalid user in handleSelectSuggestion', user);
       return;
     }
     
     const textBeforeMention = text.substring(0, mentionStartIndex);
     const textAfterCursor = text.substring(textareaRef.current.selectionStart);
-    const newText = textBeforeMention + `@${user.userName} ` + textAfterCursor;
+    const newText = textBeforeMention + `@${username} ` + textAfterCursor;
     
     setText(newText);
     onChange(newText);
@@ -84,8 +88,8 @@ const MentionInput = ({
     if (textareaRef.current) {
       textareaRef.current.focus();
       textareaRef.current.setSelectionRange(
-        mentionStartIndex + 1 + user.userName.length + 1,
-        mentionStartIndex + 1 + user.userName.length + 1
+        mentionStartIndex + 1 + username.length + 1,
+        mentionStartIndex + 1 + username.length + 1
       );
     }
   };
@@ -186,7 +190,7 @@ const MentionInput = ({
             >
               <img
                 src={user.profileImage || 'https://via.placeholder.com/32'}
-                alt={user.userName}
+                alt={user.userName || user.username}
                 className="w-8 h-8 rounded-full object-cover"
               />
               <div className="flex-1 min-w-0">
@@ -194,7 +198,7 @@ const MentionInput = ({
                   {user.firstName} {user.lastName}
                 </div>
                 <div className="text-sm text-gray-500 truncate">
-                  @{user.userName}
+                  @{user.userName || user.username}
                 </div>
               </div>
             </button>
