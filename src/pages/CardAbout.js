@@ -121,8 +121,16 @@ const CardAbout = () => {
             try {
               const currentUserId = getCurrentUserId();
               console.log('Sending notification to user:', mentionedId);
+              console.log('Notification payload:', {
+                UserId: mentionedId,
+                Type: 'mention',
+                Message: 'mentioned you in a comment',
+                FromUserId: currentUserId,
+                ExperienceId: parseInt(id),
+                CommentId: commentData.id
+              });
               
-              await axios.post(`${apiBaseUrl}/Notification`, {
+              const notificationResponse = await axios.post(`${apiBaseUrl}/Notification`, {
                 UserId: mentionedId,
                 Type: 'mention',
                 Message: `mentioned you in a comment`,
@@ -133,9 +141,10 @@ const CardAbout = () => {
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
               });
               
-              console.log('Notification sent successfully to user:', mentionedId);
+              console.log('Notification sent successfully to user:', mentionedId, 'Response:', notificationResponse.data);
             } catch (error) {
               console.error('Error sending mention notification:', error);
+              console.error('Error response:', error.response?.data);
               // Silently fail - don't block comment submission
             }
           }
@@ -154,7 +163,9 @@ const CardAbout = () => {
       console.error('Error submitting comment:', error);
       alert('Error submitting comment. Please try again.');
     } finally {
+      console.log('Setting submittingComment to false');
       setSubmittingComment(false);
+      console.log('Comment submission process completed');
     }
   };
 
