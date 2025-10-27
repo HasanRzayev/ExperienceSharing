@@ -9,6 +9,7 @@ import AIRecommendations from "../components/AIRecommendations";
 import StatusUploadModal from "../components/StatusUploadModal";
 import StatusViewer from "../components/StatusViewer";
 import StatusStories from "../components/StatusStories";
+import OtherUserStories from "../components/OtherUserStories";
 import EmojiPicker from 'emoji-picker-react';
 import axios from "axios";
 
@@ -444,29 +445,10 @@ function Home() {
             )}
               
               {statuses.map((status) => {
-                const hasUnviewed = !status.isViewed;
                 return (
-                  <button
-                    key={status.userId}
-                    className="flex flex-col items-center gap-2 min-w-[50px] sm:min-w-[60px] cursor-pointer transition-transform hover:scale-105"
-                    onClick={() => handleStatusClick(status.userId)}
-                  >
-                    <div className="relative">
-                      <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full ${hasUnviewed ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-0.5' : 'bg-gray-200 p-0.5'}`}>
-                        <img
-                          src={status.user?.profileImage || "https://via.placeholder.com/60"}
-                          alt={status.user?.firstName}
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      </div>
-                      {hasUnviewed && (
-                        <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded-full border-2 border-white"></div>
-                      )}
-                    </div>
-                    <span className="text-xs text-gray-600 truncate max-w-[50px] sm:max-w-[60px]">
-                      {status.user?.firstName || 'User'}
-                    </span>
-                  </button>
+                  <div key={status.userId} className="flex flex-col items-center gap-2 min-w-[60px]">
+                    <OtherUserStories userId={status.userId} userInfo={status.user} />
+                  </div>
                 );
               })}
             </div>

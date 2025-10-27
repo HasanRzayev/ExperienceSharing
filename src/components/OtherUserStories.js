@@ -2,15 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Stories } from 'react-insta-stories';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { FaPlus, FaTimes } from 'react-icons/fa';
+import { FaPlus } from 'react-icons/fa';
 import StatusUploadModal from './StatusUploadModal';
 
-const StatusStories = ({ userId, currentUser, onStoryClick }) => {
+const OtherUserStories = ({ userId, userInfo }) => {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showUploadModal, setShowUploadModal] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
+  const [hasUnviewed, setHasUnviewed] = useState(false);
 
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
 
@@ -33,10 +32,17 @@ const StatusStories = ({ userId, currentUser, onStoryClick }) => {
       if (response.data && response.data.length > 0) {
         const formattedStories = formatStoriesForReactInstaStories(response.data);
         setStories(formattedStories);
+        // Check if any story is unviewed
+        const hasUnviewedStory = response.data.some(status => !status.isViewed);
+        setHasUnviewed(hasUnviewedStory);
+      } else {
+        setStories([]);
+        setHasUnviewed(false);
       }
     } catch (error) {
       console.error('Error fetching stories:', error);
       setStories([]);
+      setHasUnviewed(false);
     } finally {
       setLoading(false);
     }
@@ -48,79 +54,59 @@ const StatusStories = ({ userId, currentUser, onStoryClick }) => {
       type: status.videoUrl ? 'video' : 'image',
       duration: status.videoUrl ? 10000 : 5000,
       header: {
-        heading: `${status.user?.firstName || ''} ${status.user?.lastName || ''}`,
+        heading: `${userInfo?.firstName || ''} ${userInfo?.lastName || ''}`,
         subheading: `Posted ${new Date(status.createdAt).toLocaleDateString()}`,
-        profileImage: status.user?.profileImage || 'https://via.placeholder.com/50'
+        profileImage: userInfo?.profileImage || 'https://via.placeholder.com/50'
       }
     }));
   };
 
-  const handleUploadSuccess = () => {
-    fetchStories(); // Refresh stories after upload
-  };
-
   const handleStoryClick = () => {
     if (stories.length > 0) {
-      setCurrentStoryIndex(0);
       setIsOpen(true);
-    } else {
-      setShowUploadModal(true);
     }
   };
 
   const handleCloseStories = () => {
     setIsOpen(false);
-    setCurrentStoryIndex(0);
+    // Refresh to mark as viewed
+    fetchStories();
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-w-[60px]">
-        <div className="animate-spin rounded-full h-14 w-14 border-b-2 border-purple-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     );
   }
 
-  // Show empty state if no stories
+  // Don't show if no stories
   if (!stories || stories.length === 0) {
-    return (
-      <div className="flex flex-col items-center gap-2 min-w-[60px]">
-        <button
-          onClick={() => setShowUploadModal(true)}
-          className="relative"
-        >
-          <div className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-0.5">
-            <div className="w-full h-full rounded-full bg-white p-0.5 flex items-center justify-center">
-              <FaPlus className="text-gray-400 text-xl" />
-            </div>
-          </div>
-        </button>
-        <span className="text-xs text-gray-600">Your Status</span>
-        <StatusUploadModal
-          isOpen={showUploadModal}
-          onClose={() => setShowUploadModal(false)}
-          onUpload={handleUploadSuccess}
-        />
-      </div>
-    );
+    return null;
   }
 
   return (
     <>
-      <div className="flex flex-col items-center gap-2 min-w-[60px] cursor-pointer" onClick={handleStoryClick}>
+      <div 
+        className="flex flex-col items-center gap-2 min-w-[60px] cursor-pointer transition-transform hover:scale-105" 
+        onClick={handleStoryClick}
+      >
         <div className="relative">
-          <img
-            src={currentUser?.profileImage || stories[0]?.header?.profileImage || 'https://via.placeholder.com/56'}
-            alt="Story"
-            className="w-14 h-14 rounded-full object-cover"
-          />
-          <div className="absolute -bottom-0.5 -right-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full p-0.5">
-            <div className="bg-white rounded-full w-5 h-5 flex items-center justify-center">
-              <FaPlus className="text-purple-600 text-xs" />
-            </div>
+          <div className={`w-14 h-14 rounded-full ${hasUnviewed ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-0.5' : 'bg-gray-200 p-0.5'}`}>
+            <img
+              src={userInfo?.profileImage || "https://via.placeholder.com/56"}
+              alt={userInfo?.firstName}
+              className="w-full h-full rounded-full object-cover"
+            />
           </div>
+          {hasUnviewed && (
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
+          )}
         </div>
-        <span className="text-xs text-gray-600">Your Status</span>
+        <span className="text-xs text-gray-600 truncate max-w-[60px]">
+          {userInfo?.firstName || 'User'}
+        </span>
       </div>
 
       {/* Stories Viewer using react-insta-stories */}
@@ -128,7 +114,7 @@ const StatusStories = ({ userId, currentUser, onStoryClick }) => {
         <div className="fixed inset-0 bg-black z-50" onClick={handleCloseStories}>
           <Stories
             stories={stories}
-            currentIndex={currentStoryIndex}
+            currentIndex={0}
             onStoryEnd={(s, st) => {
               if (st + 1 >= stories.length) {
                 handleCloseStories();
@@ -146,14 +132,8 @@ const StatusStories = ({ userId, currentUser, onStoryClick }) => {
           />
         </div>
       )}
-
-      <StatusUploadModal
-        isOpen={showUploadModal}
-        onClose={() => setShowUploadModal(false)}
-        onUpload={handleUploadSuccess}
-      />
     </>
   );
 };
 
-export default StatusStories;
+export default OtherUserStories;
