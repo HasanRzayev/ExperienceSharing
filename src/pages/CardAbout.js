@@ -71,29 +71,19 @@ const CardAbout = () => {
   };
 
   const handleMention = (userId, username) => {
-    console.log('handleMention called with userId:', userId, 'username:', username);
     setMentionedUserIds(prev => {
       if (prev.includes(userId)) return prev;
-      const newIds = [...prev, userId];
-      console.log('Updated mentionedUserIds:', newIds);
-      return newIds;
+      return [...prev, userId];
     });
   };
 
   const handleSubmitComment = async (e) => {
     e.preventDefault();
-    console.log('handleSubmitComment called');
-    console.log('newComment:', newComment);
-    console.log('mentionedUserIds:', mentionedUserIds);
     
-    if (!newComment.trim() || !token) {
-      console.log('Validation failed - newComment or token missing');
-      return;
-    }
+    if (!newComment.trim() || !token) return;
 
     setSubmittingComment(true);
     try {
-      console.log('Starting comment submission...');
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       
       // Submit comment
@@ -108,20 +98,14 @@ const CardAbout = () => {
         })
       });
 
-      console.log('Response status:', response.status, response.statusText);
-      
       if (response.ok) {
         const commentData = await response.json();
-        console.log('Comment posted successfully:', commentData);
-        console.log('Comment ID:', commentData.id);
         
         // Send notification to mentioned users
         if (mentionedUserIds.length > 0) {
           for (const mentionedId of mentionedUserIds) {
             try {
               const currentUserId = getCurrentUserId();
-              console.log('Sending notification to mentioned user:', mentionedId);
-              console.log('Comment ID for notification:', commentData.id);
               
               await axios.post(`${apiBaseUrl}/Notification`, {
                 UserId: mentionedId,
@@ -133,16 +117,11 @@ const CardAbout = () => {
               }, {
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
               });
-              
-              console.log('Notification sent successfully to user:', mentionedId);
             } catch (error) {
               console.error('Error sending mention notification:', error);
-              console.error('Notification error details:', error.response?.data || error.message);
               // Silently fail - don't block comment submission
             }
           }
-        } else {
-          console.log('No mentioned users to notify');
         }
         
         setNewComment('');
@@ -154,11 +133,6 @@ const CardAbout = () => {
       }
     } catch (error) {
       console.error('Error submitting comment:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        response: error.response
-      });
       alert('Error submitting comment. Please try again.');
     } finally {
       setSubmittingComment(false);
