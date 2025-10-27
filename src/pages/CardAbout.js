@@ -90,7 +90,10 @@ const CardAbout = () => {
 
     setSubmittingComment(true);
     try {
+      console.log('Starting comment submission...');
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      
+      console.log('Sending comment to:', `${apiBaseUrl}/Experiences/${id}/comments`);
       
       // Submit comment
       const response = await fetch(`${apiBaseUrl}/Experiences/${id}/comments`, {
@@ -104,8 +107,11 @@ const CardAbout = () => {
         })
       });
 
+      console.log('Response received, status:', response.status);
+
       if (response.ok) {
         const commentData = await response.json();
+        console.log('Comment posted successfully:', commentData);
         
         // Send notification to mentioned users
         if (mentionedUserIds.length > 0) {
