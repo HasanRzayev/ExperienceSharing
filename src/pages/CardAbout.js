@@ -105,18 +105,28 @@ const CardAbout = () => {
           for (const mentionedId of mentionedUserIds) {
             try {
               const currentUserId = getCurrentUserId();
-              await axios.post(`${apiBaseUrl}/Notification`, {
-                userId: mentionedId,
-                type: 'mention',
-                message: `mentioned you in a comment`,
-                fromUserId: currentUserId,
-                experienceId: id,
-                commentId: commentData.id
+              console.log('Sending notification to user:', mentionedId);
+              console.log('From user:', currentUserId);
+              
+              const response = await axios.post(`${apiBaseUrl}/Notification`, {
+                UserId: mentionedId,
+                Type: 'mention',
+                Message: `mentioned you in a comment`,
+                FromUserId: currentUserId,
+                ExperienceId: parseInt(id),
+                CommentId: commentData.id
               }, {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
               });
+              
+              console.log('Notification sent successfully:', response.data);
             } catch (error) {
               console.error('Error sending mention notification:', error);
+              console.error('Error details:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status
+              });
             }
           }
         }
