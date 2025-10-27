@@ -61,6 +61,7 @@ const CardAbout = () => {
         const data = await response.json();
         console.log('Fetched comments:', data);
         console.log('Comments count:', data?.length || 0);
+        console.log('Comments with details:', data.map(c => ({ id: c.id, content: c.content, userId: c.userId, userName: c.user?.userName })));
         setComments(data || []);
       } else {
         console.log('Failed to fetch comments, status:', response.status);
