@@ -893,6 +893,12 @@ const CardAbout = () => {
                 <button
                   type="submit"
                   disabled={!newComment.trim() || submittingComment}
+                  onClick={(e) => {
+                    console.log('Submit button clicked');
+                    console.log('newComment:', newComment);
+                    console.log('mentionedUserIds:', mentionedUserIds);
+                    console.log('submittingComment:', submittingComment);
+                  }}
                   className="self-start px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {submittingComment ? (
