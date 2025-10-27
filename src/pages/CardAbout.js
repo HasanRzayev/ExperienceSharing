@@ -104,10 +104,12 @@ const CardAbout = () => {
         if (mentionedUserIds.length > 0) {
           for (const mentionedId of mentionedUserIds) {
             try {
-              await axios.post(`${apiBaseUrl}/Notifications`, {
+              const currentUserId = getCurrentUserId();
+              await axios.post(`${apiBaseUrl}/Notification`, {
                 userId: mentionedId,
                 type: 'mention',
                 message: `mentioned you in a comment`,
+                fromUserId: currentUserId,
                 experienceId: id,
                 commentId: commentData.id
               }, {
