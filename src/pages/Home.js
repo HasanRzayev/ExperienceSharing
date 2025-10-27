@@ -8,6 +8,7 @@ import SaveButton from "../components/SaveButton";
 import AIRecommendations from "../components/AIRecommendations";
 import StatusUploadModal from "../components/StatusUploadModal";
 import StatusViewer from "../components/StatusViewer";
+import MentionInput from "../components/MentionInput";
 import EmojiPicker from 'emoji-picker-react';
 import axios from "axios";
 
@@ -611,47 +612,24 @@ function Home() {
                   {/* Comment Section */}
                   {expandedComments[post.id] && (
                     <div className="mt-4 pt-4 border-t border-gray-100">
-                      {/* Comment Input */}
+                      {/* Comment Input with @Mention */}
                       <form onSubmit={(e) => handleSubmitComment(post.id, e)} className="mb-4">
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={commentTexts[post.id] || ''}
-                            onChange={(e) => setCommentTexts(prev => ({ ...prev, [post.id]: e.target.value }))}
-                            placeholder="Write a comment..."
-                            className="w-full pl-4 pr-24 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
-                          />
-                          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setShowEmojiPicker(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
-                              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                            >
-                              <FaSmile className="text-gray-500" />
-                            </button>
-                            <button
-                              type="submit"
-                              disabled={!commentTexts[post.id]?.trim() || submittingComment[post.id]}
-                              className="p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                            >
-                              <FaPaperPlane />
-                            </button>
-                          </div>
+                        <MentionInput
+                          value={commentTexts[post.id] || ''}
+                          onChange={(value) => setCommentTexts(prev => ({ ...prev, [post.id]: value }))}
+                          placeholder="Write a comment... (@mention users)"
+                          onSubmit={(e) => handleSubmitComment(post.id, e)}
+                          className="mb-2"
+                        />
+                        <div className="flex justify-end">
+                          <button
+                            type="submit"
+                            disabled={!commentTexts[post.id]?.trim() || submittingComment[post.id]}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                          >
+                            {submittingComment[post.id] ? 'Posting...' : 'Post Comment'}
+                          </button>
                         </div>
-                        
-                        {/* Emoji Picker */}
-                        {showEmojiPicker[post.id] && (
-                          <div className="absolute z-50 mt-2">
-                            <EmojiPicker
-                              onEmojiClick={(emojiData) => {
-                                setCommentTexts(prev => ({
-                                  ...prev,
-                                  [post.id]: (prev[post.id] || '') + emojiData.emoji
-                                }));
-                              }}
-                            />
-                          </div>
-                        )}
                       </form>
 
                       {/* View All Comments Link */}
