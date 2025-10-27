@@ -71,9 +71,12 @@ const CardAbout = () => {
   };
 
   const handleMention = (userId, username) => {
+    console.log('handleMention called with userId:', userId, 'username:', username);
     setMentionedUserIds(prev => {
       if (prev.includes(userId)) return prev;
-      return [...prev, userId];
+      const newIds = [...prev, userId];
+      console.log('Updated mentionedUserIds:', newIds);
+      return newIds;
     });
   };
 
