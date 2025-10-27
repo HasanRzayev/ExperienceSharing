@@ -43,16 +43,21 @@ const StatusStories = ({ userId, currentUser, onStoryClick }) => {
   };
 
   const formatStoriesForReactInstaStories = (statuses) => {
-    return statuses.map(status => ({
-      url: status.imageUrl || status.videoUrl || status.mediaUrl,
-      type: status.videoUrl ? 'video' : 'image',
-      duration: status.videoUrl ? 10000 : 5000,
-      header: {
-        heading: `${status.user?.firstName || ''} ${status.user?.lastName || ''}`,
-        subheading: `Posted ${new Date(status.createdAt).toLocaleDateString()}`,
-        profileImage: status.user?.profileImage || 'https://via.placeholder.com/50'
-      }
-    }));
+    return statuses.map(status => {
+      const mediaUrl = status.imageUrl || status.videoUrl || status.mediaUrl;
+      if (!mediaUrl) return null;
+      
+      return {
+        url: mediaUrl,
+        type: status.videoUrl ? 'video' : 'image',
+        duration: status.videoUrl ? 10000 : 5000,
+        header: {
+          heading: `${status.user?.firstName || ''} ${status.user?.lastName || ''}`,
+          subheading: `Posted ${new Date(status.createdAt).toLocaleDateString()}`,
+          profileImage: status.user?.profileImage || 'https://via.placeholder.com/50'
+        }
+      };
+    }).filter(story => story !== null);
   };
 
   const handleUploadSuccess = () => {
@@ -128,21 +133,11 @@ const StatusStories = ({ userId, currentUser, onStoryClick }) => {
         <div className="fixed inset-0 bg-black z-50" onClick={handleCloseStories}>
           <Stories
             stories={stories}
-            currentIndex={currentStoryIndex}
-            onStoryEnd={(s, st) => {
-              if (st + 1 >= stories.length) {
-                handleCloseStories();
-              }
-            }}
             onAllStoriesEnd={handleCloseStories}
-            onPrevious={(s, st) => {
-              if (st === 0) {
-                handleCloseStories();
-              }
-            }}
             defaultInterval={5000}
             loop={false}
             keyboardNavigation={true}
+            isPaused={false}
           />
         </div>
       )}
