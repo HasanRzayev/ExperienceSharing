@@ -43,43 +43,96 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
     { name: '1977', class: '1977', css: 'sepia(0.5) hue-rotate(15deg) saturate(1.2)' }
   ];
 
-  // Real-world location search using different APIs
-  const searchLocations = async (query) => {
+  // Cache for location data
+  const [locationCache, setLocationCache] = useState({
+    countries: [],
+    states: [],
+    cities: []
+  });
+
+  // Load location data once
+  React.useEffect(() => {
+    const loadLocationData = async () => {
+      try {
+        const [countriesRes, statesRes, citiesRes] = await Promise.all([
+          fetch('https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/master/json/countries.json'),
+          fetch('https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/master/json/states.json'),
+          fetch('https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/master/json/cities.json')
+        ]);
+        
+        const [countries, states, cities] = await Promise.all([
+          countriesRes.json(),
+          statesRes.json(),
+          citiesRes.json()
+        ]);
+
+        setLocationCache({ countries, states, cities });
+      } catch (error) {
+        console.error('Error loading location data:', error);
+      }
+    };
+
+    loadLocationData();
+  }, []);
+
+  // Real-world location search using GitHub database
+  const searchLocations = (query) => {
     if (!query.trim() || query.length < 2) {
       setLocationSuggestions([]);
       return;
     }
 
-    try {
-      // Try multiple APIs for better results
-      // 1. Try OpenStreetMap Nominatim API first
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=15&addressdetails=1&extratags=1&namedetails=1`
-      );
-      
-      const data = await response.json();
+    const lowerQuery = query.toLowerCase();
+    const suggestions = [];
 
-      const formattedLocations = data.map(item => {
-        const address = item.address || {};
+    // Search countries
+    const matchingCountries = locationCache.countries
+      .filter(country => country.name.toLowerCase().includes(lowerQuery))
+      .slice(0, 5)
+      .map(country => ({
+        name: country.name,
+        type: 'Country',
+        city: '',
+        country: country.name,
+        icon: '🌍',
+        fullAddress: country.name
+      }));
+
+    // Search cities
+    const matchingCities = locationCache.cities
+      .filter(city => city.name.toLowerCase().includes(lowerQuery))
+      .slice(0, 8)
+      .map(city => {
+        const country = locationCache.countries.find(c => c.id === city.country_id);
         return {
-          name: item.display_name,
-          type: item.type || item.class || 'Place',
-          city: address.city || address.town || address.village || address.municipality || '',
-          country: address.country || '',
-          lat: item.lat,
-          lon: item.lon,
-          icon: item.icon || '📍',
-          fullAddress: item.display_name
+          name: city.name,
+          type: 'City',
+          city: city.name,
+          country: country?.name || '',
+          icon: '🏙️',
+          fullAddress: `${city.name}, ${country?.name || ''}`
         };
       });
 
-      setLocationSuggestions(formattedLocations);
-      setShowLocationSuggestions(true);
-    } catch (error) {
-      console.error('Error fetching locations:', error);
-      // Fallback to empty suggestions
-      setLocationSuggestions([]);
-    }
+    // Search states
+    const matchingStates = locationCache.states
+      .filter(state => state.name.toLowerCase().includes(lowerQuery))
+      .slice(0, 5)
+      .map(state => {
+        const country = locationCache.countries.find(c => c.id === state.country_id);
+        return {
+          name: state.name,
+          type: 'State',
+          city: '',
+          country: country?.name || '',
+          icon: '📍',
+          fullAddress: `${state.name}, ${country?.name || ''}`
+        };
+      });
+
+    suggestions.push(...matchingCountries, ...matchingCities, ...matchingStates);
+    setLocationSuggestions(suggestions.slice(0, 18)); // Max 18 results
+    setShowLocationSuggestions(true);
   };
 
   const handleImageChange = (e) => {
@@ -299,8 +352,11 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
 
             {/* Location Input with Real-world Suggestions */}
             <div className="relative mb-4">
-              <div className="flex items-center border-2 border-gray-300 rounded-lg focus-within:border-purple-500">
-                <FaMapMarkerAlt className="text-gray-400 ml-3" />
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                📍 Add Location
+              </label>
+              <div className="flex items-center border-2 border-gray-300 rounded-xl focus-within:border-purple-500 bg-gradient-to-r from-white to-purple-50/30 transition-all">
+                <FaMapMarkerAlt className="text-purple-600 ml-4 text-lg" />
                 <input
                   type="text"
                   value={locationQuery}
@@ -309,31 +365,45 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
                     searchLocations(e.target.value);
                   }}
                   onFocus={() => searchLocations(locationQuery)}
-                  placeholder="Search location worldwide... (Optional)"
-                  className="w-full p-3 focus:outline-none"
+                  placeholder="Search any country, state, or city..."
+                  className="w-full p-4 focus:outline-none bg-transparent"
                   disabled={uploading}
                 />
               </div>
 
               {/* Location Suggestions Dropdown */}
               {showLocationSuggestions && locationSuggestions.length > 0 && (
-                <div className="absolute z-20 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto">
+                <div className="absolute z-20 w-full bg-white border-2 border-purple-200 rounded-xl shadow-xl mt-1 max-h-80 overflow-y-auto">
                   {locationSuggestions.map((loc, idx) => (
                     <button
                       key={idx}
                       type="button"
                       onClick={() => handleLocationSelect(loc)}
-                      className="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-start gap-3 transition-colors"
+                      className="w-full text-left px-4 py-3 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 border-b border-gray-100 last:border-b-0 flex items-start gap-3 transition-all duration-200 group"
                     >
-                      <FaMapMarkerAlt className="text-purple-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-2xl flex-shrink-0 group-hover:scale-110 transition-transform">
+                        {loc.icon}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900 truncate">{loc.name}</div>
+                        <div className="font-semibold text-gray-900 truncate group-hover:text-purple-600 transition-colors">
+                          {loc.name}
+                        </div>
                         {loc.city && (
-                          <div className="text-sm text-gray-600 truncate">
+                          <div className="text-sm text-gray-600 truncate mt-0.5">
                             {loc.city}{loc.country ? `, ${loc.country}` : ''}
                           </div>
                         )}
-                        <div className="text-xs text-gray-500 truncate">{loc.type}</div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                            {loc.type}
+                          </span>
+                          {loc.country && loc.type !== 'Country' && (
+                            <span className="text-xs text-gray-500">📍 {loc.country}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                        →
                       </div>
                     </button>
                   ))}
