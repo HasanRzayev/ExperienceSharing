@@ -209,6 +209,10 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
       if (selectedLocation) {
         formData.append('Location', JSON.stringify(selectedLocation));
       }
+      // Add filter information
+      if (selectedFilter !== 'none' && selectedFilterData) {
+        formData.append('Filter', selectedFilterData.css);
+      }
 
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       await axios.post(`${apiBaseUrl}/Status`, formData, {

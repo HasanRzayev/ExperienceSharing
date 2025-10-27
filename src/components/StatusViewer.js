@@ -239,7 +239,7 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
             </div>
           </div>
 
-          {/* Media Content */}
+          {/* Media Content with Filter */}
           {currentStatus.videoUrl ? (
             <video
               src={currentStatus.videoUrl}
@@ -254,13 +254,16 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
               src={currentStatus.imageUrl}
               alt="Status"
               className="max-w-full max-h-full object-contain"
+              style={{ 
+                filter: currentStatus.filter || 'none' 
+              }}
             />
           ) : null}
 
-          {/* Text Content */}
+          {/* Text Content - Centered */}
           {currentStatus.text && (
-            <div className="absolute bottom-20 left-0 right-0 px-8 z-40">
-              <p className="text-white text-lg bg-black/30 rounded-lg p-4 backdrop-blur">
+            <div className="absolute bottom-1/2 left-0 right-0 px-8 z-40 transform translate-y-1/2">
+              <p className="text-white text-lg bg-black/50 rounded-lg p-4 backdrop-blur-md text-center max-w-2xl mx-auto">
                 {currentStatus.text}
               </p>
             </div>
