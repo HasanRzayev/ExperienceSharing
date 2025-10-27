@@ -128,8 +128,9 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
       e.preventDefault();
     }
     
-    if (!text.trim() && !image && !video) {
-      alert('Please add text, image, or video to your status');
+    // Require image or video (not just text)
+    if (!image && !video) {
+      alert('Please add an image or video to your status');
       return;
     }
 
@@ -286,7 +287,7 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
                 <EmojiPicker
                   onEmojiClick={(emojiData) => {
                     setText(prev => prev + emojiData.emoji);
-                    setShowEmojiPicker(false);
+                    // Don't close emoji picker
                   }}
                   width="100%"
                   height={350}
@@ -392,8 +393,8 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 font-medium transition-all"
-                disabled={uploading || (!text.trim() && !image && !video)}
+                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={uploading || (!image && !video)}
               >
                 {uploading ? 'Uploading...' : 'Share Status'}
               </button>
