@@ -79,8 +79,14 @@ const CardAbout = () => {
 
   const handleSubmitComment = async (e) => {
     e.preventDefault();
+    console.log('handleSubmitComment called');
+    console.log('newComment:', newComment);
+    console.log('token exists:', !!token);
     
-    if (!newComment.trim() || !token) return;
+    if (!newComment.trim() || !token) {
+      console.log('Returning early - validation failed');
+      return;
+    }
 
     setSubmittingComment(true);
     try {
@@ -892,6 +898,7 @@ const CardAbout = () => {
                 <button
                   type="submit"
                   disabled={!newComment.trim() || submittingComment}
+                  onClick={() => console.log('Button clicked - newComment:', newComment, 'disabled:', !newComment.trim() || submittingComment)}
                   className="self-start px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {submittingComment ? (
