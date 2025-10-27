@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { FaTimes, FaMapMarkerAlt, FaCamera } from 'react-icons/fa';
+import { FaTimes, FaMapMarkerAlt, FaCamera, FaSmile } from 'react-icons/fa';
+import EmojiPicker from 'emoji-picker-react';
 
 const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
   const [text, setText] = useState('');
@@ -16,6 +17,7 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // Instagram-style filters
   const filters = [
@@ -41,7 +43,7 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
     { name: '1977', class: '1977', css: 'sepia(0.5) hue-rotate(15deg) saturate(1.2)' }
   ];
 
-  // Real-world location search using Nominatim API (OpenStreetMap)
+  // Real-world location search using different APIs
   const searchLocations = async (query) => {
     if (!query.trim() || query.length < 2) {
       setLocationSuggestions([]);
@@ -49,9 +51,10 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
     }
 
     try {
-      // Use Nominatim API for global location search
+      // Try multiple APIs for better results
+      // 1. Try OpenStreetMap Nominatim API first
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&addressdetails=1`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=15&addressdetails=1&extratags=1&namedetails=1`
       );
       
       const data = await response.json();
@@ -60,8 +63,8 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
         const address = item.address || {};
         return {
           name: item.display_name,
-          type: item.type || 'Place',
-          city: address.city || address.town || address.village || '',
+          type: item.type || item.class || 'Place',
+          city: address.city || address.town || address.village || address.municipality || '',
           country: address.country || '',
           lat: item.lat,
           lon: item.lon,
@@ -70,16 +73,7 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
         };
       });
 
-      // Add current location option
-      const currentLocation = {
-        name: '📍 Current Location',
-        type: 'GPS',
-        city: 'Use device location',
-        country: '',
-        fullAddress: 'Current Location'
-      };
-
-      setLocationSuggestions([currentLocation, ...formattedLocations]);
+      setLocationSuggestions(formattedLocations);
       setShowLocationSuggestions(true);
     } catch (error) {
       console.error('Error fetching locations:', error);
@@ -266,16 +260,41 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
           )}
 
           <form onSubmit={handleSubmit}>
-            {/* Text Input */}
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="What's on your mind? (Optional)"
-              className="w-full p-4 border-2 border-gray-300 rounded-lg mb-4 resize-none focus:border-purple-500 focus:outline-none"
-              rows={4}
-              maxLength={200}
-              disabled={uploading}
-            />
+            {/* Text Input with Emoji Picker */}
+            <div className="relative mb-4">
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="What's on your mind? (Optional)"
+                className="w-full p-4 pr-12 border-2 border-gray-300 rounded-lg resize-none focus:border-purple-500 focus:outline-none"
+                rows={4}
+                maxLength={200}
+                disabled={uploading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className="absolute bottom-4 right-4 text-gray-400 hover:text-purple-600 transition-colors"
+              >
+                <FaSmile className="text-2xl" />
+              </button>
+            </div>
+
+            {/* Emoji Picker */}
+            {showEmojiPicker && (
+              <div className="relative mb-4">
+                <EmojiPicker
+                  onEmojiClick={(emojiData) => {
+                    setText(prev => prev + emojiData.emoji);
+                    setShowEmojiPicker(false);
+                  }}
+                  width="100%"
+                  height={350}
+                  searchDisabled={false}
+                  previewConfig={{ showPreview: false }}
+                />
+              </div>
+            )}
 
             {/* Location Input with Real-world Suggestions */}
             <div className="relative mb-4">
