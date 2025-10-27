@@ -41,54 +41,51 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
     { name: '1977', class: '1977', css: 'sepia(0.5) hue-rotate(15deg) saturate(1.2)' }
   ];
 
-  // Real-world location search using Foursquare/Nominatim API simulation
+  // Real-world location search using Nominatim API (OpenStreetMap)
   const searchLocations = async (query) => {
-    if (!query.trim()) {
+    if (!query.trim() || query.length < 2) {
       setLocationSuggestions([]);
       return;
     }
 
-    // Simulated real-world locations (in production, use Foursquare or Nominatim API)
-    const realLocations = [
-      // Hotels
-      { name: 'Grand Hotel Baku', type: 'Hotel', city: 'Baku', country: 'Azerbaijan' },
-      { name: 'The Four Seasons Istanbul', type: 'Hotel', city: 'Istanbul', country: 'Turkey' },
-      { name: 'Hotel Ritz Paris', type: 'Hotel', city: 'Paris', country: 'France' },
+    try {
+      // Use Nominatim API for global location search
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&addressdetails=1`
+      );
       
-      // Restaurants
-      { name: 'The Georgian Restaurant', type: 'Restaurant', city: 'Tbilisi', country: 'Georgia' },
-      { name: 'Manger Istanbul', type: 'Restaurant', city: 'Istanbul', country: 'Turkey' },
-      { name: 'Le Comptoir du Relais', type: 'Restaurant', city: 'Paris', country: 'France' },
-      
-      // Museums
-      { name: 'Museum of Modern Art', type: 'Museum', city: 'New York', country: 'USA' },
-      { name: 'Louvre Museum', type: 'Museum', city: 'Paris', country: 'France' },
-      { name: 'Hermitage Museum', type: 'Museum', city: 'St. Petersburg', country: 'Russia' },
-      
-      // Landmarks
-      { name: 'Eiffel Tower', type: 'Landmark', city: 'Paris', country: 'France' },
-      { name: 'Blue Mosque', type: 'Landmark', city: 'Istanbul', country: 'Turkey' },
-      { name: 'Times Square', type: 'Landmark', city: 'New York', country: 'USA' }
-    ];
+      const data = await response.json();
 
-    // Filter locations based on query
-    const filtered = realLocations.filter(loc => 
-      loc.name.toLowerCase().includes(query.toLowerCase()) ||
-      loc.city.toLowerCase().includes(query.toLowerCase()) ||
-      loc.country.toLowerCase().includes(query.toLowerCase()) ||
-      loc.type.toLowerCase().includes(query.toLowerCase())
-    );
+      const formattedLocations = data.map(item => {
+        const address = item.address || {};
+        return {
+          name: item.display_name,
+          type: item.type || 'Place',
+          city: address.city || address.town || address.village || '',
+          country: address.country || '',
+          lat: item.lat,
+          lon: item.lon,
+          icon: item.icon || '📍',
+          fullAddress: item.display_name
+        };
+      });
 
-    // Add current location
-    const currentLocation = {
-      name: 'Current Location',
-      type: 'Here',
-      city: 'Using GPS',
-      country: ''
-    };
+      // Add current location option
+      const currentLocation = {
+        name: '📍 Current Location',
+        type: 'GPS',
+        city: 'Use device location',
+        country: '',
+        fullAddress: 'Current Location'
+      };
 
-    setLocationSuggestions([currentLocation, ...filtered]);
-    setShowLocationSuggestions(true);
+      setLocationSuggestions([currentLocation, ...formattedLocations]);
+      setShowLocationSuggestions(true);
+    } catch (error) {
+      console.error('Error fetching locations:', error);
+      // Fallback to empty suggestions
+      setLocationSuggestions([]);
+    }
   };
 
   const handleImageChange = (e) => {
@@ -128,7 +125,7 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
 
   const handleLocationSelect = (location) => {
     setSelectedLocation(location);
-    setLocationQuery(location.name);
+    setLocationQuery(location.fullAddress || location.name);
     setShowLocationSuggestions(false);
   };
 
@@ -292,7 +289,7 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
                     searchLocations(e.target.value);
                   }}
                   onFocus={() => searchLocations(locationQuery)}
-                  placeholder="Add location (Optional) - e.g., Grand Hotel Baku, Louvre Museum..."
+                  placeholder="Search location worldwide... (Optional)"
                   className="w-full p-3 focus:outline-none"
                   disabled={uploading}
                 />
@@ -306,15 +303,17 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
                       key={idx}
                       type="button"
                       onClick={() => handleLocationSelect(loc)}
-                      className="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-start gap-2"
+                      className="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-start gap-3 transition-colors"
                     >
-                      <FaMapMarkerAlt className="text-purple-600 mt-1" />
-                      <div>
-                        <div className="font-medium text-gray-900">{loc.name}</div>
-                        <div className="text-sm text-gray-600">{loc.type}</div>
-                        <div className="text-xs text-gray-500">
-                          {loc.city}{loc.country ? `, ${loc.country}` : ''}
-                        </div>
+                      <FaMapMarkerAlt className="text-purple-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-900 truncate">{loc.name}</div>
+                        {loc.city && (
+                          <div className="text-sm text-gray-600 truncate">
+                            {loc.city}{loc.country ? `, ${loc.country}` : ''}
+                          </div>
+                        )}
+                        <div className="text-xs text-gray-500 truncate">{loc.type}</div>
                       </div>
                     </button>
                   ))}
