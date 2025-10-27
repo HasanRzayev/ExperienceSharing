@@ -260,9 +260,9 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
             />
           ) : null}
 
-          {/* Text Content - Centered on Screen */}
+          {/* Text Content - Centered in Bottom Third */}
           {currentStatus.text && (
-            <div className="absolute top-1/2 left-0 right-0 px-8 z-40 transform -translate-y-1/2">
+            <div className="absolute bottom-1/3 left-0 right-0 px-8 z-40">
               <p className="text-white text-lg bg-black/50 rounded-lg p-4 backdrop-blur-md text-center max-w-2xl mx-auto shadow-2xl">
                 {currentStatus.text}
               </p>
