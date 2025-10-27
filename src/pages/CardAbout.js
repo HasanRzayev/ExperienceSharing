@@ -114,10 +114,13 @@ const CardAbout = () => {
         console.log('Comment posted successfully:', commentData);
         
         // Send notification to mentioned users
+        console.log('mentionedUserIds length:', mentionedUserIds.length);
         if (mentionedUserIds.length > 0) {
+          console.log('Sending notifications to:', mentionedUserIds);
           for (const mentionedId of mentionedUserIds) {
             try {
               const currentUserId = getCurrentUserId();
+              console.log('Sending notification to user:', mentionedId);
               
               await axios.post(`${apiBaseUrl}/Notification`, {
                 UserId: mentionedId,
@@ -129,11 +132,15 @@ const CardAbout = () => {
               }, {
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
               });
+              
+              console.log('Notification sent successfully to user:', mentionedId);
             } catch (error) {
               console.error('Error sending mention notification:', error);
               // Silently fail - don't block comment submission
             }
           }
+        } else {
+          console.log('No mentioned users to notify');
         }
         
         setNewComment('');
