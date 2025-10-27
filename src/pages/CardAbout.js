@@ -100,17 +100,13 @@ const CardAbout = () => {
       if (response.ok) {
         const commentData = await response.json();
         
-        // Send notification to mentioned users (temporarily disabled until backend is fixed)
-        // TODO: Re-enable when backend database structure is fixed
-        /*
+        // Send notification to mentioned users
         if (mentionedUserIds.length > 0) {
           for (const mentionedId of mentionedUserIds) {
             try {
               const currentUserId = getCurrentUserId();
-              console.log('Sending notification to user:', mentionedId);
-              console.log('From user:', currentUserId);
               
-              const response = await axios.post(`${apiBaseUrl}/Notification`, {
+              await axios.post(`${apiBaseUrl}/Notification`, {
                 UserId: mentionedId,
                 Type: 'mention',
                 Message: `mentioned you in a comment`,
@@ -120,15 +116,12 @@ const CardAbout = () => {
               }, {
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
               });
-              
-              console.log('Notification sent successfully:', response.data);
             } catch (error) {
               console.error('Error sending mention notification:', error);
               // Silently fail - don't block comment submission
             }
           }
         }
-        */
         
         setNewComment('');
         setShowEmojiPicker(false);
