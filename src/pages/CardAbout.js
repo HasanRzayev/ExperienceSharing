@@ -12,6 +12,7 @@ import { FaMapMarkerAlt, FaCalendarAlt, FaShare, FaWhatsapp, FaInstagram, FaTikt
 import { useNavigate } from "react-router-dom";
 import EmojiPicker from 'emoji-picker-react';
 import MentionInput from '../components/MentionInput';
+import MentionText from '../components/MentionText';
 
 const CardAbout = () => {
   const { id } = useParams();
@@ -31,6 +32,7 @@ const CardAbout = () => {
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyText, setReplyText] = useState('');
   const [mentionedUserIds, setMentionedUserIds] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   const token = Cookies.get("token");
   const navigate = useNavigate();
 
@@ -408,9 +410,23 @@ const CardAbout = () => {
         setPost(null);
       }
     };
+    const fetchUsers = async () => {
+      if (!token) return;
+      try {
+        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+        const response = await axios.get(`${apiBaseUrl}/Followers/messaging-contacts`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setAllUsers(response.data || []);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
     if (id) {
       fetchPost();
       fetchComments(); // Load comments when experience loads
+      fetchUsers(); // Load users for mentions
     } else {
       console.error("CardAbout.js - No ID provided");
     }
@@ -951,7 +967,7 @@ const CardAbout = () => {
                           )}
                         </div>
                         <p className="text-gray-700 leading-relaxed mb-3">
-                          {comment.content}
+                          <MentionText text={comment.content} users={allUsers} />
                         </p>
                         
                         {/* Reaction and Reply Buttons */}
