@@ -93,6 +93,7 @@ const CardAbout = () => {
 
     setSubmittingComment(true);
     try {
+      console.log('Starting comment submission...');
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       
       // Submit comment
@@ -107,8 +108,11 @@ const CardAbout = () => {
         })
       });
 
+      console.log('Response status:', response.status, response.statusText);
+      
       if (response.ok) {
         const commentData = await response.json();
+        console.log('Comment posted successfully:', commentData);
         
         // Send notification to mentioned users
         if (mentionedUserIds.length > 0) {
@@ -142,6 +146,12 @@ const CardAbout = () => {
       }
     } catch (error) {
       console.error('Error submitting comment:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response
+      });
+      alert('Error submitting comment. Please try again.');
     } finally {
       setSubmittingComment(false);
     }
