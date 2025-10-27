@@ -16,6 +16,7 @@ const MentionInput = ({
   const [selection, setSelection] = useState(0);
   const [mentionString, setMentionString] = useState('');
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
+  const [allUsers, setAllUsers] = useState([]);
   const textareaRef = useRef(null);
   const suggestionRef = useRef(null);
 
@@ -39,17 +40,20 @@ const MentionInput = ({
       setMentionString(mentionStr);
       setMentionStartIndex(lastAtIndex);
       
+      // Use allUsers or prop users
+      const userList = allUsers.length > 0 ? allUsers : users;
+      
       // Filter users based on mention string
       if (mentionStr) {
-        const filteredUsers = users.filter(user => 
-          user.userName.toLowerCase().includes(mentionStr.toLowerCase()) ||
-          user.firstName.toLowerCase().includes(mentionStr.toLowerCase()) ||
-          user.lastName.toLowerCase().includes(mentionStr.toLowerCase())
+        const filteredUsers = userList.filter(user => 
+          user.userName?.toLowerCase().includes(mentionStr.toLowerCase()) ||
+          user.firstName?.toLowerCase().includes(mentionStr.toLowerCase()) ||
+          user.lastName?.toLowerCase().includes(mentionStr.toLowerCase())
         );
         setSuggestions(filteredUsers.slice(0, 5));
         setShowSuggestions(true);
       } else {
-        setSuggestions(users.slice(0, 5));
+        setSuggestions(userList.slice(0, 5));
         setShowSuggestions(true);
       }
     } else {
@@ -112,7 +116,7 @@ const MentionInput = ({
           const currentUserRes = await axios.get(`${apiBaseUrl}/Auth/GetProfile`, {
             headers: { Authorization: `Bearer ${token}` }
           });
-          setSuggestions([...response.data || [], currentUserRes.data]);
+          setAllUsers([...response.data || [], currentUserRes.data]);
         }
       } catch (error) {
         console.error('Error fetching users for mentions:', error);
