@@ -65,8 +65,9 @@ const MentionInput = ({
 
   // Handle suggestion selection
   const handleSelectSuggestion = (user) => {
+    console.log('handleSelectSuggestion called with user:', user);
     if (!user || !user.userName) {
-      console.error('Invalid user in handleSelectSuggestion');
+      console.error('Invalid user in handleSelectSuggestion', user);
       return;
     }
     
@@ -122,11 +123,16 @@ const MentionInput = ({
           const response = await axios.get(`${apiBaseUrl}/Followers/messaging-contacts`, {
             headers: { Authorization: `Bearer ${token}` }
           });
+          console.log('messaging-contacts response:', response.data);
+          
           // Add current user to the list
           const currentUserRes = await axios.get(`${apiBaseUrl}/Auth/GetProfile`, {
             headers: { Authorization: `Bearer ${token}` }
           });
+          console.log('GetProfile response:', currentUserRes.data);
+          
           setAllUsers([...response.data || [], currentUserRes.data]);
+          console.log('allUsers set to:', allUsers);
         }
       } catch (error) {
         console.error('Error fetching users for mentions:', error);
@@ -167,7 +173,9 @@ const MentionInput = ({
           className="absolute z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto w-full"
           style={{ top: '100%' }}
         >
-          {suggestions.map((user, index) => (
+          {suggestions.map((user, index) => {
+            console.log('Rendering suggestion:', user);
+            return (
             <button
               key={user?.id || index}
               type="button"
@@ -190,7 +198,8 @@ const MentionInput = ({
                 </div>
               </div>
             </button>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
