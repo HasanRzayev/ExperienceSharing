@@ -11,6 +11,7 @@ import RatingsDisplay from "../components/RatingsDisplay";
 import { FaMapMarkerAlt, FaCalendarAlt, FaShare, FaWhatsapp, FaInstagram, FaTiktok, FaCopy, FaCheck, FaUsers, FaPaperPlane, FaComment, FaHeart, FaSmile, FaReply, FaThumbsUp, FaThumbsDown } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import EmojiPicker from 'emoji-picker-react';
+import MentionInput from '../components/MentionInput';
 
 const CardAbout = () => {
   const { id } = useParams();
@@ -819,33 +820,19 @@ const CardAbout = () => {
             <form onSubmit={handleSubmitComment} className="mb-8">
               <div className="flex gap-4">
                 <div className="flex-1 relative">
-                  <textarea
+                  <MentionInput
                     value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
+                    onChange={setNewComment}
                     placeholder="Share your thoughts about this experience..."
                     className="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-600"
-                    rows={3}
-                    maxLength={500}
                   />
                   <div className="flex justify-between items-center mt-2">
                     <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                        className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                      >
-                        <FaSmile className="text-xl" />
-                      </button>
                       <span className="text-sm text-gray-500">
                         {newComment.length}/500
                       </span>
                     </div>
                   </div>
-                  {showEmojiPicker && (
-                    <div className="absolute bottom-full mb-2 z-10">
-                      <EmojiPicker onEmojiClick={onEmojiClick} />
-                    </div>
-                  )}
                 </div>
                 <button
                   type="submit"
