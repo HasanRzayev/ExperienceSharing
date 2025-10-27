@@ -65,6 +65,11 @@ const MentionInput = ({
 
   // Handle suggestion selection
   const handleSelectSuggestion = (user) => {
+    if (!user || !user.userName) {
+      console.error('Invalid user in handleSelectSuggestion');
+      return;
+    }
+    
     const textBeforeMention = text.substring(0, mentionStartIndex);
     const textAfterCursor = text.substring(textareaRef.current.selectionStart);
     const newText = textBeforeMention + `@${user.userName} ` + textAfterCursor;
@@ -75,11 +80,13 @@ const MentionInput = ({
     setMentionString('');
     
     // Focus back on textarea
-    textareaRef.current.focus();
-    textareaRef.current.setSelectionRange(
-      mentionStartIndex + 1 + user.userName.length + 1,
-      mentionStartIndex + 1 + user.userName.length + 1
-    );
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(
+        mentionStartIndex + 1 + user.userName.length + 1,
+        mentionStartIndex + 1 + user.userName.length + 1
+      );
+    }
   };
 
   // Handle keyboard navigation
@@ -93,7 +100,10 @@ const MentionInput = ({
         setSelection(prev => (prev > 0 ? prev - 1 : 0));
       } else if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        handleSelectSuggestion(suggestions[selection]);
+        const selectedUser = suggestions[selection];
+        if (selectedUser) {
+          handleSelectSuggestion(selectedUser);
+        }
       } else if (e.key === 'Escape') {
         setShowSuggestions(false);
       }
@@ -159,9 +169,9 @@ const MentionInput = ({
         >
           {suggestions.map((user, index) => (
             <button
-              key={user.id}
+              key={user?.id || index}
               type="button"
-              onClick={() => handleSelectSuggestion(user)}
+              onClick={() => user && handleSelectSuggestion(user)}
               className={`w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 transition-colors ${
                 index === selection ? 'bg-purple-50' : ''
               }`}
