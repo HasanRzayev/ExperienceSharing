@@ -30,6 +30,7 @@ const CardAbout = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyText, setReplyText] = useState('');
+  const [mentionedUserIds, setMentionedUserIds] = useState([]);
   const token = Cookies.get("token");
   const navigate = useNavigate();
 
@@ -67,6 +68,13 @@ const CardAbout = () => {
     }
   };
 
+  const handleMention = (userId, username) => {
+    setMentionedUserIds(prev => {
+      if (prev.includes(userId)) return prev;
+      return [...prev, userId];
+    });
+  };
+
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     if (!newComment.trim() || !token) return;
@@ -74,6 +82,8 @@ const CardAbout = () => {
     setSubmittingComment(true);
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      
+      // Submit comment
       const response = await fetch(`${apiBaseUrl}/Experiences/${id}/comments`, {
         method: 'POST',
         headers: {
@@ -86,8 +96,30 @@ const CardAbout = () => {
       });
 
       if (response.ok) {
+        const commentData = await response.json();
+        
+        // Send notification to mentioned users
+        if (mentionedUserIds.length > 0) {
+          for (const mentionedId of mentionedUserIds) {
+            try {
+              await axios.post(`${apiBaseUrl}/Notifications`, {
+                userId: mentionedId,
+                type: 'mention',
+                message: `mentioned you in a comment`,
+                experienceId: id,
+                commentId: commentData.id
+              }, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+            } catch (error) {
+              console.error('Error sending mention notification:', error);
+            }
+          }
+        }
+        
         setNewComment('');
         setShowEmojiPicker(false);
+        setMentionedUserIds([]);
         fetchComments(); // Refresh comments
       } else {
         console.error('Failed to submit comment');
@@ -825,6 +857,7 @@ const CardAbout = () => {
                     onChange={setNewComment}
                     placeholder="Share your thoughts about this experience..."
                     className="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-600"
+                    onMention={handleMention}
                   />
                   <div className="flex justify-between items-center mt-2">
                     <div className="flex items-center gap-2">

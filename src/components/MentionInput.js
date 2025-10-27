@@ -8,7 +8,9 @@ const MentionInput = ({
   placeholder = "Write a comment...",
   className = "",
   onSubmit,
-  users = []
+  users = [],
+  onMention = null,
+  mentionedUsers = []
 }) => {
   const [text, setText] = useState(value || '');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -83,6 +85,11 @@ const MentionInput = ({
     onChange(newText);
     setShowSuggestions(false);
     setMentionString('');
+    
+    // Call onMention callback if provided
+    if (onMention && user.id) {
+      onMention(user.id, username);
+    }
     
     // Focus back on textarea
     if (textareaRef.current) {
