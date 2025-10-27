@@ -43,62 +43,31 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
     { name: '1977', class: '1977', css: 'sepia(0.5) hue-rotate(15deg) saturate(1.2)' }
   ];
 
-  // Cache for location data
+  // Cache for location data from JSON files
   const [locationCache, setLocationCache] = useState({
     countries: [],
     states: [],
-    cities: []
+    cities: [],
+    hotels: []
   });
 
-  // Load location data once with fallback
+  // Load location data from local JSON files
   React.useEffect(() => {
     const loadLocationData = async () => {
       try {
-        // Try multiple sources for location data
-        const sources = [
-          {
-            countries: 'https://raw.githubusercontent.com/lukes/ISO-3166-Countries-with-Regional-Codes/master/all/all.json',
-            cities: 'https://raw.githubusercontent.com/datasets/world-cities/master/data/world-cities.csv'
-          },
-          {
-            // Fallback to simple predefined data
-            countries: null,
-            cities: null
-          }
-        ];
+        const [countriesRes, citiesRes, hotelsRes] = await Promise.all([
+          fetch('/countries.json'),
+          fetch('/cities.json'),
+          fetch('/hotels.json')
+        ]);
+        
+        const [countries, cities, hotels] = await Promise.all([
+          countriesRes.json(),
+          citiesRes.json(),
+          hotelsRes.json()
+        ]);
 
-        // Predefined location data for reliable search
-        const predefinedCountries = [
-          { id: 1, name: 'Azerbaijan' }, { id: 2, name: 'Turkey' }, { id: 3, name: 'United States' },
-          { id: 4, name: 'United Kingdom' }, { id: 5, name: 'France' }, { id: 6, name: 'Germany' },
-          { id: 7, name: 'Italy' }, { id: 8, name: 'Spain' }, { id: 9, name: 'Russia' },
-          { id: 10, name: 'Japan' }, { id: 11, name: 'China' }, { id: 12, name: 'India' },
-          { id: 13, name: 'Brazil' }, { id: 14, name: 'Canada' }, { id: 15, name: 'Australia' }
-        ];
-
-        // Common worldwide cities with country mapping
-        const predefinedCities = [
-          { name: 'Baku', country: 'Azerbaijan' }, { name: 'Ganja', country: 'Azerbaijan' },
-          { name: 'Istanbul', country: 'Turkey' }, { name: 'Ankara', country: 'Turkey' },
-          { name: 'Tbilisi', country: 'Georgia' }, { name: 'Yerevan', country: 'Armenia' },
-          { name: 'London', country: 'United Kingdom' }, { name: 'Manchester', country: 'United Kingdom' },
-          { name: 'Paris', country: 'France' }, { name: 'Lyon', country: 'France' },
-          { name: 'Berlin', country: 'Germany' }, { name: 'Munich', country: 'Germany' },
-          { name: 'Rome', country: 'Italy' }, { name: 'Milan', country: 'Italy' },
-          { name: 'Madrid', country: 'Spain' }, { name: 'Barcelona', country: 'Spain' },
-          { name: 'New York', country: 'United States' }, { name: 'Los Angeles', country: 'United States' },
-          { name: 'Chicago', country: 'United States' }, { name: 'Miami', country: 'United States' },
-          { name: 'Tokyo', country: 'Japan' }, { name: 'Osaka', country: 'Japan' },
-          { name: 'Seoul', country: 'South Korea' }, { name: 'Bangkok', country: 'Thailand' },
-          { name: 'Dubai', country: 'UAE' }, { name: 'Abu Dhabi', country: 'UAE' },
-          { name: 'Moscow', country: 'Russia' }, { name: 'St. Petersburg', country: 'Russia' }
-        ];
-
-        setLocationCache({ 
-          countries: predefinedCountries, 
-          states: [], 
-          cities: predefinedCities 
-        });
+        setLocationCache({ countries, states: [], cities, hotels });
       } catch (error) {
         console.error('Error loading location data:', error);
       }
@@ -107,7 +76,7 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
     loadLocationData();
   }, []);
 
-  // Location search using predefined data
+  // Location search using JSON files
   const searchLocations = (query) => {
     if (!query.trim() || query.length < 2) {
       setLocationSuggestions([]);
@@ -133,18 +102,38 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
     // Search cities
     const matchingCities = locationCache.cities
       .filter(city => city.name.toLowerCase().includes(lowerQuery))
-      .slice(0, 10)
-      .map(city => ({
-        name: city.name,
-        type: 'City',
-        city: city.name,
-        country: city.country || '',
-        icon: '🏙️',
-        fullAddress: `${city.name}, ${city.country || ''}`
+      .slice(0, 8)
+      .map(city => {
+        const countryName = locationCache.countries.find(c => c.iso2 === city.country)?.name || city.country;
+        return {
+          name: city.name,
+          type: 'City',
+          city: city.name,
+          country: countryName,
+          icon: '🏙️',
+          fullAddress: `${city.name}, ${countryName}`
+        };
+      });
+
+    // Search hotels
+    const matchingHotels = locationCache.hotels
+      .filter(hotel => 
+        hotel.hotel_name.toLowerCase().includes(lowerQuery) ||
+        hotel.city.toLowerCase().includes(lowerQuery) ||
+        hotel.country.toLowerCase().includes(lowerQuery)
+      )
+      .slice(0, 5)
+      .map(hotel => ({
+        name: hotel.hotel_name,
+        type: 'Hotel',
+        city: hotel.city,
+        country: hotel.country,
+        icon: '🏨',
+        fullAddress: `${hotel.hotel_name}, ${hotel.city}, ${hotel.country}`
       }));
 
-    suggestions.push(...matchingCountries, ...matchingCities);
-    setLocationSuggestions(suggestions.slice(0, 18)); // Max 18 results
+    suggestions.push(...matchingCountries, ...matchingCities, ...matchingHotels);
+    setLocationSuggestions(suggestions.slice(0, 20)); // Max 20 results
     setShowLocationSuggestions(true);
   };
 
