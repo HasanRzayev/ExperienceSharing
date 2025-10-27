@@ -260,9 +260,9 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
             />
           ) : null}
 
-          {/* Text Content - At Bottom */}
+          {/* Text Content - Absolute Bottom with centered text */}
           {currentStatus.text && (
-            <div className="absolute bottom-24 left-0 right-0 px-8 z-40">
+            <div className="absolute bottom-20 left-0 right-0 px-8 z-40">
               <p className="text-white text-lg bg-black/50 rounded-lg p-4 backdrop-blur-md text-center max-w-2xl mx-auto shadow-2xl">
                 {currentStatus.text}
               </p>
