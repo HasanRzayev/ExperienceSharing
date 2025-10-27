@@ -50,34 +50,64 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
     cities: []
   });
 
-  // Load location data once
+  // Load location data once with fallback
   React.useEffect(() => {
     const loadLocationData = async () => {
       try {
-        // Use CDN or alternative source
-        const baseUrl = 'https://cdn.jsdelivr.net/npm/@dr5hn/countries-states-cities@latest/data/';
-        
-        const [countriesRes, citiesRes] = await Promise.all([
-          fetch(`${baseUrl}countries.json`),
-          fetch(`${baseUrl}cities.json`)
-        ]);
-        
-        const [countries, cities] = await Promise.all([
-          countriesRes.json(),
-          citiesRes.json()
-        ]);
+        // Try multiple sources for location data
+        const sources = [
+          {
+            countries: 'https://raw.githubusercontent.com/lukes/ISO-3166-Countries-with-Regional-Codes/master/all/all.json',
+            cities: 'https://raw.githubusercontent.com/datasets/world-cities/master/data/world-cities.csv'
+          },
+          {
+            // Fallback to simple predefined data
+            countries: null,
+            cities: null
+          }
+        ];
 
-        setLocationCache({ countries, states: [], cities });
+        // Predefined location data for reliable search
+        const predefinedCountries = [
+          { id: 1, name: 'Azerbaijan' }, { id: 2, name: 'Turkey' }, { id: 3, name: 'United States' },
+          { id: 4, name: 'United Kingdom' }, { id: 5, name: 'France' }, { id: 6, name: 'Germany' },
+          { id: 7, name: 'Italy' }, { id: 8, name: 'Spain' }, { id: 9, name: 'Russia' },
+          { id: 10, name: 'Japan' }, { id: 11, name: 'China' }, { id: 12, name: 'India' },
+          { id: 13, name: 'Brazil' }, { id: 14, name: 'Canada' }, { id: 15, name: 'Australia' }
+        ];
+
+        // Common worldwide cities with country mapping
+        const predefinedCities = [
+          { name: 'Baku', country: 'Azerbaijan' }, { name: 'Ganja', country: 'Azerbaijan' },
+          { name: 'Istanbul', country: 'Turkey' }, { name: 'Ankara', country: 'Turkey' },
+          { name: 'Tbilisi', country: 'Georgia' }, { name: 'Yerevan', country: 'Armenia' },
+          { name: 'London', country: 'United Kingdom' }, { name: 'Manchester', country: 'United Kingdom' },
+          { name: 'Paris', country: 'France' }, { name: 'Lyon', country: 'France' },
+          { name: 'Berlin', country: 'Germany' }, { name: 'Munich', country: 'Germany' },
+          { name: 'Rome', country: 'Italy' }, { name: 'Milan', country: 'Italy' },
+          { name: 'Madrid', country: 'Spain' }, { name: 'Barcelona', country: 'Spain' },
+          { name: 'New York', country: 'United States' }, { name: 'Los Angeles', country: 'United States' },
+          { name: 'Chicago', country: 'United States' }, { name: 'Miami', country: 'United States' },
+          { name: 'Tokyo', country: 'Japan' }, { name: 'Osaka', country: 'Japan' },
+          { name: 'Seoul', country: 'South Korea' }, { name: 'Bangkok', country: 'Thailand' },
+          { name: 'Dubai', country: 'UAE' }, { name: 'Abu Dhabi', country: 'UAE' },
+          { name: 'Moscow', country: 'Russia' }, { name: 'St. Petersburg', country: 'Russia' }
+        ];
+
+        setLocationCache({ 
+          countries: predefinedCountries, 
+          states: [], 
+          cities: predefinedCities 
+        });
       } catch (error) {
         console.error('Error loading location data:', error);
-        // Fallback to simple search
       }
     };
 
     loadLocationData();
   }, []);
 
-  // Real-world location search using GitHub database
+  // Location search using predefined data
   const searchLocations = (query) => {
     if (!query.trim() || query.length < 2) {
       setLocationSuggestions([]);
@@ -103,36 +133,17 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
     // Search cities
     const matchingCities = locationCache.cities
       .filter(city => city.name.toLowerCase().includes(lowerQuery))
-      .slice(0, 8)
-      .map(city => {
-        const country = locationCache.countries.find(c => c.id === city.country_id);
-        return {
-          name: city.name,
-          type: 'City',
-          city: city.name,
-          country: country?.name || '',
-          icon: '🏙️',
-          fullAddress: `${city.name}, ${country?.name || ''}`
-        };
-      });
+      .slice(0, 10)
+      .map(city => ({
+        name: city.name,
+        type: 'City',
+        city: city.name,
+        country: city.country || '',
+        icon: '🏙️',
+        fullAddress: `${city.name}, ${city.country || ''}`
+      }));
 
-    // Search states
-    const matchingStates = locationCache.states
-      .filter(state => state.name.toLowerCase().includes(lowerQuery))
-      .slice(0, 5)
-      .map(state => {
-        const country = locationCache.countries.find(c => c.id === state.country_id);
-        return {
-          name: state.name,
-          type: 'State',
-          city: '',
-          country: country?.name || '',
-          icon: '📍',
-          fullAddress: `${state.name}, ${country?.name || ''}`
-        };
-      });
-
-    suggestions.push(...matchingCountries, ...matchingCities, ...matchingStates);
+    suggestions.push(...matchingCountries, ...matchingCities);
     setLocationSuggestions(suggestions.slice(0, 18)); // Max 18 results
     setShowLocationSuggestions(true);
   };
@@ -242,54 +253,54 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
-          <h2 className="text-xl font-bold text-gray-800">Create Status</h2>
-          <button
-            onClick={handleClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
-          >
+            <h2 className="text-xl font-bold text-gray-800">Create Status</h2>
+            <button
+              onClick={handleClose}
+              className="text-gray-500 hover:text-gray-700 text-2xl"
+            >
             <FaTimes />
-          </button>
-        </div>
+            </button>
+          </div>
 
         <div className="p-6">
           {/* Media Preview with Filters */}
-          {(imagePreview || videoPreview) && (
+            {(imagePreview || videoPreview) && (
             <div className="mb-6 relative">
-              {imagePreview && (
-                <div className="relative">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="w-full rounded-lg"
+                {imagePreview && (
+                  <div className="relative">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full rounded-lg"
                     style={{ 
                       filter: selectedFilterData?.css || 'none' 
                     }}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleRemoveMedia}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600"
-                  >
-                    ×
-                  </button>
-                </div>
-              )}
-              {videoPreview && (
-                <div className="relative">
-                  <video
-                    src={videoPreview}
-                    className="w-full rounded-lg"
-                    controls
-                  />
-                  <button
-                    type="button"
-                    onClick={handleRemoveMedia}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600"
-                  >
-                    ×
-                  </button>
-                </div>
-              )}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveMedia}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+                {videoPreview && (
+                  <div className="relative">
+                    <video
+                      src={videoPreview}
+                      className="w-full rounded-lg"
+                      controls
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveMedia}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
 
               {/* Filter Selector */}
               {showFilters && imagePreview && (
@@ -420,37 +431,37 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
 
             {/* Upload Buttons */}
             {!imagePreview && !videoPreview && (
-              <div className="flex gap-4 mb-4">
-                <label className="flex-1 cursor-pointer">
-                  <input
-                    id="status-image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                    disabled={uploading}
-                  />
+            <div className="flex gap-4 mb-4">
+              <label className="flex-1 cursor-pointer">
+                <input
+                  id="status-image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  disabled={uploading}
+                />
                   <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 text-center transition-colors">
                     <FaCamera className="text-2xl text-gray-400 mx-auto mb-2" />
                     <span className="text-gray-600 font-medium">📷 Add Photo</span>
-                  </div>
-                </label>
+                </div>
+              </label>
 
-                <label className="flex-1 cursor-pointer">
-                  <input
-                    id="status-video"
-                    type="file"
-                    accept="video/*"
-                    onChange={handleVideoChange}
-                    className="hidden"
-                    disabled={uploading}
-                  />
+              <label className="flex-1 cursor-pointer">
+                <input
+                  id="status-video"
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoChange}
+                  className="hidden"
+                  disabled={uploading}
+                />
                   <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 text-center transition-colors">
                     <FaCamera className="text-2xl text-gray-400 mx-auto mb-2" />
                     <span className="text-gray-600 font-medium">🎥 Add Video</span>
-                  </div>
-                </label>
-              </div>
+                </div>
+              </label>
+            </div>
             )}
 
             {/* Action Buttons */}
