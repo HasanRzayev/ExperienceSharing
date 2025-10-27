@@ -441,42 +441,42 @@ const CardAbout = () => {
 
       {/* Media Karuseli */}
           <div className="relative h-64 sm:h-80 xl:h-96 2xl:h-[32rem] bg-gray-900">
-            <Carousel className="rounded-none">
-          {/* Video slides */}
-          {post.videoUrl && (
-            <div className="flex items-center justify-center w-full h-full bg-gray-900">
-              <video
-                className="max-w-full max-h-full object-contain"
-                src={post.videoUrl}
-                poster={post.videoThumbnail}
-                controls
-              />
-            </div>
-          )}
-          
-          {/* Image slides */}
-          {post.imageUrls && post.imageUrls.length > 0 ? (
-            post.imageUrls.map((image, index) => (
-              <div key={index} className="flex items-center justify-center w-full h-full bg-gray-900">
-                <img
-                      className="max-w-full max-h-full object-contain"
-                  src={image.url}
-                  alt={`Slide ${index}`}
+            {post.videoUrl && (
+              <div className="flex items-center justify-center w-full h-full bg-gray-900">
+                <video
+                  className="max-w-full max-h-full object-contain"
+                  src={post.videoUrl}
+                  poster={post.videoThumbnail}
+                  controls
                 />
               </div>
-            ))
-          ) : !post.videoUrl && (
-                <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                  <div className="text-center">
-                    <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <p className="text-gray-500 text-lg">No media available</p>
+            )}
+            
+            {!post.videoUrl && post.imageUrls && Array.isArray(post.imageUrls) && post.imageUrls.length > 0 && (
+              <Carousel className="rounded-none">
+                {post.imageUrls.map((image, index) => (
+                  <div key={index} className="flex items-center justify-center w-full h-full bg-gray-900">
+                    <img
+                      className="max-w-full max-h-full object-contain"
+                      src={image.url}
+                      alt={`Slide ${index}`}
+                    />
                   </div>
+                ))}
+              </Carousel>
+            )}
+            
+            {!post.videoUrl && (!post.imageUrls || !Array.isArray(post.imageUrls) || post.imageUrls.length === 0) && (
+              <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                <div className="text-center">
+                  <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <p className="text-gray-500 text-lg">No media available</p>
                 </div>
-          )}
-        </Carousel>
-      </div>
+              </div>
+            )}
+          </div>
 
           <div className="p-8">
             {/* Başlıq */}
