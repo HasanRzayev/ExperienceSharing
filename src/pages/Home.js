@@ -8,6 +8,7 @@ import SaveButton from "../components/SaveButton";
 import AIRecommendations from "../components/AIRecommendations";
 import StatusUploadModal from "../components/StatusUploadModal";
 import StatusViewer from "../components/StatusViewer";
+import StatusStories from "../components/StatusStories";
 import EmojiPicker from 'emoji-picker-react';
 import axios from "axios";
 
@@ -436,22 +437,11 @@ function Home() {
         </div>
 
         {/* Status Feed - Instagram style circular profiles */}
-        {statuses.length > 0 && (
-          <div className="mb-4 sm:mb-8 bg-white rounded-xl sm:rounded-2xl shadow-md p-3 sm:p-4 overflow-x-auto">
-            <div className="flex gap-3 sm:gap-4">
-              <button
-                onClick={handleYourStatusClick}
-                className="flex flex-col items-center gap-2 min-w-[50px] sm:min-w-[60px]"
-              >
-                <div className="relative">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-0.5">
-                    <div className="w-full h-full rounded-full bg-white p-0.5 flex items-center justify-center">
-                      <FaPlus className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
-                    </div>
-                  </div>
-                </div>
-                <span className="text-xs text-gray-600">Your Status</span>
-              </button>
+        <div className="mb-4 sm:mb-8 bg-white rounded-xl sm:rounded-2xl shadow-md p-3 sm:p-4 overflow-x-auto">
+          <div className="flex gap-3 sm:gap-4">
+            {currentUser && (
+              <StatusStories userId={currentUser.id} currentUser={currentUser} />
+            )}
               
               {statuses.map((status) => {
                 const hasUnviewed = !status.isViewed;
