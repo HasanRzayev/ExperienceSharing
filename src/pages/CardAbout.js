@@ -122,7 +122,9 @@ const CardAbout = () => {
               console.log('Notification sent successfully:', response.data);
             } catch (error) {
               console.error('Error sending mention notification:', error);
-              console.error('Error details:', {
+              console.error('Error response data:', error.response?.data);
+              console.error('Error response status:', error.response?.status);
+              console.error('Full error details:', {
                 message: error.message,
                 response: error.response?.data,
                 status: error.response?.status
