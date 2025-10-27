@@ -55,17 +55,26 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
   React.useEffect(() => {
     const loadLocationData = async () => {
       try {
-        const [countriesRes, citiesRes, hotelsRes] = await Promise.all([
+        const [countriesRes, citiesRes] = await Promise.all([
           fetch('/countries.json'),
-          fetch('/cities.json'),
-          fetch('/hotels.json')
+          fetch('/cities.json')
         ]);
         
-        const [countries, cities, hotels] = await Promise.all([
+        const [countries, cities] = await Promise.all([
           countriesRes.json(),
-          citiesRes.json(),
-          hotelsRes.json()
+          citiesRes.json()
         ]);
+
+        // Hotels data - try to fetch, but don't fail if it doesn't work
+        let hotels = [];
+        try {
+          const hotelsRes = await fetch('/hotels.json');
+          const hotelsData = await hotelsRes.json();
+          hotels = Array.isArray(hotelsData) ? hotelsData : hotelsData.hotels || [];
+        } catch (err) {
+          console.warn('Could not load hotels data');
+          hotels = [];
+        }
 
         setLocationCache({ countries, states: [], cities, hotels });
       } catch (error) {
