@@ -100,7 +100,9 @@ const CardAbout = () => {
       if (response.ok) {
         const commentData = await response.json();
         
-        // Send notification to mentioned users
+        // Send notification to mentioned users (temporarily disabled until backend is fixed)
+        // TODO: Re-enable when backend database structure is fixed
+        /*
         if (mentionedUserIds.length > 0) {
           for (const mentionedId of mentionedUserIds) {
             try {
@@ -122,16 +124,11 @@ const CardAbout = () => {
               console.log('Notification sent successfully:', response.data);
             } catch (error) {
               console.error('Error sending mention notification:', error);
-              console.error('Error response data:', error.response?.data);
-              console.error('Error response status:', error.response?.status);
-              console.error('Full error details:', {
-                message: error.message,
-                response: error.response?.data,
-                status: error.response?.status
-              });
+              // Silently fail - don't block comment submission
             }
           }
         }
+        */
         
         setNewComment('');
         setShowEmojiPicker(false);
