@@ -54,21 +54,23 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
   React.useEffect(() => {
     const loadLocationData = async () => {
       try {
-        const [countriesRes, statesRes, citiesRes] = await Promise.all([
-          fetch('https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/master/json/countries.json'),
-          fetch('https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/master/json/states.json'),
-          fetch('https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/master/json/cities.json')
+        // Use CDN or alternative source
+        const baseUrl = 'https://cdn.jsdelivr.net/npm/@dr5hn/countries-states-cities@latest/data/';
+        
+        const [countriesRes, citiesRes] = await Promise.all([
+          fetch(`${baseUrl}countries.json`),
+          fetch(`${baseUrl}cities.json`)
         ]);
         
-        const [countries, states, cities] = await Promise.all([
+        const [countries, cities] = await Promise.all([
           countriesRes.json(),
-          statesRes.json(),
           citiesRes.json()
         ]);
 
-        setLocationCache({ countries, states, cities });
+        setLocationCache({ countries, states: [], cities });
       } catch (error) {
         console.error('Error loading location data:', error);
+        // Fallback to simple search
       }
     };
 

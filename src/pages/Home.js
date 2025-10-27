@@ -287,47 +287,9 @@ function Home() {
   const [selectedStatusUserId, setSelectedStatusUserId] = useState(null);
   const [userStatuses, setUserStatuses] = useState([]);
 
-  const handleYourStatusClick = async () => {
-    try {
-      const token = Cookies.get("token");
-      if (!token) return;
-
-      // Fetch own statuses from /my endpoint
-      try {
-        const response = await axios.get(`${apiBaseUrl}/Status/my`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        // If user has active status, show it
-        if (response.data && response.data.id) {
-          // Get all own statuses
-          const allStatusesResponse = await axios.get(`${apiBaseUrl}/Status`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          
-          const ownStatuses = allStatusesResponse.data.filter(
-            status => status.userId === currentUser?.id
-          );
-
-          if (ownStatuses.length > 0) {
-            setUserStatuses(ownStatuses);
-            setSelectedStatusIndex(0);
-            setSelectedStatusUserId(currentUser?.id);
-            setShowStatusViewer(true);
-          } else {
-            setShowStatusModal(true);
-          }
-        } else {
-          setShowStatusModal(true);
-        }
-      } catch (myStatusError) {
-        // If /my returns 404 or no status, open modal
-        setShowStatusModal(true);
-      }
-    } catch (error) {
-      console.error("Error fetching your statuses:", error);
-      setShowStatusModal(true);
-    }
+  const handleYourStatusClick = () => {
+    // Just open the status upload modal to create new status
+    setShowStatusModal(true);
   };
 
   const handleStatusClick = async (userId) => {
