@@ -201,7 +201,7 @@ namespace ExperienceProject.Hubs
 
                 // Find all unread messages from this sender to current user
                 var unreadMessages = await _context.Messages
-                    .Where(m => m.SenderId == senderId && m.ReceiverId == userId.Value && !m.IsRead)
+                    .Where(m => m.SenderId == senderId && m.ReceiverId == userId.Value && (m.IsRead == null || m.IsRead == false))
                     .ToListAsync();
 
                 if (unreadMessages.Any())
@@ -243,7 +243,7 @@ namespace ExperienceProject.Hubs
                 }
 
                 var message = await _context.Messages.FindAsync(messageId);
-                if (message != null && message.ReceiverId == userId.Value && !message.IsRead)
+                if (message != null && message.ReceiverId == userId.Value && (message.IsRead == null || message.IsRead == false))
                 {
                     message.IsRead = true;
                     message.ReadAt = DateTime.UtcNow;
@@ -278,7 +278,7 @@ namespace ExperienceProject.Hubs
 
                 // Find all undelivered messages to this user from current user
                 var undeliveredMessages = await _context.Messages
-                    .Where(m => m.SenderId == userId.Value && m.ReceiverId == receiverId && !m.IsDelivered)
+                    .Where(m => m.SenderId == userId.Value && m.ReceiverId == receiverId && (m.IsDelivered == null || m.IsDelivered == false))
                     .ToListAsync();
 
                 if (undeliveredMessages.Any())
