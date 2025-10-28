@@ -518,17 +518,26 @@ const stopRecording = () => {
           { headers: { Authorization: `Bearer ${Cookies.get("token")}` } }
         );
         
-        console.log("📩 Fetched messages:", response.data);
-        setMessages(response.data || []);
-        setIsInitialLoad(true); // Reset initial load for new conversation
+        console.log("📩 Fetched messages from API:", response.data.length, "messages");
         
-        // Scroll to bottom after fetching messages
-        setTimeout(() => {
-          scrollToBottom(false);
-        }, 100);
+        // Prevent duplicate messages by checking IDs
+        setMessages((prev) => {
+          const newMessages = response.data || [];
+          const prevMessageIds = new Set(prev.map(m => m.id));
+          const uniqueNewMessages = newMessages.filter(msg => !prevMessageIds.has(msg.id));
+          
+          if (uniqueNewMessages.length > 0) {
+            console.log("📩 Adding", uniqueNewMessages.length, "new messages");
+            setTimeout(() => scrollToBottom(true), 100);
+          }
+          
+          return newMessages; // Always use the latest from API
+        });
+        
+        setIsInitialLoad(true); // Reset initial load for new conversation
       } catch (err) {
         console.error("Error fetching messages:", err);
-        setMessages([]);
+        // Don't set empty array, keep existing messages
       }
     };
     
