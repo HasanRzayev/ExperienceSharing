@@ -493,8 +493,14 @@ const stopRecording = () => {
           { headers: { Authorization: `Bearer ${Cookies.get("token")}` } }
         );
         
+        console.log("📩 Fetched messages:", response.data);
         setMessages(response.data || []);
         setIsInitialLoad(true); // Reset initial load for new conversation
+        
+        // Scroll to bottom after fetching messages
+        setTimeout(() => {
+          scrollToBottom(false);
+        }, 100);
       } catch (err) {
         console.error("Error fetching messages:", err);
         setMessages([]);
@@ -503,6 +509,13 @@ const stopRecording = () => {
     
     // Fetch messages when user is selected
     fetchMessages();
+    
+    // Also set up interval to periodically fetch new messages
+    const intervalId = setInterval(() => {
+      fetchMessages();
+    }, 5000); // Fetch every 5 seconds
+    
+    return () => clearInterval(intervalId);
   }, [selectedUser]);
 
   const uploadFileToServer = async (formData) => {
