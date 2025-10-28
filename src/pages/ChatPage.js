@@ -511,12 +511,15 @@ const stopRecording = () => {
     fetchMessages();
     
     // Also set up interval to periodically fetch new messages
+    // Only fetch if connection is not active
     const intervalId = setInterval(() => {
-      fetchMessages();
+      if (!connection || connection.state !== "Connected") {
+        fetchMessages();
+      }
     }, 5000); // Fetch every 5 seconds
     
     return () => clearInterval(intervalId);
-  }, [selectedUser]);
+  }, [selectedUser, connection]);
 
   const uploadFileToServer = async (formData) => {
     try {
