@@ -396,16 +396,23 @@ const stopRecording = () => {
   }, []);
 
   useEffect(() => {
+    console.log("🔄 Setting up SignalR connection...");
     const signalRUrl = process.env.REACT_APP_SIGNALR_HUB_URL || 'https://experiencesharingbackend.runasp.net/api/hubs/message';
-    console.log("SignalR URL:", signalRUrl);
+    console.log("🔗 SignalR URL:", signalRUrl);
+    console.log("🔐 Token available:", !!Cookies.get("token"));
     
     const newConnection = new HubConnectionBuilder()
       .withUrl(signalRUrl, {
-        accessTokenFactory: () => Cookies.get("token")
+        accessTokenFactory: () => {
+          const token = Cookies.get("token");
+          console.log("📤 Sending token:", !!token);
+          return token;
+        }
       })
       .withAutomaticReconnect()
       .build();
 
+    console.log("🚀 Starting SignalR connection...");
     newConnection
       .start()
       .then(() => {
@@ -416,10 +423,12 @@ const stopRecording = () => {
       })
       .catch((err) => {
         console.error("❌ Connection failed: ", err);
+        console.error("Error name:", err.name);
+        console.error("Error message:", err.message);
         console.error("Error details:", JSON.stringify(err, null, 2));
         // Retry for other errors
         setTimeout(() => {
-          console.log("🔄 Retrying SignalR connection...");
+          console.log("🔄 Retrying SignalR connection in 5 seconds...");
           newConnection.start();
         }, 5000);
       });
