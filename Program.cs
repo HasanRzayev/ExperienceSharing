@@ -78,22 +78,15 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddHttpContextAccessor();
 
-// CORS Configuration
+// CORS Configuration - Allow all origins for production flexibility
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
         policy =>
         {
-            policy.WithOrigins(
-                    "http://localhost:3000",
-                    "https://localhost:3000",
-                    "https://experience-sharing.vercel.app",
-                    "https://experiencesharingbackend.runasp.net"
-                   )
+            policy.AllowAnyOrigin()
                    .AllowAnyHeader()
-                   .AllowAnyMethod()
-                   .AllowCredentials()
-                   .SetIsOriginAllowedToAllowWildcardSubdomains();
+                   .AllowAnyMethod();
         });
 });
 
