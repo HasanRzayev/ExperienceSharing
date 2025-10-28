@@ -8,7 +8,7 @@ namespace ExperienceProject.Models
         public int Id { get; set; }
 
         [Required]
-        public string Content { get; set; }  // M?cburi deyil, çünki media mesajlar?nda bo? ola bil?r.
+        public string Content { get; set; }  // M?cburi deyil, nki media mesajlar?nda bo? ola bil?r.
 
         [Required]
         public DateTime Timestamp { get; set; }
@@ -21,8 +21,13 @@ namespace ExperienceProject.Models
         public int ReceiverId { get; set; }
         public User Receiver { get; set; }
 
-        public string? MediaUrl { get; set; }  // ??kil, s?s, musiqi fayllar? üçün link
+        public string? MediaUrl { get; set; }  // ??kil, s?s, musiqi fayllar? n link
         public string? MediaType { get; set; } // "image", "audio", "video" v? s.
+        
+        // Read receipt fields
+        public bool IsDelivered { get; set; } = false;
+        public bool IsRead { get; set; } = false;
+        public DateTime? ReadAt { get; set; }
     }
 
 }
