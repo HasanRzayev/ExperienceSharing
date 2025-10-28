@@ -450,28 +450,6 @@ const stopRecording = () => {
       });
     });
 
-    // Handle messages read event
-    newConnection.on("MessagesRead", (data) => {
-      console.log("📖 Messages marked as read:", data);
-      // Update messages in state to show as read
-      setMessages((prev) => 
-        prev.map(msg => 
-          msg.senderId === user?.id && !msg.isRead ? { ...msg, isRead: true } : msg
-        )
-      );
-    });
-
-    // Handle single message read event
-    newConnection.on("MessageRead", (data) => {
-      console.log("📖 Message marked as read:", data);
-      // Update specific message in state to show as read
-      setMessages((prev) => 
-        prev.map(msg => 
-          msg.id === data.messageId ? { ...msg, isRead: true, readAt: data.readAt } : msg
-        )
-      );
-    });
-
     // Handle message sent confirmation
     newConnection.on("messageSent", (messageData) => {
       console.log("Message sent confirmation:", messageData);
@@ -525,26 +503,7 @@ const stopRecording = () => {
     
     // Fetch messages when user is selected
     fetchMessages();
-
-    // Mark messages as read when conversation is opened
-    const markMessagesAsRead = async () => {
-      if (connection && connection.state === "Connected" && selectedUser && selectedUser.id) {
-        try {
-          console.log("Marking messages as read for sender:", selectedUser.id);
-          await connection.invoke("MarkMessagesAsRead", selectedUser.id);
-        } catch (error) {
-          console.error("Error marking messages as read:", error);
-        }
-      }
-    };
-
-    // Small delay to ensure messages are loaded
-    const timer = setTimeout(() => {
-      markMessagesAsRead();
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [selectedUser, connection]);
+  }, [selectedUser]);
 
   const uploadFileToServer = async (formData) => {
     try {
@@ -936,27 +895,15 @@ const filteredUsers = users.filter(user =>
                       )}
                       {msg.content && <p className="break-words">{msg.content}</p>}
                       
-                      {/* Timestamp and Read Receipt */}
-                      <div className={`flex items-center justify-between mt-2 ${isMyMessage ? "text-blue-100" : "text-gray-400"}`}>
-                        <span className="text-xs">
-                          {msg.timestamp && new Date(msg.timestamp).toLocaleTimeString('az-AZ', { 
+                      {/* Timestamp */}
+                      {msg.timestamp && (
+                        <div className={`text-xs mt-2 ${isMyMessage ? "text-blue-100" : "text-gray-400"}`}>
+                          {new Date(msg.timestamp).toLocaleTimeString('az-AZ', { 
                             hour: '2-digit', 
                             minute: '2-digit' 
                           })}
-                        </span>
-                        {/* Read receipt icons */}
-                        {isMyMessage && (
-                          <span className="text-xs ml-2">
-                            {msg.isRead ? (
-                              <span className="text-blue-500">✓✓</span> // Read - Blue double checkmarks
-                            ) : msg.isDelivered ? (
-                              <span className="text-gray-400">✓✓</span> // Delivered - Gray double checkmarks
-                            ) : (
-                              <span className="text-gray-400">✓</span> // Sent - Single checkmark
-                            )}
-                          </span>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
