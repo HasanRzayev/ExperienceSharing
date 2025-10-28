@@ -504,57 +504,55 @@ const stopRecording = () => {
   useEffect(() => {
     if (!selectedUser) return;
     
+    let isActive = true;
+    
     const fetchMessages = async () => {
-      console.log("Fetching messages for user:", selectedUser.id);
-      
       if (!selectedUser.id) {
         console.error("Selected user ID is undefined");
         return;
       }
     
       try {
+        console.log("📡 Fetching messages from API for user:", selectedUser.id);
         const response = await axios.get(
           `${process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api'}/Messages/conversation/${selectedUser.id}`, 
           { headers: { Authorization: `Bearer ${Cookies.get("token")}` } }
         );
         
-        console.log("📩 Fetched messages from API:", response.data.length, "messages");
+        if (!isActive) return; // Component unmounted, don't update state
         
-        // Prevent duplicate messages by checking IDs
-        setMessages((prev) => {
-          const newMessages = response.data || [];
-          const prevMessageIds = new Set(prev.map(m => m.id));
-          const uniqueNewMessages = newMessages.filter(msg => !prevMessageIds.has(msg.id));
-          
-          if (uniqueNewMessages.length > 0) {
-            console.log("📩 Adding", uniqueNewMessages.length, "new messages");
-            setTimeout(() => scrollToBottom(true), 100);
-          }
-          
-          return newMessages; // Always use the latest from API
-        });
+        console.log("📩 Received", response.data.length, "messages from API");
         
-        setIsInitialLoad(true); // Reset initial load for new conversation
+        // Always update messages with fresh data from API
+        setMessages(response.data || []);
+        
+        if (!isInitialLoad) {
+          // Only scroll if not initial load
+          setTimeout(() => scrollToBottom(true), 100);
+        }
+        
+        setIsInitialLoad(false);
       } catch (err) {
-        console.error("Error fetching messages:", err);
-        // Don't set empty array, keep existing messages
+        console.error("❌ Error fetching messages:", err);
       }
     };
     
-    // Fetch messages when user is selected
+    // Initial fetch
     fetchMessages();
     
-    // Always poll for new messages every 5 seconds to ensure real-time updates
+    // Poll every 3 seconds for new messages
     const intervalId = setInterval(() => {
-      console.log("🔄 Polling for new messages...");
-      fetchMessages();
-    }, 5000); // Fetch every 5 seconds
+      if (isActive) {
+        fetchMessages();
+      }
+    }, 3000); // Fetch every 3 seconds
     
     return () => {
+      isActive = false;
       console.log("🧹 Cleaning up message polling interval");
       clearInterval(intervalId);
     };
-  }, [selectedUser, connection]);
+  }, [selectedUser]);
 
   const uploadFileToServer = async (formData) => {
     try {
