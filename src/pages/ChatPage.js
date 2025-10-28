@@ -410,17 +410,16 @@ const stopRecording = () => {
       .start()
       .then(() => {
         console.log("✅ Connected to SignalR");
+        console.log("SignalR State:", newConnection.state);
+        console.log("SignalR ConnectionId:", newConnection.connectionId);
         setConnection(newConnection);
       })
       .catch((err) => {
         console.error("❌ Connection failed: ", err);
-        // Stop connection attempt if backend is not running
-        if (err.message.includes("404") || err.message.includes("Not Found") || err.message.includes("Failed to fetch")) {
-          console.log("🔴 Backend SignalR endpoint not found. Make sure backend server is running.");
-          return;
-        }
+        console.error("Error details:", JSON.stringify(err, null, 2));
         // Retry for other errors
         setTimeout(() => {
+          console.log("🔄 Retrying SignalR connection...");
           newConnection.start();
         }, 5000);
       });
@@ -449,6 +448,12 @@ const stopRecording = () => {
         }
         
         console.log("📨 Adding new message to chat");
+        
+        // Scroll to bottom when new message arrives
+        setTimeout(() => {
+          scrollToBottom(true);
+        }, 100);
+        
         return [...prev, messageData];
       });
     });
@@ -626,10 +631,20 @@ const stopRecording = () => {
 
     try {
         // Check connection status again
+        console.log("Connection state before send:", connection.state);
+        
         if (connection.state === "Connected") {
           console.log("🚀 Sending message via SignalR:", messageData);
           await connection.invoke("SendMessage", messageData);
-          console.log("✅ Message sent successfully:", messageData);
+          console.log("✅ Message sent successfully via SignalR");
+
+          // Add message to local state immediately for instant feedback
+          setMessages((prev) => [...prev, {
+            ...messageData,
+            senderName: user?.firstName || user?.userName || 'You',
+            senderProfileImage: user?.profileImage,
+            timestamp: messageData.timestamp
+          }]);
 
           // Clear input fields after sending
           setNewMessage(""); // Clear input after sending message
