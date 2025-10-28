@@ -318,6 +318,20 @@ const ChatPageV2 = () => {
           },
           { headers: { Authorization: `Bearer ${token}` } }
         );
+        // Optimistic UI update for instant feedback
+        setMessages(prev => [
+          ...prev,
+          {
+            id: `temp-${Date.now()}`,
+            senderId: user?.id,
+            receiverId: selectedChat.id,
+            content: newMessage.trim(),
+            mediaUrl: fileUrl,
+            mediaType: mediaType,
+            timestamp: new Date().toISOString()
+          }
+        ]);
+        // Fetch latest from server
         fetchUserMessages(selectedChat.id);
       } else if (chatType === 'group') {
         await axios.post(
@@ -329,6 +343,18 @@ const ChatPageV2 = () => {
           },
           { headers: { Authorization: `Bearer ${token}` } }
         );
+        // Optimistic UI update for group as well
+        setMessages(prev => [
+          ...prev,
+          {
+            id: `temp-${Date.now()}`,
+            sender: { id: user?.id, userName: user?.userName, profileImage: user?.profileImage },
+            content: newMessage.trim(),
+            mediaUrl: fileUrl,
+            mediaType: mediaType,
+            timestamp: new Date().toISOString()
+          }
+        ]);
         fetchGroupMessages(selectedChat.id);
       }
       
@@ -348,6 +374,19 @@ const ChatPageV2 = () => {
       }
     }
   };
+
+  // Polling to keep messages in sync (works even if SignalR is unavailable)
+  useEffect(() => {
+    if (!selectedChat) return;
+    const intervalId = setInterval(() => {
+      if (chatType === 'user') {
+        fetchUserMessages(selectedChat.id);
+      } else if (chatType === 'group') {
+        fetchGroupMessages(selectedChat.id);
+      }
+    }, 3000);
+    return () => clearInterval(intervalId);
+  }, [selectedChat, chatType]);
 
   const handleCreateGroup = async (e) => {
     e.preventDefault();
@@ -1018,9 +1057,10 @@ const ChatPageV2 = () => {
                       </div>
                     ) : (
                       messages.map((msg, index) => {
-                        const isOwnMessage = chatType === 'user' 
-                          ? msg.senderId !== selectedChat.id
-                          : msg.sender?.id !== selectedChat.id; // For groups, check sender
+                        // Determine if message is from current user
+                        const isOwnMessage = chatType === 'user'
+                          ? String(msg.senderId) === String(user?.id)
+                          : String(msg.sender?.id) === String(user?.id);
 
                         return (
                           <div
