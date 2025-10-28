@@ -488,10 +488,18 @@ const stopRecording = () => {
 
     return () => {
       if (newConnection) {
+        console.log("🧹 Cleaning up SignalR connection");
         newConnection.stop();
       }
     };
   }, []);
+
+  // Log when selectedUser changes
+  useEffect(() => {
+    console.log("Selected user changed:", selectedUser);
+    console.log("Current user:", user);
+    console.log("Connection state:", connection?.state);
+  }, [selectedUser, user, connection]);
 
   useEffect(() => {
     if (!selectedUser) return;
