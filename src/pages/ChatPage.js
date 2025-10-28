@@ -535,15 +535,16 @@ const stopRecording = () => {
     // Fetch messages when user is selected
     fetchMessages();
     
-    // Also set up interval to periodically fetch new messages
-    // Only fetch if connection is not active
+    // Always poll for new messages every 5 seconds to ensure real-time updates
     const intervalId = setInterval(() => {
-      if (!connection || connection.state !== "Connected") {
-        fetchMessages();
-      }
+      console.log("🔄 Polling for new messages...");
+      fetchMessages();
     }, 5000); // Fetch every 5 seconds
     
-    return () => clearInterval(intervalId);
+    return () => {
+      console.log("🧹 Cleaning up message polling interval");
+      clearInterval(intervalId);
+    };
   }, [selectedUser, connection]);
 
   const uploadFileToServer = async (formData) => {
