@@ -396,8 +396,11 @@ const stopRecording = () => {
   }, []);
 
   useEffect(() => {
+    const signalRUrl = process.env.REACT_APP_SIGNALR_HUB_URL || 'https://experiencesharingbackend.runasp.net/api/hubs/message';
+    console.log("SignalR URL:", signalRUrl);
+    
     const newConnection = new HubConnectionBuilder()
-      .withUrl(process.env.REACT_APP_SIGNALR_HUB_URL, {
+      .withUrl(signalRUrl, {
         accessTokenFactory: () => Cookies.get("token")
       })
       .withAutomaticReconnect()
