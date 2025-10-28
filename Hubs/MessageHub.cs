@@ -151,9 +151,7 @@ namespace ExperienceProject.Hubs
                     Content = message.Content,
                     MediaUrl = message.MediaUrl,
                     MediaType = message.MediaType,
-                    Timestamp = DateTime.UtcNow,
-                    IsDelivered = null,
-                    IsRead = null
+                    Timestamp = DateTime.UtcNow
                 };
 
                 _context.Messages.Add(newMessage);
@@ -163,12 +161,6 @@ namespace ExperienceProject.Hubs
                 if (_userConnections.TryGetValue(message.ReceiverId, out var receiverConnectionId))
                 {
                     Console.WriteLine($"✅ Sending message to Receiver {message.ReceiverId} with ConnectionId: {receiverConnectionId}");
-                    
-                    // Mark as delivered since receiver is online
-                    newMessage.IsDelivered = true;
-                    newMessage.IsRead = false;
-                    await _context.SaveChangesAsync();
-                    
                     await Clients.Client(receiverConnectionId).SendAsync("ReceiveMessage", newMessage);
                 }
 
@@ -185,115 +177,6 @@ namespace ExperienceProject.Hubs
                 Console.WriteLine($"❌ Error in SendMessage: {ex.Message}");
                 // Xətanı frontend-ə göndəririk
                 await Clients.Caller.SendAsync("ErrorMessage", $"Error in SendMessage: {ex.Message}");
-            }
-        }
-
-        public async Task MarkMessagesAsRead(int senderId)
-        {
-            try
-            {
-                var userId = GetUserId();
-                if (!userId.HasValue)
-                {
-                    await Clients.Caller.SendAsync("ErrorMessage", "User ID not found.");
-                    return;
-                }
-
-                // Find all unread messages from this sender to current user
-                var unreadMessages = await _context.Messages
-                    .Where(m => m.SenderId == senderId && m.ReceiverId == userId.Value && (m.IsRead == null || m.IsRead == false))
-                    .ToListAsync();
-
-                if (unreadMessages.Any())
-                {
-                    foreach (var msg in unreadMessages)
-                    {
-                        msg.IsRead = true;
-                        msg.ReadAt = DateTime.UtcNow;
-                    }
-
-                    await _context.SaveChangesAsync();
-
-                    // Notify sender that messages were read
-                    if (_userConnections.TryGetValue(senderId, out var senderConnectionId))
-                    {
-                        await Clients.Client(senderConnectionId).SendAsync("MessagesRead", new
-                        {
-                            ReceiverId = userId.Value,
-                            ReadAt = DateTime.UtcNow
-                        });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error in MarkMessagesAsRead: {ex.Message}");
-            }
-        }
-
-        public async Task MarkMessageAsRead(int messageId)
-        {
-            try
-            {
-                var userId = GetUserId();
-                if (!userId.HasValue)
-                {
-                    await Clients.Caller.SendAsync("ErrorMessage", "User ID not found.");
-                    return;
-                }
-
-                var message = await _context.Messages.FindAsync(messageId);
-                if (message != null && message.ReceiverId == userId.Value && (message.IsRead == null || message.IsRead == false))
-                {
-                    message.IsRead = true;
-                    message.ReadAt = DateTime.UtcNow;
-                    await _context.SaveChangesAsync();
-
-                    // Notify sender
-                    if (_userConnections.TryGetValue(message.SenderId, out var senderConnectionId))
-                    {
-                        await Clients.Client(senderConnectionId).SendAsync("MessageRead", new
-                        {
-                            MessageId = messageId,
-                            ReadAt = message.ReadAt
-                        });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error in MarkMessageAsRead: {ex.Message}");
-            }
-        }
-
-        public async Task MarkConversationAsDelivered(int receiverId)
-        {
-            try
-            {
-                var userId = GetUserId();
-                if (!userId.HasValue)
-                {
-                    return;
-                }
-
-                // Find all undelivered messages to this user from current user
-                var undeliveredMessages = await _context.Messages
-                    .Where(m => m.SenderId == userId.Value && m.ReceiverId == receiverId && (m.IsDelivered == null || m.IsDelivered == false))
-                    .ToListAsync();
-
-                if (undeliveredMessages.Any())
-                {
-                    foreach (var msg in undeliveredMessages)
-                    {
-                        msg.IsDelivered = true;
-                    }
-
-                    await _context.SaveChangesAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error in MarkConversationAsDelivered: {ex.Message}");
             }
         }
 

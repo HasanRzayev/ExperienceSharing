@@ -318,9 +318,6 @@ public class MessagesController : ControllerBase
                 Timestamp = m.Timestamp,
                 SenderId = m.SenderId,
                 ReceiverId = m.ReceiverId,
-                IsDelivered = m.IsDelivered,
-                IsRead = m.IsRead,
-                ReadAt = m.ReadAt,
                 IsFromCurrentUser = m.SenderId == userId,
                 Sender = new
                 {
@@ -403,9 +400,7 @@ public class MessagesController : ControllerBase
             Content = messageDto.Content,
             MediaUrl = messageDto.MediaUrl,
             MediaType = messageDto.MediaType,
-            Timestamp = DateTime.UtcNow,
-            IsDelivered = null,
-            IsRead = null
+            Timestamp = DateTime.UtcNow
         };
 
         if (ModelState.IsValid)

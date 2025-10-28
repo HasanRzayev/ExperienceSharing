@@ -10,8 +10,5 @@ namespace Experience.Dto
         public string? MediaUrl { get; set; }  // Fayl linki burda saxlanır
         public string? MediaType { get; set; } // Məsələn: "image/png", "video/mp4"
         public DateTime Timestamp { get; set; }
-        public bool? IsDelivered { get; set; }
-        public bool? IsRead { get; set; }
-        public DateTime? ReadAt { get; set; }
     }
 }
