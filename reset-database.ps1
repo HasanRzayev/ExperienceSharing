@@ -51,10 +51,12 @@ Write-Host ""
 Write-Host "📊 Expected Data:" -ForegroundColor Cyan
 Write-Host "   - 50 Users (including admin)" -ForegroundColor White
 Write-Host "   - 30-60 Experiences from 30 real destinations" -ForegroundColor White
+Write-Host "   - Some experiences with videos (30% chance)" -ForegroundColor Yellow
 Write-Host "   - 40 Travel Tags" -ForegroundColor White
 Write-Host "   - 100+ Comments with replies" -ForegroundColor White
 Write-Host "   - Realistic Likes, Follows, Notifications" -ForegroundColor White
 Write-Host "   - Message conversations" -ForegroundColor White
+Write-Host "   - Default Stories/Statuses (images & videos)" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "🔐 Admin Login:" -ForegroundColor Yellow
 Write-Host "   Email: admin@wanderly.com" -ForegroundColor White

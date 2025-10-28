@@ -152,8 +152,8 @@ namespace ExperienceProject.Hubs
                     MediaUrl = message.MediaUrl,
                     MediaType = message.MediaType,
                     Timestamp = DateTime.UtcNow,
-                    IsDelivered = false,
-                    IsRead = false
+                    IsDelivered = null,
+                    IsRead = null
                 };
 
                 _context.Messages.Add(newMessage);
@@ -166,6 +166,7 @@ namespace ExperienceProject.Hubs
                     
                     // Mark as delivered since receiver is online
                     newMessage.IsDelivered = true;
+                    newMessage.IsRead = false;
                     await _context.SaveChangesAsync();
                     
                     await Clients.Client(receiverConnectionId).SendAsync("ReceiveMessage", newMessage);

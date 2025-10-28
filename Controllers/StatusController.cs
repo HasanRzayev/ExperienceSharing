@@ -123,6 +123,45 @@ namespace ExperienceProject.Controllers
             });
         }
 
+        // GET: api/Status/user/{userId} - Get all statuses for a specific user
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult<IEnumerable<StatusResponseDto>>> GetStatusesByUser(int userId)
+        {
+            var currentUserId = GetUserIdFromToken();
+            var now = DateTime.UtcNow;
+
+            var statuses = await _context.Statuses
+                .Where(s => s.UserId == userId && s.ExpiresAt > now)
+                .Include(s => s.User)
+                .Include(s => s.Views)
+                .OrderByDescending(s => s.CreatedAt)
+                .ToListAsync();
+
+            var result = statuses.Select(s => new StatusResponseDto
+            {
+                Id = s.Id,
+                UserId = s.UserId,
+                Text = s.Text,
+                ImageUrl = s.ImageUrl,
+                VideoUrl = s.VideoUrl,
+                ThumbnailUrl = s.ThumbnailUrl,
+                CreatedAt = s.CreatedAt,
+                ExpiresAt = s.ExpiresAt,
+                User = s.User != null ? new UserResponseDto
+                {
+                    Id = s.User.Id,
+                    FirstName = s.User.FirstName,
+                    LastName = s.User.LastName,
+                    ProfileImage = s.User.ProfileImage,
+                    UserName = s.User.UserName
+                } : null,
+                ViewCount = s.Views?.Count ?? 0,
+                IsViewed = currentUserId.HasValue && s.Views != null && s.Views.Any(v => v.UserId == currentUserId.Value)
+            }).ToList();
+
+            return Ok(result);
+        }
+
         // POST: api/Status
         [HttpPost]
         public async Task<ActionResult<StatusResponseDto>> CreateStatus([FromForm] IFormFile? Image, [FromForm] IFormFile? Video, [FromForm] string? Text)

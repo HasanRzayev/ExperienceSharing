@@ -24,9 +24,9 @@ namespace ExperienceProject.Models
         public string? MediaUrl { get; set; }  // ??kil, s?s, musiqi fayllar? n link
         public string? MediaType { get; set; } // "image", "audio", "video" v? s.
         
-        // Read receipt fields
-        public bool IsDelivered { get; set; } = false;
-        public bool IsRead { get; set; } = false;
+        // Read receipt fields - temporarily made nullable for backward compatibility
+        public bool? IsDelivered { get; set; }
+        public bool? IsRead { get; set; }
         public DateTime? ReadAt { get; set; }
     }
 

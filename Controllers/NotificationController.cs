@@ -1,130 +1,221 @@
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using ExperienceProject.Data;
-using ExperienceProject.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ExperienceProject.Data;
+using ExperienceProject.Models;
+using Experience.Models;
+using System.Security.Claims;
 
 namespace ExperienceProject.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class NotificationsController : ControllerBase
+    [Route("api/[controller]")]
+    [Authorize]
+    public class NotificationController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
-        public NotificationsController(ApplicationDbContext context)
+        public NotificationController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-   [HttpGet]
-public async Task<ActionResult<IEnumerable<Notification>>> GetNotifications()
-{
-    var userId = GetUserIdFromToken();
-    if (userId == null)
-    {
-        return Unauthorized(new { message = "User ID not found in token" });
-    }
-
-    var notifications = await _context.Notifications
-        .Where(n => n.UserId == userId && !n.IsRead)
-        .ToListAsync();
-
-    return Ok(notifications);
-}
-
-        [HttpPost("{id}/respond")]
-        public async Task<IActionResult> RespondToNotification(int id, [FromBody] FollowRequestResponse response)
+        // Get all notifications for the current user
+        [HttpGet]
+        public async Task<IActionResult> GetNotifications()
         {
-            var userId = GetUserIdFromToken();
-            if (userId == null)
+            try
             {
-                return Unauthorized(new { message = "User ID not found in token" });
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                
+                var notifications = await _context.Notifications
+                    .Where(n => n.UserId == userId)
+                    .OrderByDescending(n => n.CreatedAt)
+                    .Take(50)
+                    .Select(n => new
+                    {
+                        id = n.Id,
+                        type = n.Type,
+                        message = n.Message,
+                        fromUser = n.FromUser != null ? new
+                        {
+                            id = n.FromUser.Id,
+                            userName = n.FromUser.UserName,
+                            firstName = n.FromUser.FirstName,
+                            lastName = n.FromUser.LastName,
+                            profileImage = n.FromUser.ProfileImage
+                        } : null,
+                        experienceId = n.ExperienceId,
+                        commentId = n.CommentId,
+                        statusId = n.StatusId,
+                        isRead = n.IsRead,
+                        createdAt = n.CreatedAt
+                    })
+                    .ToListAsync();
+
+                return Ok(notifications);
             }
-
-            // Debug için log ekleyelim
-            Console.WriteLine($"RespondToNotification called with id: {id}, userId: {userId}");
-
-            var followRequest = await _context.FollowRequests
-                .FirstOrDefaultAsync(fr => fr.Id == id && fr.FollowedId == userId.Value);
-
-            if (followRequest == null)
+            catch (Exception ex)
             {
-                return NotFound(new { message = $"Follow request not found for id {id} and followed user {userId.Value}" });
+                return StatusCode(500, new { message = "Error getting notifications", error = ex.Message });
             }
+        }
 
-            if (response.IsAccepted)
+        // Mark notification as read
+        [HttpPut("{id}/read")]
+        public async Task<IActionResult> MarkAsRead(int id)
+        {
+            try
             {
-                var follow = new Follow
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                
+                var notification = await _context.Notifications
+                    .FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId);
+
+                if (notification == null)
                 {
-                    FollowerId = followRequest.FollowerId,
-                    FollowedId = userId.Value
-                };
+                    return NotFound(new { message = "Notification not found" });
+                }
 
-                _context.Follows.Add(follow);
+                notification.IsRead = true;
+                await _context.SaveChangesAsync();
 
-                var followedUserName = await GetUserNameAsync(userId.Value);
+                return Ok(new { message = "Notification marked as read" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error updating notification", error = ex.Message });
+            }
+        }
+
+        // Mark all notifications as read
+        [HttpPut("read-all")]
+        public async Task<IActionResult> MarkAllAsRead()
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                
+                var notifications = await _context.Notifications
+                    .Where(n => n.UserId == userId && !n.IsRead)
+                    .ToListAsync();
+
+                foreach (var notification in notifications)
+                {
+                    notification.IsRead = true;
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "All notifications marked as read" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error updating notifications", error = ex.Message });
+            }
+        }
+
+        // Create notification
+        [HttpPost]
+        public async Task<IActionResult> CreateNotificationEndpoint([FromBody] NotificationRequest request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return BadRequest(new { message = "Request body is null" });
+                }
+
+                if (request.UserId == 0)
+                {
+                    return BadRequest(new { message = "UserId is required" });
+                }
+
+                if (string.IsNullOrEmpty(request.Type))
+                {
+                    return BadRequest(new { message = "Type is required" });
+                }
+
+                if (string.IsNullOrEmpty(request.Message))
+                {
+                    return BadRequest(new { message = "Message is required" });
+                }
 
                 var notification = new Notification
                 {
-                    UserId = followRequest.FollowerId,
-                    Type = "Follow Request Accepted",
-                    Content = $"{followedUserName} accepted your follow request.",
-                    IsRead = false
+                    UserId = request.UserId,
+                    Type = request.Type,
+                    Message = request.Message,
+                    FromUserId = request.FromUserId,
+                    ExperienceId = request.ExperienceId,
+                    CommentId = request.CommentId,
+                    StatusId = request.StatusId,
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 _context.Notifications.Add(notification);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { id = notification.Id, message = "Notification created successfully" });
             }
-
-            _context.FollowRequests.Remove(followRequest);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Follow request processed successfully" });
-        }
-
-        private async Task<string> GetUserNameAsync(int userId)
-{
-    var user = await _context.Users.FindAsync(userId);
-    return user?.UserName ?? "Unknown";
-}
-
-        [HttpPost("{id}/markAsRead")]
-        public async Task<IActionResult> MarkAsRead(int id)
-        {
-            var notification = await _context.Notifications.FindAsync(id);
-
-            if (notification == null)
+            catch (Exception ex)
             {
-                return NotFound();
+                Console.WriteLine($"Error creating notification: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"InnerException: {ex.InnerException.Message}");
+                }
+                
+                // Eger database səhvi varsa, sadəcə log və return ok (notification optional-dir)
+                if (ex.Message.Contains("Geçersiz") || ex.Message.Contains("Invalid"))
+                {
+                    Console.WriteLine("Notification table structure mismatch - skipping notification creation");
+                    return Ok(new { message = "Notification skipped due to database structure mismatch" });
+                }
+                
+                return StatusCode(500, new { message = "Error creating notification", error = ex.Message, details = ex.ToString() });
             }
-
-            notification.IsRead = true;
-            await _context.SaveChangesAsync();
-
-            return Ok();
         }
 
-        private int? GetUserIdFromToken()
+        // Create notification (helper method)
+        public static async Task CreateNotification(
+            ApplicationDbContext context,
+            int toUserId,
+            string type,
+            string message,
+            int? fromUserId = null,
+            int? experienceId = null,
+            int? commentId = null,
+            int? statusId = null)
         {
-            var authHeader = Request.Headers["Authorization"].ToString();
-            var token = authHeader.Replace("Bearer ", "");
-
-            var handler = new JwtSecurityTokenHandler();
-            var jwtToken = handler.ReadJwtToken(token);
-            var userIdClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;
-
-            if (int.TryParse(userIdClaim, out var userId))
+            var notification = new Notification
             {
-                return userId;
-            }
+                UserId = toUserId,
+                Type = type,
+                Message = message,
+                FromUserId = fromUserId,
+                ExperienceId = experienceId,
+                CommentId = commentId,
+                StatusId = statusId,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
 
-            return null;
+            context.Notifications.Add(notification);
+            await context.SaveChangesAsync();
         }
+    }
+
+    public class NotificationRequest
+    {
+        public int UserId { get; set; }
+        public string Type { get; set; }
+        public string Message { get; set; }
+        public int? FromUserId { get; set; }
+        public int? ExperienceId { get; set; }
+        public int? CommentId { get; set; }
+        public int? StatusId { get; set; }
     }
 }

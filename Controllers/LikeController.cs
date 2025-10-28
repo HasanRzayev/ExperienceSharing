@@ -53,12 +53,15 @@ namespace ExperienceProject.Controllers
                 var like = new Like { UserId = userId.Value, ExperienceId = id };
                 _context.Likes.Add(like);
 
+                var user = await _context.Users.FindAsync(userId.Value);
                 var notification = new Notification
                 {
                     UserId = experience.UserId,
-                    Type = "Like",
-                    Content = $"Deneyiminiz '{experience.Title}' {userId.Value} tarafından beğenildi.",
-                    Date = DateTime.Now
+                    Type = "like",
+                    Message = $"{user?.FirstName} {user?.LastName} liked your experience '{experience.Title}'",
+                    FromUserId = userId.Value,
+                    ExperienceId = id,
+                    CreatedAt = DateTime.UtcNow
                 };
                 _context.Notifications.Add(notification);
                 await _context.SaveChangesAsync();

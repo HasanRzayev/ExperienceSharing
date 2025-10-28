@@ -94,6 +94,39 @@ namespace ExperienceProject.Data
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.UserName)  // Burada da UserName'i kullandık
                 .IsUnique();
+            
+            // Notification konfiqurasiyası - eger tabela varsa, bu konfiqurasiya onu istifade edecek
+            modelBuilder.Entity<Notification>().ToTable("Notifications");
+            
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.FromUser)
+                .WithMany()
+                .HasForeignKey(n => n.FromUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.Experience)
+                .WithMany()
+                .HasForeignKey(n => n.ExperienceId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.Comment)
+                .WithMany()
+                .HasForeignKey(n => n.CommentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.Status)
+                .WithMany()
+                .HasForeignKey(n => n.StatusId)
+                .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Models.ExperienceModel>()
                 .HasOne(o => o.User)
                 .WithMany(i => i.Experiences)

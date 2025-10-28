@@ -753,19 +753,33 @@ namespace Experience.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("Content")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("CommentId")
+                        .HasColumnType("int");
 
-                    b.Property<DateTime>("Date")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("ExperienceId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("ExperienceModelId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("FromUserId")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Type")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
@@ -773,11 +787,19 @@ namespace Experience.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CommentId");
+
+                    b.HasIndex("ExperienceId");
+
                     b.HasIndex("ExperienceModelId");
+
+                    b.HasIndex("FromUserId");
+
+                    b.HasIndex("StatusId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("ExperienceProject.Models.RatingHelpful", b =>
@@ -1416,15 +1438,43 @@ namespace Experience.Migrations
 
             modelBuilder.Entity("ExperienceProject.Models.Notification", b =>
                 {
+                    b.HasOne("Experience.Models.Comment", "Comment")
+                        .WithMany()
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ExperienceProject.Models.ExperienceModel", "Experience")
+                        .WithMany()
+                        .HasForeignKey("ExperienceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ExperienceProject.Models.ExperienceModel", null)
                         .WithMany("Notifications")
                         .HasForeignKey("ExperienceModelId");
+
+                    b.HasOne("ExperienceProject.Models.User", "FromUser")
+                        .WithMany()
+                        .HasForeignKey("FromUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ExperienceProject.Models.Status", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ExperienceProject.Models.User", "User")
                         .WithMany("Notifications")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Comment");
+
+                    b.Navigation("Experience");
+
+                    b.Navigation("FromUser");
+
+                    b.Navigation("Status");
 
                     b.Navigation("User");
                 });

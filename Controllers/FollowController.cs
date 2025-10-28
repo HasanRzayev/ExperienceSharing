@@ -3,6 +3,7 @@ using System.Security.Claims;
 using CloudinaryDotNet;
 using ExperienceProject.Data;
 using ExperienceProject.Models;
+using Experience.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -199,8 +200,10 @@ public class FollowersController : ControllerBase
                 var notification = new Notification
                 {
                     UserId = id, // Follow g�nd?r?n istifad?�iy? notification g�nd?rilir
-                    Type = "Follow Request Accepted", // Notification tipi
-                    Content = $"{await GetUserNameAsync(userId.Value)} accepted your follow request.", // Notification m?zmunu
+                    Type = "follow",
+                    Message = $"{await GetUserNameAsync(userId.Value)} accepted your follow request.",
+                    FromUserId = userId.Value,
+                    CreatedAt = DateTime.UtcNow,
                     IsRead = false // Yeni notification oldu?u ���n oxunmam?? statusu verilir
                 };
 

@@ -13,10 +13,20 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
+// Helper class to store child comment data before parent IDs are available
+public class ChildCommentData
+{
+    public string Content { get; set; }
+    public int UserId { get; set; }
+    public int ExperienceId { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public int ParentIndex { get; set; } // Index in the parentComments list
+}
+
 public static class SeedData
 {
     private static readonly string UNSPLASH_API_KEY = "sQ7fBK2Unle8Dhb_tI5OtrtDX-sokeZIykHRkvcX-PA";
-    
+
     // Real world travel destinations with matching search terms
     private static readonly List<(string Country, string City, string SearchTerm)> DESTINATIONS = new()
     {
@@ -66,13 +76,39 @@ public static class SeedData
     public static async Task InitializeAsync(IServiceProvider serviceProvider)
     {
         using var context = new ApplicationDbContext(serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
-        
-        // Check if already seeded
-        if (await context.Users.AnyAsync())
+
+        // Check if already seeded (but allow re-seeding if needed)
+        var userCount = await context.Users.CountAsync();
+        var experiencesCount = await context.Experiences.CountAsync();
+        var commentsCount = await context.Comments.CountAsync();
+        var statusesCount = await context.Statuses.CountAsync();
+
+        Console.WriteLine($"🔍 Database status:");
+        Console.WriteLine($"   Users: {userCount}");
+        Console.WriteLine($"   Experiences: {experiencesCount}");
+        Console.WriteLine($"   Comments: {commentsCount}");
+        Console.WriteLine($"   Statuses: {statusesCount}");
+
+        // ALWAYS seed if data is incomplete
+        if (userCount >= 50 && experiencesCount >= 30 && statusesCount >= 15)
         {
             Console.WriteLine("✅ Database already seeded. Skipping...");
             return;
         }
+
+        // Delete existing data before re-seeding
+        Console.WriteLine("🔄 Clearing existing data before re-seeding...");
+        context.StatusViews.RemoveRange(await context.StatusViews.ToListAsync());
+        context.CommentReactions.RemoveRange(await context.CommentReactions.ToListAsync());
+        context.Comments.RemoveRange(await context.Comments.ToListAsync());
+        context.Likes.RemoveRange(await context.Likes.ToListAsync());
+        context.ExperienceTags.RemoveRange(await context.ExperienceTags.ToListAsync());
+        context.ExperienceImages.RemoveRange(await context.ExperienceImages.ToListAsync());
+        context.Experiences.RemoveRange(await context.Experiences.ToListAsync());
+        context.Users.RemoveRange(await context.Users.ToListAsync());
+        context.Tags.RemoveRange(await context.Tags.ToListAsync());
+        await context.SaveChangesAsync();
+        Console.WriteLine("✅ Cleared existing data");
 
         Console.WriteLine("🌱 Starting database seeding...");
 
@@ -102,20 +138,43 @@ public static class SeedData
         await context.SaveChangesAsync();
         Console.WriteLine($"✅ Created {likes.Count} likes");
 
-        // 6. Create Comments with Replies
-        var comments = CreateComments(users, experiences);
-        await context.Comments.AddRangeAsync(comments);
+        // 6. Create Comments with Replies (must do in two phases to handle foreign keys)
+        var (parentComments, childCommentsWithIndex) = CreateComments(users, experiences);
+        
+        // First save parent comments
+        await context.Comments.AddRangeAsync(parentComments);
         await context.SaveChangesAsync();
-        Console.WriteLine($"✅ Created {comments.Count} comments");
+        
+        // Now create child comments with proper parent IDs
+        var childComments = new List<Comment>();
+        for (int i = 0; i < childCommentsWithIndex.Count; i++)
+        {
+            var childWithIndex = childCommentsWithIndex[i];
+            var childComment = new Comment
+            {
+                Content = childWithIndex.Content,
+                UserId = childWithIndex.UserId,
+                ExperienceId = childWithIndex.ExperienceId,
+                CreatedAt = childWithIndex.CreatedAt,
+                ParentCommentId = parentComments[childWithIndex.ParentIndex].Id
+            };
+            childComments.Add(childComment);
+        }
+        
+        // Save child comments (replies) which reference parent comment IDs
+        await context.Comments.AddRangeAsync(childComments);
+        await context.SaveChangesAsync();
+        Console.WriteLine($"✅ Created {parentComments.Count} parent comments and {childComments.Count} reply comments");
 
         // 7. Create Comment Reactions
-        var commentReactions = CreateCommentReactions(users, comments);
+        var allComments = parentComments.Concat(childComments).ToList();
+        var commentReactions = CreateCommentReactions(users, allComments);
         await context.CommentReactions.AddRangeAsync(commentReactions);
         await context.SaveChangesAsync();
         Console.WriteLine($"✅ Created {commentReactions.Count} comment reactions");
 
         // 8. Create Notifications
-        var notifications = CreateNotifications(users, experiences, follows, likes, comments);
+        var notifications = CreateNotifications(users, experiences, follows, likes, allComments);
         await context.Notifications.AddRangeAsync(notifications);
         await context.SaveChangesAsync();
         Console.WriteLine($"✅ Created {notifications.Count} notifications");
@@ -138,13 +197,19 @@ public static class SeedData
         await context.SaveChangesAsync();
         Console.WriteLine($"✅ Created {blockedUsers.Count} blocked users");
 
+        // 12. Create Statuses (Stories) with images and videos
+        var statuses = await CreateStatuses(context, users);
+        await context.Statuses.AddRangeAsync(statuses);
+        await context.SaveChangesAsync();
+        Console.WriteLine($"✅ Created {statuses.Count} status stories");
+
         Console.WriteLine("🎉 Database seeding completed successfully!");
     }
 
     private static async Task<List<User>> CreateUsers(ApplicationDbContext context)
     {
         var users = new List<User>();
-        
+
         // Admin user
         users.Add(new User
         {
@@ -187,7 +252,7 @@ public static class SeedData
                 .RuleFor(u => u.Country, f => f.Address.Country())
                 .RuleFor(u => u.ProfileImage, f => f.Internet.Avatar())
                 .RuleFor(u => u.PasswordHash, f => HashPassword("Password123!"));
-            
+
             users.AddRange(faker.Generate(49));
         }
 
@@ -202,18 +267,26 @@ public static class SeedData
     }
 
     private static async Task<List<ExperienceModel>> CreateExperiences(
-        ApplicationDbContext context, 
-        List<User> users, 
+        ApplicationDbContext context,
+        List<User> users,
         List<Tag> tags)
     {
         var experiences = new List<ExperienceModel>();
         var random = new Random();
 
+        // Sample video URLs for experiences
+        var videoUrls = new List<string>
+        {
+            "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
+            "https://www.w3schools.com/html/mov_bbb.mp4",
+            "https://sample-videos.com/video123/mp4/480/big_buck_bunny_480p_1mb.mp4"
+        };
+
         foreach (var destination in DESTINATIONS)
         {
             // Get 2-3 images per destination
             var images = await GetImagesFromUnsplash(destination.SearchTerm, 3);
-            
+
             if (!images.Any())
             {
                 // Fallback to placeholder
@@ -225,7 +298,7 @@ public static class SeedData
             {
                 var user = users[random.Next(1, users.Count)]; // Skip admin
                 var experienceImages = images.Take(random.Next(1, 4)).Select(url => new ExperienceImage { Url = url }).ToList();
-                
+
                 var experience = new ExperienceModel
                 {
                     Title = GenerateExperienceTitle(destination.City, destination.Country),
@@ -237,6 +310,13 @@ public static class SeedData
                     ImageUrls = experienceImages,
                     ExperienceTags = SelectRelevantTags(tags, destination.City, random).ToList()
                 };
+
+                // 30% chance to add a video to the experience
+                if (random.Next(100) < 30)
+                {
+                    experience.VideoUrl = videoUrls[random.Next(videoUrls.Count)];
+                    experience.VideoThumbnail = images.FirstOrDefault() ?? "https://via.placeholder.com/400?text=Video";
+                }
 
                 experiences.Add(experience);
             }
@@ -309,9 +389,10 @@ public static class SeedData
         return likes;
     }
 
-    private static List<Comment> CreateComments(List<User> users, List<ExperienceModel> experiences)
+    private static (List<Comment> parentComments, List<ChildCommentData> childCommentsWithIndex) CreateComments(List<User> users, List<ExperienceModel> experiences)
     {
-        var comments = new List<Comment>();
+        var parentComments = new List<Comment>();
+        var childCommentsWithIndex = new List<ChildCommentData>();
         var random = new Random();
 
         var commentTexts = new List<string>
@@ -366,10 +447,11 @@ public static class SeedData
         {
             // Each experience gets 2-10 comments
             var commentCount = random.Next(2, 11);
-            
+
             for (int i = 0; i < commentCount; i++)
             {
                 var commenter = users[random.Next(users.Count)];
+                var parentIndex = parentComments.Count; // Store the index for later reference
                 var comment = new Comment
                 {
                     Content = commentTexts[random.Next(commentTexts.Count)],
@@ -378,25 +460,25 @@ public static class SeedData
                     CreatedAt = experience.Date.AddDays(random.Next(1, 30)),
                     ParentCommentId = null
                 };
-                comments.Add(comment);
+                parentComments.Add(comment);
 
                 // 30% chance of getting a reply (from experience owner)
                 if (random.Next(100) < 30)
                 {
-                    var reply = new Comment
+                    var replyData = new ChildCommentData
                     {
                         Content = replyTexts[random.Next(replyTexts.Count)],
                         UserId = experience.UserId,
                         ExperienceId = experience.Id,
                         CreatedAt = comment.CreatedAt.AddHours(random.Next(1, 48)),
-                        ParentCommentId = comment.Id
+                        ParentIndex = parentIndex // Store index of parent comment
                     };
-                    comments.Add(reply);
+                    childCommentsWithIndex.Add(replyData);
                 }
             }
         }
 
-        return comments;
+        return (parentComments, childCommentsWithIndex);
     }
 
     private static List<CommentReaction> CreateCommentReactions(List<User> users, List<Comment> comments)
@@ -444,9 +526,10 @@ public static class SeedData
             {
                 UserId = follow.FollowedId,
                 Type = "follow",
-                Content = $"{follower.FirstName} {follower.LastName} started following you",
-                IsRead = random.Next(100) < 60, // 60% read
-                Date = DateTime.UtcNow.AddDays(-random.Next(1, 30))
+                Message = $"{follower.FirstName} {follower.LastName} started following you",
+                FromUserId = follow.FollowerId,
+                IsRead = random.Next(100) < 60,
+                CreatedAt = DateTime.UtcNow.AddDays(-random.Next(1, 30))
             });
         }
 
@@ -459,9 +542,11 @@ public static class SeedData
             {
                 UserId = experience.UserId,
                 Type = "like",
-                Content = $"{liker.FirstName} {liker.LastName} liked your experience \"{experience.Title}\"",
+                Message = $"{liker.FirstName} {liker.LastName} liked your experience \"{experience.Title}\"",
+                FromUserId = like.UserId,
+                ExperienceId = experience.Id,
                 IsRead = random.Next(100) < 70,
-                Date = DateTime.UtcNow.AddDays(-random.Next(1, 30))
+                CreatedAt = DateTime.UtcNow.AddDays(-random.Next(1, 30))
             });
         }
 
@@ -476,9 +561,12 @@ public static class SeedData
                 {
                     UserId = experience.UserId,
                     Type = "comment",
-                    Content = $"{commenter.FirstName} {commenter.LastName} commented on your experience \"{experience.Title}\"",
+                    Message = $"{commenter.FirstName} {commenter.LastName} commented on your experience \"{experience.Title}\"",
+                    FromUserId = comment.UserId,
+                    ExperienceId = experience.Id,
+                    CommentId = comment.Id,
                     IsRead = random.Next(100) < 65,
-                    Date = comment.CreatedAt
+                    CreatedAt = comment.CreatedAt
                 });
             }
         }
@@ -493,7 +581,7 @@ public static class SeedData
 
         var conversations = new List<List<string>>
         {
-            new() { 
+            new() {
                 "Hey! I saw your post about Paris. Amazing photos! 📸",
                 "Thank you so much! It was an incredible trip!",
                 "How long were you there?",
@@ -615,6 +703,97 @@ public static class SeedData
         return blocked;
     }
 
+    private static Task<List<Status>> CreateStatuses(ApplicationDbContext context, List<User> users)
+    {
+        var statuses = new List<Status>();
+        var random = new Random();
+
+        // Status texts
+        var statusTexts = new List<string>
+        {
+            "Exploring the world 🌍",
+            "Just landed in an amazing place!",
+            "Feeling blessed ✨",
+            "Morning vibes ☀️",
+            "Sunset views 😍",
+            "Living the dream",
+            "Adventure time! 🎒",
+            "Making memories 📸",
+            "Beautiful day!",
+            "Traveling the world one story at a time 🌎",
+            "Another amazing destination!",
+            "Life is beautiful ❤️",
+            "Feeling grateful 🙏",
+            "Morning coffee and amazing views ☕",
+            "This place is magical ✨",
+            "Can't believe I'm here!",
+            "Best trip ever!",
+            "Living my best life",
+            "A moment to remember 🌸"
+        };
+
+        // Placeholder image URLs
+        var imageUrls = new List<string>
+        {
+            "https://source.unsplash.com/400x600/?travel,vacation",
+            "https://source.unsplash.com/400x600/?adventure,explore",
+            "https://source.unsplash.com/400x600/?nature,landscape",
+            "https://source.unsplash.com/400x600/?beach,sunset",
+            "https://source.unsplash.com/400x600/?city,travel"
+        };
+
+        // Sample video URLs
+        var videoUrls = new List<string>
+        {
+            "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
+            "https://www.w3schools.com/html/mov_bbb.mp4",
+            "https://sample-videos.com/video123/mp4/480/big_buck_bunny_480p_1mb.mp4"
+        };
+
+        // Create 2-3 statuses for 30% of users
+        var usersWithStatus = users.Where(u => u.Email != "admin@wanderly.com")
+            .OrderBy(_ => random.Next())
+            .Take(Math.Max(1, users.Count / 3));
+
+        foreach (var user in usersWithStatus)
+        {
+            var statusCount = random.Next(1, 4);
+
+            for (int i = 0; i < statusCount; i++)
+            {
+                var createdAt = DateTime.UtcNow.AddHours(-random.Next(0, 24));
+                var expiresAt = createdAt.AddHours(24);
+
+                var status = new Status
+                {
+                    UserId = user.Id,
+                    Text = statusTexts[random.Next(statusTexts.Count)],
+                    CreatedAt = createdAt,
+                    ExpiresAt = expiresAt
+                };
+
+                // 60% chance of image, 20% chance of video, 20% chance of text only
+                var typeRoll = random.Next(100);
+                if (typeRoll < 60)
+                {
+                    // Image status
+                    status.ImageUrl = imageUrls[random.Next(imageUrls.Count)];
+                }
+                else if (typeRoll < 80)
+                {
+                    // Video status
+                    status.VideoUrl = videoUrls[random.Next(videoUrls.Count)];
+                    status.ThumbnailUrl = imageUrls[random.Next(imageUrls.Count)];
+                }
+                // else: text only status
+
+                statuses.Add(status);
+            }
+        }
+
+        return Task.FromResult(statuses);
+    }
+
     // Helper Methods
     private static string HashPassword(string password)
     {
@@ -630,7 +809,7 @@ public static class SeedData
         {
             using HttpClient client = new HttpClient();
             var response = await client.GetAsync($"https://api.unsplash.com/search/photos?query={Uri.EscapeDataString(query)}&per_page={count}&client_id={UNSPLASH_API_KEY}");
-            
+
             if (response.IsSuccessStatusCode)
             {
                 var json = JObject.Parse(await response.Content.ReadAsStringAsync());
@@ -682,7 +861,7 @@ public static class SeedData
     {
         // Logic to select relevant tags based on destination
         var relevantTagNames = new List<string>();
-        
+
         if (city.Contains("Beach") || city.Contains("Phuket") || city.Contains("Cancun") || city.Contains("Bali"))
             relevantTagNames.AddRange(new[] { "Beach", "Island", "Diving", "Relaxation" });
         else if (city.Contains("Alps") || city.Contains("Banff") || city.Contains("Machu Picchu"))
