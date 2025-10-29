@@ -19,88 +19,63 @@ var builder = WebApplication.CreateBuilder(args);
 // builder.WebHost.UseUrls($"http://*:{port}");
 
 // Add services to the container.
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Add Controllers with Newtonsoft.Json for better reference handling
-builder.Services.AddControllers()
-    .AddNewtonsoftJson(options =>
-    {
-        options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-        options.SerializerSettings.Formatting = Formatting.Indented;
-    });
-
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add AuthService and JwtHelper to DI container
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<JwtHelper>();
-
-// Add HTTP Client and AI Recommendation Service
-builder.Services.AddHttpClient();
-builder.Services.AddScoped<AIRecommendationService>();
-
-// JWT Authentication
-var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        // Çoklu issuer/audience kabul et
-        ValidIssuers = new[]
-        {
-            jwtSettings["Issuer"],
-            "https://experiencesharingbackend.runasp.net"
-        },
-        ValidAudiences = new[]
-        {
-            jwtSettings["Audience"],
-            "https://experiencesharingbackend.runasp.net"
-        },
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ClockSkew = TimeSpan.FromMinutes(3)
-    };
-});
-
-builder.Services.AddHttpContextAccessor();
-
-// CORS Configuration - Allow all origins for production flexibility
+// Add CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigin",
-        policy =>
-        {
-            policy.SetIsOriginAllowed(_ => true)
-                   .AllowAnyHeader()
-                   .AllowAnyMethod()
-                   .AllowCredentials();
-        });
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
 });
 
-// Configure file upload limits
+// Add SignalR
+builder.Services.AddSignalR();
+
+// Add Entity Framework
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
+
+// Add Authorization
+builder.Services.AddAuthorization();
+
+// Add HttpContextAccessor
+builder.Services.AddHttpContextAccessor();
+
+// Add Email Service
+builder.Services.AddScoped<EmailService>();
+
+// Configure form options for file uploads
 builder.Services.Configure<FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = 104857600; // 100 MB
+    options.MultipartBodyLengthLimit = 100 * 1024 * 1024; // 100MB
 });
 
-// Add SignalR with detailed errors
-builder.Services.AddSignalR(opt =>
+// Configure JSON options
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
-    opt.EnableDetailedErrors = true;
+    options.SerializerOptions.PropertyNamingPolicy = null;
 });
 
 var app = builder.Build();
@@ -108,23 +83,19 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Note: For production, consider disabling HTTPS redirection if behind a proxy
-// app.UseHttpsRedirection();
+// Enable CORS
+app.UseCors("AllowAll");
 
-app.UseStaticFiles();
-app.UseRouting();
-
-// Use CORS policy - MUST come after UseRouting and before UseAuthentication
-app.UseCors("AllowSpecificOrigin");
-
-// Authentication & Authorization
+// Enable authentication and authorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Enable static files
+app.UseStaticFiles();
 
 // Map Controllers and Hubs
 app.MapControllers();
@@ -136,31 +107,14 @@ try
 {
     using (var scope = app.Services.CreateScope())
     {
-        var services = scope.ServiceProvider;
-        var dbContext = services.GetRequiredService<ApplicationDbContext>();
-        var logger = services.GetRequiredService<ILogger<Program>>();
-
-        try
-        {
-            // Apply migrations
-            await dbContext.Database.MigrateAsync();
-            logger.LogInformation("Database migrations applied successfully.");
-
-            // Seed default users and experiences
-            await SeedData.InitializeAsync(services);
-            logger.LogInformation("Database seeding completed successfully.");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An error occurred while migrating or seeding the database.");
-            // Don't throw - allow app to start even if seeding fails
-        }
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        context.Database.Migrate();
     }
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"Error during database initialization: {ex.Message}");
-    // Continue app startup
+    // Log the error but don't stop the application
+    Console.WriteLine($"Database migration error: {ex.Message}");
 }
 
 app.Run();

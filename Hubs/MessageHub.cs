@@ -152,8 +152,8 @@ namespace ExperienceProject.Hubs
                     MediaUrl = message.MediaUrl,
                     MediaType = message.MediaType,
                     Timestamp = DateTime.UtcNow,
-                    IsDelivered = null,
-                    IsRead = null
+                    IsDelivered = false,
+                    IsRead = false
                 };
 
                 _context.Messages.Add(newMessage);
@@ -166,7 +166,6 @@ namespace ExperienceProject.Hubs
                     
                     // Mark as delivered since receiver is online
                     newMessage.IsDelivered = true;
-                    newMessage.IsRead = false;
                     await _context.SaveChangesAsync();
                     
                     await Clients.Client(receiverConnectionId).SendAsync("ReceiveMessage", newMessage);
@@ -201,7 +200,7 @@ namespace ExperienceProject.Hubs
 
                 // Find all unread messages from this sender to current user
                 var unreadMessages = await _context.Messages
-                    .Where(m => m.SenderId == senderId && m.ReceiverId == userId.Value && (m.IsRead == null || m.IsRead == false))
+                    .Where(m => m.SenderId == senderId && m.ReceiverId == userId.Value && !m.IsRead)
                     .ToListAsync();
 
                 if (unreadMessages.Any())
@@ -243,7 +242,7 @@ namespace ExperienceProject.Hubs
                 }
 
                 var message = await _context.Messages.FindAsync(messageId);
-                if (message != null && message.ReceiverId == userId.Value && (message.IsRead == null || message.IsRead == false))
+                if (message != null && message.ReceiverId == userId.Value && !message.IsRead)
                 {
                     message.IsRead = true;
                     message.ReadAt = DateTime.UtcNow;
@@ -278,7 +277,7 @@ namespace ExperienceProject.Hubs
 
                 // Find all undelivered messages to this user from current user
                 var undeliveredMessages = await _context.Messages
-                    .Where(m => m.SenderId == userId.Value && m.ReceiverId == receiverId && (m.IsDelivered == null || m.IsDelivered == false))
+                    .Where(m => m.SenderId == userId.Value && m.ReceiverId == receiverId && !m.IsDelivered)
                     .ToListAsync();
 
                 if (undeliveredMessages.Any())

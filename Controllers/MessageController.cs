@@ -404,8 +404,8 @@ public class MessagesController : ControllerBase
             MediaUrl = messageDto.MediaUrl,
             MediaType = messageDto.MediaType,
             Timestamp = DateTime.UtcNow,
-            IsDelivered = null,
-            IsRead = null
+            IsDelivered = false,
+            IsRead = false
         };
 
         if (ModelState.IsValid)

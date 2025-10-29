@@ -1,0 +1,21 @@
+{
+  "short_name": "Wanderly",
+  "name": "Wanderly - Share Your Adventures",
+  "description": "Share your adventures, explore new places, and connect with fellow travelers",
+  "icons": [
+    {
+      "src": "https://res.cloudinary.com/dgwscraqf/image/upload/v1760353071/Gemini_Generated_Image_33kp1f33kp1f33kp_t9qw8a.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://res.cloudinary.com/dgwscraqf/image/upload/v1760353071/Gemini_Generated_Image_33kp1f33kp1f33kp_t9qw8a.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#667eea",
+  "background_color": "#f8fafc"
+}

@@ -3,11 +3,16 @@ using Microsoft.EntityFrameworkCore;
 using ExperienceProject.Data;
 using ExperienceProject.Models;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace ExperienceProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class DeviceController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -19,15 +24,28 @@ namespace ExperienceProject.Controllers
 
         private int GetUserIdFromHeader()
         {
-            var userIdClaim = Request.Headers["X-User-Id"].FirstOrDefault();
+            // First try to get from JWT token - check different claim names
+            var userIdClaim = User.FindFirst("nameidentifier")?.Value ?? 
+                             User.FindFirst("sub")?.Value ?? 
+                             User.FindFirst("user_id")?.Value ??
+                             User.FindFirst("id")?.Value;
+                             
             if (int.TryParse(userIdClaim, out int userId))
             {
                 return userId;
             }
+
+            // Fallback to header
+            var userIdHeader = Request.Headers["X-User-Id"].FirstOrDefault();
+            if (int.TryParse(userIdHeader, out int userIdFromHeader))
+            {
+                return userIdFromHeader;
+            }
+            
             return 0;
         }
 
-        [HttpPost("generate-login-qr")]
+        [HttpPost("generate-qr")]
         public async Task<IActionResult> GenerateQRCode()
         {
             try
@@ -67,6 +85,129 @@ namespace ExperienceProject.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Error generating QR code", error = ex.Message });
+            }
+        }
+
+        [HttpPost("generate-login-qr")]
+        public async Task<IActionResult> GenerateLoginQRCode()
+        {
+            try
+            {
+                var userId = GetUserIdFromHeader();
+                if (userId == 0)
+                {
+                    return Unauthorized("User ID not found in headers");
+                }
+
+                var sessionId = Guid.NewGuid().ToString();
+                var expiresAt = DateTime.UtcNow.AddMinutes(5); // 5 minute expiry
+
+                var deviceSession = new DeviceSession
+                {
+                    SessionId = sessionId,
+                    UserId = userId,
+                    CreatedAt = DateTime.UtcNow,
+                    ExpiresAt = expiresAt,
+                    IsConfirmed = false,
+                    IsActive = true
+                };
+
+                _context.DeviceSessions.Add(deviceSession);
+                await _context.SaveChangesAsync();
+
+                var qrData = new
+                {
+                    sessionId = sessionId,
+                    userId = userId,
+                    expiresAt = expiresAt,
+                    action = "login_device"
+                };
+
+                return Ok(new { qrData = qrData, expiresIn = 300 });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error generating login QR code", error = ex.Message });
+            }
+        }
+
+        [HttpPost("generate-login-qr")]
+        public async Task<IActionResult> GenerateLoginQRCode()
+        {
+            try
+            {
+                var userId = GetUserIdFromHeader();
+                if (userId == 0)
+                {
+                    return Unauthorized("User ID not found in headers");
+                }
+
+                var sessionId = Guid.NewGuid().ToString();
+                var expiresAt = DateTime.UtcNow.AddMinutes(5); // 5 minute expiry
+
+                var deviceSession = new DeviceSession
+                {
+                    SessionId = sessionId,
+                    UserId = userId,
+                    CreatedAt = DateTime.UtcNow,
+                    ExpiresAt = expiresAt,
+                    IsConfirmed = false,
+                    IsActive = true
+                };
+
+                _context.DeviceSessions.Add(deviceSession);
+                await _context.SaveChangesAsync();
+
+                var qrData = new
+                {
+                    sessionId = sessionId,
+                    userId = userId,
+                    expiresAt = expiresAt,
+                    action = "login_device"
+                };
+
+                return Ok(new { qrData = qrData, expiresIn = 300 });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error generating login QR code", error = ex.Message });
+            }
+        }
+
+        [HttpPost("generate-login-qr-public")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GenerateLoginQRCodePublic()
+        {
+            try
+            {
+                var sessionId = Guid.NewGuid().ToString();
+                var expiresAt = DateTime.UtcNow.AddMinutes(5); // 5 minute expiry
+
+                var deviceSession = new DeviceSession
+                {
+                    SessionId = sessionId,
+                    UserId = 0, // Will be set when user scans QR
+                    CreatedAt = DateTime.UtcNow,
+                    ExpiresAt = expiresAt,
+                    IsConfirmed = false,
+                    IsActive = true
+                };
+
+                _context.DeviceSessions.Add(deviceSession);
+                await _context.SaveChangesAsync();
+
+                var qrData = new
+                {
+                    sessionId = sessionId,
+                    expiresAt = expiresAt,
+                    action = "login_device"
+                };
+
+                return Ok(new { qrData = qrData, expiresIn = 300 });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error generating login QR code", error = ex.Message });
             }
         }
 
@@ -219,6 +360,75 @@ namespace ExperienceProject.Controllers
                 return StatusCode(500, new { message = "Error updating device trust", error = ex.Message });
             }
         }
+
+        [HttpPost("confirm-login")]
+        public async Task<IActionResult> ConfirmLogin([FromBody] ConfirmLoginRequest request)
+        {
+            try
+            {
+                var session = await _context.DeviceSessions
+                    .FirstOrDefaultAsync(s => s.SessionId == request.SessionId && s.IsActive);
+
+                if (session == null || session.ExpiresAt < DateTime.UtcNow)
+                {
+                    return BadRequest(new { message = "Invalid or expired session" });
+                }
+
+                // Get user info from request (sent from mobile app)
+                var user = await _context.Users.FindAsync(request.UserId);
+                if (user == null)
+                {
+                    return BadRequest(new { message = "User not found" });
+                }
+
+                // Update session with user ID
+                session.UserId = request.UserId;
+
+                // Generate JWT token for the new device
+                var token = GenerateJWTToken(user);
+
+                // Mark session as confirmed
+                session.IsConfirmed = true;
+                await _context.SaveChangesAsync();
+
+                return Ok(new { 
+                    message = "Login successful", 
+                    token = token,
+                    user = new {
+                        id = user.Id,
+                        username = user.Username,
+                        email = user.Email
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error confirming login", error = ex.Message });
+            }
+        }
+
+        private string GenerateJWTToken(User user)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your-secret-key-that-is-at-least-32-characters-long"));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Email, user.Email)
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: "ExperienceProject",
+                audience: "ExperienceProject",
+                claims: claims,
+                expires: DateTime.UtcNow.AddDays(7),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
     }
 
     public class ConfirmDeviceLinkRequest
@@ -233,5 +443,11 @@ namespace ExperienceProject.Controllers
     public class UpdateTrustRequest
     {
         public bool IsTrusted { get; set; }
+    }
+
+    public class ConfirmLoginRequest
+    {
+        public string SessionId { get; set; }
+        public int UserId { get; set; }
     }
 }
