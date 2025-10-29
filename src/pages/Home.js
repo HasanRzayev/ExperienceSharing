@@ -385,14 +385,14 @@ function Home() {
   }, [page, fetchPosts, fetchStatuses, fetchCurrentUser]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50 dark:from-gray-900 dark:to-gray-800 dark:text-gray-100">
       <div className="max-w-2xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* Header */}
         <div className="mb-4 sm:mb-8">
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <div className="flex items-center gap-2 sm:gap-3">
               <FaUsers className="text-2xl sm:text-3xl text-indigo-600" />
-              <h1 className="text-xl sm:text-3xl font-bold text-gray-800">Feed</h1>
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">Feed</h1>
             </div>
             <button
               onClick={() => setShowStatusModal(true)}
@@ -402,12 +402,12 @@ function Home() {
               <span className="hidden sm:inline">Status</span>
             </button>
           </div>
-          <p className="text-gray-600 text-sm sm:text-base hidden sm:block">Latest posts from people you follow</p>
+          <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base hidden sm:block">Latest posts from people you follow</p>
         </div>
 
         {/* Status Feed - Instagram style circular profiles */}
         {statuses.length > 0 && (
-          <div className="mb-4 sm:mb-8 bg-white rounded-xl sm:rounded-2xl shadow-md p-3 sm:p-4 overflow-x-auto">
+          <div className="mb-4 sm:mb-8 bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-md dark:shadow-gray-900 p-3 sm:p-4 overflow-x-auto">
             <div className="flex gap-3 sm:gap-4">
               <button
                 onClick={handleYourStatusClick}
@@ -415,12 +415,12 @@ function Home() {
               >
                 <div className="relative">
                   <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 p-0.5">
-                    <div className="w-full h-full rounded-full bg-white p-0.5 flex items-center justify-center">
+                    <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 p-0.5 flex items-center justify-center">
                       <FaPlus className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                     </div>
                   </div>
                 </div>
-                <span className="text-xs text-gray-600">Your Status</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400">Your Status</span>
               </button>
               
               {statuses.map((status) => {
@@ -443,7 +443,7 @@ function Home() {
                         <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded-full border-2 border-white"></div>
                       )}
                     </div>
-                    <span className="text-xs text-gray-600 truncate max-w-[50px] sm:max-w-[60px]">
+                    <span className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[50px] sm:max-w-[60px]">
                       {status.user?.firstName || 'User'}
                     </span>
                   </button>
@@ -457,9 +457,9 @@ function Home() {
         <div className="space-y-6">
           {posts.map((post, index) => (
             <div key={post.id} className="animate-fadeInUp" style={{animationDelay: `${index * 0.05}s`}}>
-              <article className="bg-white rounded-xl sm:rounded-2xl shadow-md border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300">
+              <article className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-md dark:shadow-gray-900 border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl dark:hover:shadow-gray-800 transition-all duration-300">
                 {/* User Header */}
-                <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-b border-gray-100">
+                <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-b border-gray-100 dark:border-gray-700">
                   <img
                     src={post.user?.profileImage || "https://via.placeholder.com/40"}
                     alt={post.user?.userName}
@@ -468,12 +468,12 @@ function Home() {
                   />
                   <div className="flex-1 min-w-0">
                     <h3 
-                      className="font-bold text-sm sm:text-base text-gray-800 hover:text-indigo-600 cursor-pointer transition-colors truncate"
+                      className="font-bold text-sm sm:text-base text-gray-800 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer transition-colors truncate"
                       onClick={() => navigate(`/profile/${post.user?.id}`)}
                     >
                       {post.user?.userName}
                     </h3>
-                    <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-500">
+                    <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                       <FaMapMarkerAlt className="text-xs" />
                       <span className="truncate">{post.location}</span>
                       <span>•</span>
@@ -483,7 +483,7 @@ function Home() {
                   {post.rating && (
                     <div className="flex items-center gap-1 bg-yellow-50 px-2 sm:px-3 py-1 rounded-full">
                       <span className="text-yellow-500 font-bold text-xs sm:text-sm">★</span>
-                      <span className="font-bold text-gray-700 text-xs sm:text-sm">{post.rating}</span>
+                      <span className="font-bold text-gray-700 dark:text-gray-300 text-xs sm:text-sm">{post.rating}</span>
                     </div>
                   )}
                 </div>
@@ -561,12 +561,12 @@ function Home() {
                 {/* Post Content */}
                 <div className="p-3 sm:p-4">
                   <h2 
-                    className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 cursor-pointer hover:text-indigo-600 transition-colors line-clamp-2"
+                    className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors line-clamp-2"
                     onClick={() => navigate(`/card/${post.id}`)}
                   >
                     {post.title}
                   </h2>
-                  <p className="text-sm sm:text-base text-gray-700 mb-4 line-clamp-3 leading-relaxed">
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 mb-4 line-clamp-3 leading-relaxed">
                     {post.description}
                   </p>
                   
@@ -579,7 +579,7 @@ function Home() {
                         </span>
                       ))}
                       {post.tagsName.length > 3 && (
-                        <span className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-600 text-xs sm:text-sm rounded-full font-medium">
+                        <span className="px-2 sm:px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs sm:text-sm rounded-full font-medium">
                           +{post.tagsName.length - 3} more
                         </span>
                       )}

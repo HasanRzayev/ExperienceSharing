@@ -91,17 +91,17 @@ function Login({ onLogin }) {
             </div>
 
             {/* Right Side - Form */}
-            <div className="p-12 flex flex-col justify-center bg-white">
+            <div className="p-12 flex flex-col justify-center bg-white dark:bg-gray-800">
               <div className="max-w-md mx-auto w-full">
                 <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold text-gray-800 mb-2">Sign In</h2>
-                  <p className="text-gray-600">Welcome back! Please sign in to your account</p>
+                  <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">Sign In</h2>
+                  <p className="text-gray-600 dark:text-gray-400">Welcome back! Please sign in to your account</p>
                 </div>
 
                 <form className="space-y-6" onSubmit={handleSubmit}>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
                       <input 
                         type="email" 
                         placeholder="Enter your email" 
@@ -113,7 +113,7 @@ function Login({ onLogin }) {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
                       <input 
                         type="password" 
                         placeholder="Enter your password" 

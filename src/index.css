@@ -29,6 +29,18 @@ body {
   color: #1f2937;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode body styles */
+.dark body,
+body.dark {
+  background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+  color: #e5e7eb;
+}
+
+html.dark {
+  background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
 }
 
 /* Glassmorphism Effect */
@@ -69,6 +81,10 @@ body {
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 10px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #374151;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -188,37 +204,76 @@ body {
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
 }
 
-/* Dark Mode Support */
+/* Dark Mode Support - Enhanced */
 @media (prefers-color-scheme: dark) {
   body {
-    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-    color: #e2e8f0;
+    background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+    color: #e5e7eb;
   }
   
   .card-modern {
-    background: rgba(45, 55, 72, 0.9);
+    background: rgba(31, 41, 55, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   .input-modern {
-    background: rgba(45, 55, 72, 0.9);
-    color: #e2e8f0;
+    background: rgba(31, 41, 55, 0.95);
+    color: #e5e7eb;
+    border-color: rgba(255, 255, 255, 0.1);
   }
 }
 
-.dark body {
-  background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-  color: #e2e8f0;
+.dark body,
+body.dark {
+  background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+  color: #e5e7eb;
 }
 
 .dark .card-modern {
-  background: rgba(45, 55, 72, 0.9);
+  background: rgba(31, 41, 55, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .dark .input-modern {
-  background: rgba(45, 55, 72, 0.9);
-  color: #e2e8f0;
+  background: rgba(31, 41, 55, 0.95);
+  color: #e5e7eb;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .glass {
+  background: rgba(31, 41, 55, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Text colors for dark mode */
+.dark .text-gray-800,
+.dark .text-gray-900 {
+  color: #f3f4f6;
+}
+
+.dark .text-gray-700 {
+  color: #d1d5db;
+}
+
+.dark .text-gray-600 {
+  color: #9ca3af;
+}
+
+.dark .text-gray-500 {
+  color: #6b7280;
+}
+
+/* Background colors for dark mode */
+.dark .bg-gray-50 {
+  background-color: #1f2937;
+}
+
+.dark .bg-gray-100 {
+  background-color: #374151;
+}
+
+.dark .bg-white {
+  background-color: #1f2937;
 }
 
 .dark .glass {
