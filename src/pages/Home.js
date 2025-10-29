@@ -385,7 +385,7 @@ function Home() {
   }, [page, fetchPosts, fetchStatuses, fetchCurrentUser]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50">
       <div className="max-w-2xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* Header */}
         <div className="mb-4 sm:mb-8">
@@ -396,7 +396,7 @@ function Home() {
             </div>
             <button
               onClick={() => setShowStatusModal(true)}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 sm:px-4 py-2 rounded-full flex items-center gap-1 sm:gap-2 hover:from-purple-700 hover:to-pink-700 transition-all text-sm sm:text-base"
+              className="bg-gradient-to-r from-orange-600 to-pink-600 text-white px-3 sm:px-4 py-2 rounded-full flex items-center gap-1 sm:gap-2 hover:from-orange-700 hover:to-pink-700 transition-all text-sm sm:text-base"
             >
               <FaPlus />
               <span className="hidden sm:inline">Status</span>
@@ -414,7 +414,7 @@ function Home() {
                 className="flex flex-col items-center gap-2 min-w-[50px] sm:min-w-[60px]"
               >
                 <div className="relative">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-0.5">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 p-0.5">
                     <div className="w-full h-full rounded-full bg-white p-0.5 flex items-center justify-center">
                       <FaPlus className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                     </div>
@@ -432,7 +432,7 @@ function Home() {
                     onClick={() => handleStatusClick(status.userId)}
                   >
                     <div className="relative">
-                      <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full ${hasUnviewed ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-0.5' : 'bg-gray-200 p-0.5'}`}>
+                      <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full ${hasUnviewed ? 'bg-gradient-to-r from-orange-500 via-pink-500 to-red-500 p-0.5' : 'bg-gray-200 p-0.5'}`}>
                         <img
                           src={status.user?.profileImage || "https://via.placeholder.com/60"}
                           alt={status.user?.firstName}
@@ -598,8 +598,8 @@ function Home() {
                       onClick={() => toggleComments(post.id)}
                       className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg font-semibold transition-all text-xs sm:text-base ${
                         expandedComments[post.id]
-                          ? 'bg-blue-100 text-blue-600'
-                          : 'bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-600'
+                          ? 'bg-blue-100 text-orange-600'
+                          : 'bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-orange-600'
                       }`}
                     >
                       <FaComment className="text-sm sm:text-base" />
@@ -609,7 +609,7 @@ function Home() {
                     {/* Share Button */}
                     <button
                       onClick={() => handleShare(post)}
-                      className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-semibold hover:bg-purple-50 hover:text-purple-600 transition-all text-xs sm:text-base"
+                      className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-semibold hover:bg-orange-50 hover:text-orange-600 transition-all text-xs sm:text-base"
                     >
                       <FaShare className="text-sm sm:text-base" />
                       <span className="hidden sm:inline">Share</span>
@@ -652,7 +652,7 @@ function Home() {
                   {/* View Details Button */}
                   <button 
                     onClick={() => navigate(`/card/${post.id}`)}
-                    className="mt-4 w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02]"
+                    className="mt-4 w-full py-3 bg-gradient-to-r from-indigo-600 to-orange-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-orange-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02]"
                   >
                     View Details
                   </button>
@@ -684,7 +684,7 @@ function Home() {
               </p>
               <button
                 onClick={() => navigate("/explore")}
-                className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg"
+                className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-600 to-orange-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-orange-700 transition-all duration-300 shadow-lg"
               >
                 Explore Now
               </button>
@@ -711,7 +711,7 @@ function Home() {
                   fetchFollowers();
                   setShowFollowersModal(true);
                 }}
-                className="flex flex-col items-center p-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg col-span-2"
+                className="flex flex-col items-center p-4 bg-gradient-to-r from-indigo-500 to-orange-500 hover:from-indigo-600 hover:to-orange-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg col-span-2"
               >
                 <FaUsers className="text-3xl mb-2" />
                 <span className="font-semibold">Send to Contacts</span>
@@ -729,7 +729,7 @@ function Home() {
               {/* Instagram */}
               <button
                 onClick={() => handleSocialShare('instagram')}
-                className="flex flex-col items-center p-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
+                className="flex flex-col items-center p-4 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
               >
                 <FaInstagram className="text-3xl mb-2" />
                 <span className="font-semibold">Instagram</span>
@@ -747,7 +747,7 @@ function Home() {
               {/* Copy Link */}
               <button
                 onClick={() => handleSocialShare('copy')}
-                className="flex flex-col items-center p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
+                className="flex flex-col items-center p-4 bg-blue-500 hover:bg-orange-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
               >
                 {copied ? (
                   <FaCheck className="text-3xl mb-2" />
@@ -764,7 +764,7 @@ function Home() {
             {navigator.share && (
               <button
                 onClick={() => handleSocialShare('native')}
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-4 rounded-2xl font-semibold text-lg transition-all duration-200 hover:scale-105 shadow-lg mb-4"
+                className="w-full bg-gradient-to-r from-orange-600 to-orange-600 hover:from-orange-700 hover:to-orange-700 text-white py-4 rounded-2xl font-semibold text-lg transition-all duration-200 hover:scale-105 shadow-lg mb-4"
               >
                 <FaShare className="inline mr-2" />
                 Share via Device
@@ -800,7 +800,7 @@ function Home() {
                       key={follower.id}
                       className={`flex items-center p-3 rounded-xl border-2 transition-all cursor-pointer ${
                         selectedFollowers.includes(follower.id)
-                          ? 'border-purple-500 bg-purple-50'
+                          ? 'border-orange-500 bg-orange-50'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                       onClick={() => toggleFollower(follower.id)}
@@ -822,7 +822,7 @@ function Home() {
                       </div>
                       <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
                         selectedFollowers.includes(follower.id)
-                          ? 'bg-purple-500 border-purple-500'
+                          ? 'bg-orange-500 border-orange-500'
                           : 'border-gray-300'
                       }`}>
                         {selectedFollowers.includes(follower.id) && (
@@ -855,7 +855,7 @@ function Home() {
               <button
                 onClick={sendToFollowers}
                 disabled={selectedFollowers.length === 0 || sending}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center"
+                className="flex-1 bg-gradient-to-r from-orange-600 to-orange-600 hover:from-orange-700 hover:to-orange-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center"
               >
                 {sending ? (
                   <span>Sending...</span>

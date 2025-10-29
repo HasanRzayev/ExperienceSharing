@@ -90,7 +90,7 @@ const NavbarComponent = () => {
               style={{ objectPosition: 'center', transform: 'scale(2)' }}
               alt="Wanderly Logo"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-600 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
           </div>
               <span className="text-xl sm:text-2xl font-bold gradient-text">
             Wanderly
@@ -103,13 +103,13 @@ const NavbarComponent = () => {
             <div className="ml-10 flex items-baseline space-x-6">
               <button
                 onClick={() => navigate("/")}
-                className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Feed
               </button>
               <button
                 onClick={() => navigate("/explore")}
-                className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
+                className="text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -118,7 +118,7 @@ const NavbarComponent = () => {
               </button>
               <button
                 onClick={() => navigate("/travel-guide")}
-                className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
+                className="text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -127,7 +127,7 @@ const NavbarComponent = () => {
               </button>
               <button
                 onClick={() => navigate("/trip-planner")}
-                className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
+                className="text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
@@ -136,7 +136,7 @@ const NavbarComponent = () => {
               </button>
               <button
                 onClick={() => navigate("/events")}
-                className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
+                className="text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -145,7 +145,7 @@ const NavbarComponent = () => {
               </button>
               <button
                 onClick={() => navigate("/trip-planner")}
-                className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
+                className="text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -154,13 +154,13 @@ const NavbarComponent = () => {
               </button>
               <button
                 onClick={() => navigate("/NewExperience")}
-                className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Share
               </button>
               <button
                 onClick={() => navigate("/ChatPage")}
-                className="text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Messages
               </button>
@@ -194,18 +194,18 @@ const NavbarComponent = () => {
             <button
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={handleAvatarClick}
-                    className="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                    className="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                   >
                     <img
                       src={userData?.profileImage || "https://flowbite.com/docs/images/people/profile-picture-5.jpg"}
                 alt="User settings"
-                      className="h-8 w-8 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all"
+                      className="h-8 w-8 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-orange-500 transition-all"
               />
             </button>
             
             {isOpen && (
                     <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                      <div className="px-4 py-3 bg-gradient-to-r from-purple-50 to-blue-50 border-b border-gray-200 rounded-t-xl">
+                      <div className="px-4 py-3 bg-gradient-to-r from-orange-50 to-red-50 border-b border-gray-200 rounded-t-xl">
                   <p className="text-sm font-semibold text-gray-900">{userData?.fullName || "User"}</p>
                   <p className="text-xs text-gray-600 truncate">{userData?.email || "email@example.com"}</p>
                 </div>
@@ -282,7 +282,7 @@ const NavbarComponent = () => {
                 <div className="flex items-center space-x-3">
                   <button
               onClick={() => navigate("/login")} 
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             >
               Login
                   </button>
@@ -301,7 +301,7 @@ const NavbarComponent = () => {
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-purple-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500"
+              className="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-orange-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-orange-500"
             >
               <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                 {isMobileMenuOpen ? (
@@ -321,7 +321,7 @@ const NavbarComponent = () => {
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <button
               onClick={() => handleMenuClick("/")}
-              className="text-gray-700 hover:text-purple-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+              className="text-gray-700 hover:text-orange-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
         >
           Feed
             </button>
@@ -372,13 +372,13 @@ const NavbarComponent = () => {
             </button>
             <button
               onClick={() => handleMenuClick("/NewExperience")}
-              className="text-gray-700 hover:text-purple-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+              className="text-gray-700 hover:text-orange-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
         >
           Share
             </button>
             <button
               onClick={() => handleMenuClick("/ChatPage")}
-              className="text-gray-700 hover:text-purple-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+              className="text-gray-700 hover:text-orange-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
         >
           Messages
             </button>
@@ -414,19 +414,19 @@ const NavbarComponent = () => {
                   </div>
                   <button
                     onClick={() => handleMenuClick("/Profil")}
-                    className="text-gray-700 hover:text-purple-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+                    className="text-gray-700 hover:text-orange-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
                   >
                     Profile
                   </button>
                   <button
                     onClick={() => handleMenuClick("/Notification")}
-                    className="text-gray-700 hover:text-purple-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+                    className="text-gray-700 hover:text-orange-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
                   >
                     Notifications
                   </button>
                   <button
                     onClick={() => handleMenuClick("/Settings")}
-                    className="text-gray-700 hover:text-purple-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+                    className="text-gray-700 hover:text-orange-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
                   >
                     Settings
                   </button>

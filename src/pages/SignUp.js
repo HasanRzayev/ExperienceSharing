@@ -57,12 +57,12 @@ function SignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-orange-900 via-red-900 to-amber-900 flex items-center justify-center p-4">
       <div className="w-full max-w-6xl">
         <div className="glass rounded-3xl overflow-hidden shadow-2xl">
           <div className="grid md:grid-cols-2 gap-0">
             {/* Left Side - Visual */}
-            <div className="relative bg-gradient-to-br from-green-600 via-blue-600 to-purple-700 p-12 flex flex-col justify-center items-center text-white">
+            <div className="relative bg-gradient-to-br from-orange-600 via-red-600 to-amber-700 p-12 flex flex-col justify-center items-center text-white">
               <div className="absolute inset-0 bg-black opacity-20"></div>
               <div className="relative z-10 text-center">
                 <div className="text-8xl mb-6">🚀</div>
@@ -173,13 +173,13 @@ function SignUp() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
-                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-purple-400 transition-colors">
+                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-orange-400 transition-colors">
                       <div className="space-y-1 text-center">
                         <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                           <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                         <div className="flex text-sm text-gray-600">
-                          <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-purple-600 hover:text-purple-500 focus-within:outline-none">
+                          <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none">
                             <span>Upload a file</span>
                             <input 
                               id="file-upload" 
@@ -200,11 +200,11 @@ function SignUp() {
                     <input 
                       type="checkbox" 
                       id="terms" 
-                      className="rounded border-gray-300 text-purple-600 focus:ring-purple-500" 
+                      className="rounded border-gray-300 text-orange-600 focus:ring-orange-500" 
                       required
                     />
                     <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
-                      I agree to the <a href="#" className="text-purple-600 hover:text-purple-500">Terms and Conditions</a> and <a href="#" className="text-purple-600 hover:text-purple-500">Privacy Policy</a>
+                      I agree to the <a href="#" className="text-orange-600 hover:text-orange-500">Terms and Conditions</a> and <a href="#" className="text-orange-600 hover:text-orange-500">Privacy Policy</a>
                     </label>
                   </div>
 

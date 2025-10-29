@@ -58,12 +58,12 @@ function Login({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-orange-900 via-red-900 to-amber-900 flex items-center justify-center p-4">
       <div className="w-full max-w-6xl">
         <div className="glass rounded-3xl overflow-hidden shadow-2xl">
           <div className="grid md:grid-cols-2 gap-0">
             {/* Left Side - Visual */}
-            <div className="relative bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 p-12 flex flex-col justify-center items-center text-white">
+            <div className="relative bg-gradient-to-br from-orange-600 via-red-600 to-amber-700 p-12 flex flex-col justify-center items-center text-white">
               <div className="absolute inset-0 bg-black opacity-20"></div>
               <div className="relative z-10 text-center">
                 <div className="text-8xl mb-6">🌟</div>
@@ -127,10 +127,10 @@ function Login({ onLogin }) {
 
                   <div className="flex items-center justify-between">
                     <label className="flex items-center">
-                      <input type="checkbox" className="rounded border-gray-300 text-purple-600 focus:ring-purple-500" />
+                      <input type="checkbox" className="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
                       <span className="ml-2 text-sm text-gray-600">Remember me</span>
                     </label>
-                    <a href="/forgot-password" className="text-sm text-purple-600 hover:text-purple-500">Forgot password?</a>
+                    <a href="/forgot-password" className="text-sm text-orange-600 hover:text-orange-500">Forgot password?</a>
                   </div>
 
                   {error && (
@@ -176,7 +176,7 @@ function Login({ onLogin }) {
                 <div className="mt-8 text-center">
                   <p className="text-gray-600">
                     Don't have an account? 
-                    <a href="/signup" className="text-purple-600 hover:text-purple-500 font-semibold ml-1">
+                    <a href="/signup" className="text-orange-600 hover:text-orange-500 font-semibold ml-1">
                       Create Account
                     </a>
                   </p>
@@ -196,7 +196,7 @@ function Login({ onLogin }) {
                   <div className="mt-4">
                     <button 
                       onClick={() => navigate('/qr-login')}
-                      className="w-full inline-flex justify-center items-center py-3 px-4 border border-purple-300 rounded-md shadow-sm bg-purple-50 text-sm font-medium text-purple-700 hover:bg-purple-100 transition-smooth"
+                      className="w-full inline-flex justify-center items-center py-3 px-4 border border-orange-300 rounded-md shadow-sm bg-orange-50 text-sm font-medium text-orange-700 hover:bg-orange-100 transition-smooth"
                     >
                       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
