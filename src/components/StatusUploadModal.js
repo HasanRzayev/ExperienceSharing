@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 import { FaTimes, FaMapMarkerAlt, FaCamera, FaSmile } from 'react-icons/fa';
 import EmojiPicker from 'emoji-picker-react';
 
 const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
+  const navigate = useNavigate();
   const [text, setText] = useState('');
   const [image, setImage] = useState(null);
   const [video, setVideo] = useState(null);
@@ -84,6 +86,18 @@ const StatusUploadModal = ({ isOpen, onClose, onUpload }) => {
 
     loadLocationData();
   }, []);
+
+  // Check authentication when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const token = Cookies.get('token');
+      if (!token) {
+        // If not logged in, close modal and redirect to login
+        onClose();
+        navigate('/login');
+      }
+    }
+  }, [isOpen, navigate, onClose]);
 
   // Location search using JSON files
   const searchLocations = (query) => {

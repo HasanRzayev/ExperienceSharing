@@ -289,6 +289,13 @@ function Home() {
   const [userStatuses, setUserStatuses] = useState([]);
 
   const handleYourStatusClick = () => {
+    // Check if user is logged in
+    const token = Cookies.get("token");
+    if (!token) {
+      // If not logged in, redirect to login page
+      navigate("/login");
+      return;
+    }
     // Just open the status upload modal to create new status
     setShowStatusModal(true);
   };
