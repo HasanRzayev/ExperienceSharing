@@ -445,19 +445,30 @@ const stopRecording = () => {
         
         // Check if message already exists to avoid duplicates
         const messageExists = prev.some(msg => 
-          msg.id === messageData.id || 
-          (msg.senderId === messageData.senderId && 
-           msg.content === messageData.content && 
-           msg.timestamp === messageData.timestamp)
+          (msg.id && messageData.id && msg.id === messageData.id) || 
+          (
+            msg.senderId === messageData.senderId &&
+            msg.receiverId === messageData.receiverId &&
+            msg.content === messageData.content
+          )
         );
         
         if (messageExists) {
           console.log("📨 Message already exists, skipping duplicate");
           // Also refresh status flags for existing sent messages (delivered/read)
           return prev.map(m => {
-            if ((m.id && messageData.id && m.id === messageData.id) ||
-                (m.senderId === messageData.senderId && m.content === messageData.content && m.timestamp === messageData.timestamp)) {
-              return { ...m, IsDelivered: messageData.isDelivered ?? messageData.IsDelivered, IsRead: messageData.isRead ?? messageData.IsRead, ReadAt: messageData.readAt ?? messageData.ReadAt };
+            const sameById = m.id && messageData.id && m.id === messageData.id;
+            const sameByContent = (m.senderId === messageData.senderId && m.receiverId === messageData.receiverId && m.content === messageData.content);
+            if (sameById || sameByContent) {
+              return {
+                ...m,
+                // unify status fields
+                IsDelivered: (messageData.IsDelivered ?? messageData.isDelivered ?? m.IsDelivered ?? m.isDelivered) || false,
+                IsRead: (messageData.IsRead ?? messageData.isRead ?? m.IsRead ?? m.isRead) || false,
+                ReadAt: messageData.ReadAt ?? messageData.readAt ?? m.ReadAt ?? m.readAt ?? null,
+                id: messageData.id ?? m.id,
+                timestamp: messageData.timestamp ?? messageData.sentAt ?? m.timestamp
+              };
             }
             return m;
           });
@@ -469,7 +480,28 @@ const stopRecording = () => {
         setTimeout(() => {
           scrollToBottom(true);
         }, 100);
-        
+        // If this is echo of my sent message, try to merge into last pending local message
+        const currentUserId = user?.id ?? user?.userId;
+        const isEchoOfMine = (String(messageData.senderId) === String(currentUserId));
+        if (isEchoOfMine) {
+          let merged = false;
+          const next = prev.map((m, idx) => {
+            if (!merged && !m.id && String(m.senderId) === String(currentUserId) && String(m.receiverId) === String(messageData.receiverId) && m.content === messageData.content) {
+              merged = true;
+              return {
+                ...m,
+                id: messageData.id ?? m.id,
+                IsDelivered: messageData.IsDelivered ?? messageData.isDelivered ?? true,
+                IsRead: messageData.IsRead ?? messageData.isRead ?? false,
+                ReadAt: messageData.ReadAt ?? messageData.readAt ?? m.ReadAt,
+                timestamp: messageData.timestamp ?? messageData.sentAt ?? m.timestamp
+              };
+            }
+            return m;
+          });
+          if (merged) return next;
+        }
+
         return [...prev, messageData];
       });
     });
@@ -1030,13 +1062,17 @@ const filteredUsers = users.filter(user =>
                         )}
                         {isMyMessage && (
                           <span className="ml-1 select-none">
-                            {msg.IsRead ? (
-                              <span style={{ color: '#34B7F1' }}>✓✓</span> // blue double tick
-                            ) : msg.IsDelivered ? (
-                              <span>✓✓</span> // gray double tick
-                            ) : (
-                              <span>✓</span> // gray single tick
-                            )}
+                            {(() => {
+                              const isRead = msg.IsRead ?? msg.isRead;
+                              const isDelivered = msg.IsDelivered ?? msg.isDelivered;
+                              if (isRead) {
+                                return (<span style={{ color: '#34B7F1' }}>✓✓</span>);
+                              }
+                              if (isDelivered) {
+                                return (<span>✓✓</span>);
+                              }
+                              return (<span>✓</span>);
+                            })()}
                           </span>
                         )}
                       </div>
