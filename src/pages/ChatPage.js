@@ -453,7 +453,14 @@ const stopRecording = () => {
         
         if (messageExists) {
           console.log("📨 Message already exists, skipping duplicate");
-          return prev;
+          // Also refresh status flags for existing sent messages (delivered/read)
+          return prev.map(m => {
+            if ((m.id && messageData.id && m.id === messageData.id) ||
+                (m.senderId === messageData.senderId && m.content === messageData.content && m.timestamp === messageData.timestamp)) {
+              return { ...m, IsDelivered: messageData.isDelivered ?? messageData.IsDelivered, IsRead: messageData.isRead ?? messageData.IsRead, ReadAt: messageData.readAt ?? messageData.ReadAt };
+            }
+            return m;
+          });
         }
         
         console.log("📨 Adding new message to chat");
@@ -465,6 +472,34 @@ const stopRecording = () => {
         
         return [...prev, messageData];
       });
+    });
+
+    // Messages from selected user marked as read confirmation (bulk)
+    newConnection.on("MessagesRead", (payload) => {
+      try {
+        const { ReceiverId, ReadAt } = payload || {};
+        const currentUserId = user?.id || user?.userId;
+        if (!currentUserId) return;
+        setMessages(prev => prev.map(m => {
+          if (m.senderId === currentUserId && m.receiverId === ReceiverId) {
+            return { ...m, IsRead: true, ReadAt: ReadAt || m.ReadAt };
+          }
+          return m;
+        }));
+      } catch (e) {
+        console.error("Error handling MessagesRead:", e);
+      }
+    });
+
+    // Single message read confirmation
+    newConnection.on("MessageRead", (payload) => {
+      try {
+        const { MessageId, ReadAt } = payload || {};
+        if (!MessageId) return;
+        setMessages(prev => prev.map(m => (m.id === MessageId ? { ...m, IsRead: true, ReadAt: ReadAt || m.ReadAt } : m)));
+      } catch (e) {
+        console.error("Error handling MessageRead:", e);
+      }
     });
 
     // Handle message sent confirmation
@@ -540,10 +575,28 @@ const stopRecording = () => {
     // Initial fetch
     fetchMessages();
     
+    // Mark conversation states appropriately on open
+    try {
+      if (connection && connection.state === "Connected") {
+        // Mark their messages to me as read
+        connection.invoke("MarkMessagesAsRead", selectedUser.id).catch((e) => console.warn("MarkMessagesAsRead failed", e));
+        // Ensure my undelivered messages are marked delivered for this receiver
+        connection.invoke("MarkConversationAsDelivered", selectedUser.id).catch((e) => console.warn("MarkConversationAsDelivered failed", e));
+      }
+    } catch (e) {
+      console.warn("Failed to invoke read/delivered marking:", e);
+    }
+    
     // Poll every 3 seconds for new messages
     const intervalId = setInterval(() => {
       if (isActive) {
         fetchMessages();
+        // Opportunistically mark as read while viewing
+        try {
+          if (connection && connection.state === "Connected") {
+            connection.invoke("MarkMessagesAsRead", selectedUser.id).catch(() => {});
+          }
+        } catch {}
       }
     }, 3000); // Fetch every 3 seconds
     
@@ -668,7 +721,10 @@ const stopRecording = () => {
             ...messageData,
             senderName: user?.firstName || user?.userName || 'You',
             senderProfileImage: user?.profileImage,
-            timestamp: messageData.timestamp
+            timestamp: messageData.timestamp,
+            // optimistic status flags for UI
+            IsDelivered: false,
+            IsRead: false
           }]);
 
           // Clear input fields after sending
@@ -954,15 +1010,28 @@ const filteredUsers = users.filter(user =>
                       )}
                       {msg.content && <p className="break-words">{msg.content}</p>}
                       
-                      {/* Timestamp */}
-                      {msg.timestamp && (
-                        <div className={`text-xs mt-2 ${isMyMessage ? "text-blue-100" : "text-gray-400"}`}>
-                          {new Date(msg.timestamp).toLocaleTimeString('az-AZ', { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
-                        </div>
-                      )}
+                      {/* Timestamp + Read receipts for my messages */}
+                      <div className={`flex items-center gap-2 mt-2 ${isMyMessage ? "text-blue-100" : "text-gray-400"}`}>
+                        {msg.timestamp && (
+                          <span>
+                            {new Date(msg.timestamp).toLocaleTimeString('az-AZ', { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </span>
+                        )}
+                        {isMyMessage && (
+                          <span className="ml-1 select-none">
+                            {msg.IsRead ? (
+                              <span style={{ color: '#34B7F1' }}>✓✓</span> // blue double tick
+                            ) : msg.IsDelivered ? (
+                              <span>✓✓</span> // gray double tick
+                            ) : (
+                              <span>✓</span> // gray single tick
+                            )}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
