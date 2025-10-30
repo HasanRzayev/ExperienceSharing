@@ -756,7 +756,8 @@ const stopRecording = () => {
             timestamp: messageData.timestamp,
             // optimistic status flags for UI
             IsDelivered: false,
-            IsRead: false
+            IsRead: false,
+            isMine: true
           }]);
 
           // Clear input fields after sending
@@ -982,14 +983,15 @@ const filteredUsers = users.filter(user =>
               // Robust kimlik karşılaştırması (string/number desteği)
               const normalizeId = (val) => {
                 if (val === null || val === undefined) return null;
-                // sayısal görünümlü string ise aynılaştır
                 const num = Number(val);
                 if (!Number.isNaN(num)) return String(num);
                 return String(val).trim();
               };
-              const isMyMessage = msg.IsFromCurrentUser !== undefined 
-                ? !!msg.IsFromCurrentUser 
-                : (normalizeId(msg.senderId) !== null && normalizeId(currentUserId) !== null && normalizeId(msg.senderId) === normalizeId(currentUserId));
+              const senderAny = msg.senderId ?? msg.SenderId ?? msg.Sender?.Id ?? msg.Sender?.id;
+              const isMyMessage = msg.isMine === true 
+                || (msg.IsFromCurrentUser !== undefined ? !!msg.IsFromCurrentUser : (
+                  normalizeId(senderAny) !== null && normalizeId(currentUserId) !== null && normalizeId(senderAny) === normalizeId(currentUserId)
+                ));
               console.log("Message check:", { 
                 msgSenderId: msg.senderId, 
                 currentUserId: user?.id, 
