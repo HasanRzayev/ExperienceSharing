@@ -6,6 +6,7 @@ import { FaUsers, FaUser, FaPlus, FaSearch, FaPaperPlane, FaTimes, FaEllipsisV, 
 import { HiOutlinePhotograph, HiOutlineVideoCamera, HiOutlineVolumeUp } from "react-icons/hi";
 import EmojiPicker from "emoji-picker-react";
 import MicRecorder from "mic-recorder-to-mp3";
+import { HubConnectionBuilder } from '@microsoft/signalr';
 
 // Upload file to Cloudinary
 export async function uploadFile(file) {
@@ -110,6 +111,8 @@ const ChatPageV2 = () => {
   const token = Cookies.get('token');
 
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+  const signalRUrl = process.env.REACT_APP_SIGNALR_HUB_URL || 'https://experiencesharingbackend.runasp.net/api/hubs/message';
+  const [connection, setConnection] = useState(null);
 
   // Fetch current user
   const fetchCurrentUser = async () => {
@@ -141,6 +144,43 @@ const ChatPageV2 = () => {
     fetchGroups();
     fetchAvailableUsers();
     fetchCurrentUser(); // Fetch current user
+
+    // Minimal SignalR for read/delivered updates
+    const conn = new HubConnectionBuilder()
+      .withUrl(signalRUrl, { accessTokenFactory: () => token })
+      .withAutomaticReconnect()
+      .build();
+
+    conn.start()
+      .then(() => {
+        setConnection(conn);
+      })
+      .catch((e) => console.warn('SignalR connect failed (ChatPageV2):', e));
+
+    conn.on('MessagesRead', (payload) => {
+      try {
+        const { ReceiverId, ReadAt } = payload || {};
+        setMessages(prev => prev.map(m => {
+          // my sent messages to that receiver become read
+          if (String(m.senderId || m.SenderId) === String(user?.id) && String(m.receiverId || m.ReceiverId) === String(ReceiverId)) {
+            return { ...m, IsRead: true, ReadAt: ReadAt || m.ReadAt };
+          }
+          return m;
+        }));
+      } catch {}
+    });
+
+    conn.on('MessageRead', (payload) => {
+      try {
+        const { MessageId, ReadAt } = payload || {};
+        if (!MessageId) return;
+        setMessages(prev => prev.map(m => (m.id === MessageId ? { ...m, IsRead: true, ReadAt: ReadAt || m.ReadAt } : m)));
+      } catch {}
+    });
+
+    return () => {
+      try { conn.stop(); } catch {}
+    };
   }, [token]);
 
   const fetchUsers = async () => {
@@ -215,6 +255,13 @@ const ChatPageV2 = () => {
     setSelectedChat(user);
     setChatType('user');
     fetchUserMessages(user.id);
+    // Mark read / delivered when opening the chat
+    try {
+      if (connection && connection.state === 'Connected') {
+        connection.invoke('MarkMessagesAsRead', user.id).catch(() => {});
+        connection.invoke('MarkConversationAsDelivered', user.id).catch(() => {});
+      }
+    } catch {}
   };
 
   const handleSelectGroup = (group) => {
@@ -381,12 +428,18 @@ const ChatPageV2 = () => {
     const intervalId = setInterval(() => {
       if (chatType === 'user') {
         fetchUserMessages(selectedChat.id);
+        // Opportunistic mark as read while viewing
+        try {
+          if (connection && connection.state === 'Connected') {
+            connection.invoke('MarkMessagesAsRead', selectedChat.id).catch(() => {});
+          }
+        } catch {}
       } else if (chatType === 'group') {
         fetchGroupMessages(selectedChat.id);
       }
     }, 3000);
     return () => clearInterval(intervalId);
-  }, [selectedChat, chatType]);
+  }, [selectedChat, chatType, connection]);
 
   const handleCreateGroup = async (e) => {
     e.preventDefault();
