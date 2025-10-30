@@ -435,6 +435,13 @@ const stopRecording = () => {
 
     newConnection.on("ReceiveMessage", (messageData) => {
       console.log("📨 Received message via SignalR:", messageData);
+      console.log('[ChatPage] ReceiveMessage flags', {
+        id: messageData.id,
+        senderId: messageData.senderId,
+        receiverId: messageData.receiverId,
+        IsDelivered: messageData.IsDelivered ?? messageData.isDelivered,
+        IsRead: messageData.IsRead ?? messageData.isRead
+      });
       console.log("📨 Message sender ID:", messageData.senderId);
       console.log("📨 Message receiver ID:", messageData.receiverId);
       console.log("📨 Current user ID:", user?.id);
@@ -589,6 +596,16 @@ const stopRecording = () => {
         if (!isActive) return; // Component unmounted, don't update state
         
         console.log("📩 Received", response.data.length, "messages from API");
+        if (Array.isArray(response.data) && response.data.length) {
+          const sample = response.data[response.data.length - 1];
+          console.log('[ChatPage] Sample API message flags', {
+            id: sample?.Id || sample?.id,
+            SenderId: sample?.SenderId || sample?.senderId,
+            ReceiverId: sample?.ReceiverId || sample?.receiverId,
+            IsDelivered: sample?.IsDelivered ?? sample?.isDelivered,
+            IsRead: sample?.IsRead ?? sample?.isRead
+          });
+        }
         
         // Always update messages with fresh data from API
         setMessages(response.data || []);
@@ -759,6 +776,11 @@ const stopRecording = () => {
             IsRead: false,
             isMine: true
           }]);
+          console.log('[ChatPage] Optimistic message added (expect single tick)', {
+            to: selectedUser.id,
+            contentSample: (messageData.content || '').slice(0, 30),
+            timestamp: messageData.timestamp
+          });
 
           // Clear input fields after sending
           setNewMessage(""); // Clear input after sending message
@@ -993,20 +1015,19 @@ const filteredUsers = users.filter(user =>
                   normalizeId(senderAny) !== null && normalizeId(currentUserId) !== null && normalizeId(senderAny) === normalizeId(currentUserId)
                 ));
               try {
-                if (index === messages.length - 1 || isMyMessage) {
-                  const isDeliveredAny = msg.IsDelivered ?? msg.isDelivered;
-                  const isReadAny = msg.IsRead ?? msg.isRead;
-                  console.log("Message render:", {
-                    idx: index,
-                    id: msg.id,
-                    senderId: msg.senderId ?? msg.SenderId,
-                    receiverId: msg.receiverId ?? msg.ReceiverId,
-                    isMyMessage,
-                    isDeliveredAny,
-                    isReadAny,
-                    hasTimestamp: !!msg.timestamp
-                  });
-                }
+                const isDeliveredAny = msg.IsDelivered ?? msg.isDelivered;
+                const isReadAny = msg.IsRead ?? msg.isRead;
+                console.log("[ChatPage] Message render", {
+                  idx: index,
+                  id: msg.id,
+                  senderId: msg.senderId ?? msg.SenderId,
+                  receiverId: msg.receiverId ?? msg.ReceiverId,
+                  isMyMessage,
+                  isDeliveredAny,
+                  isReadAny,
+                  hasTimestamp: !!msg.timestamp,
+                  contentSample: (msg.content || '').slice(0, 30)
+                });
               } catch {}
               console.log("Message check:", { 
                 msgSenderId: msg.senderId, 
