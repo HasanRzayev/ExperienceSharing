@@ -992,6 +992,22 @@ const filteredUsers = users.filter(user =>
                 || (msg.IsFromCurrentUser !== undefined ? !!msg.IsFromCurrentUser : (
                   normalizeId(senderAny) !== null && normalizeId(currentUserId) !== null && normalizeId(senderAny) === normalizeId(currentUserId)
                 ));
+              try {
+                if (index === messages.length - 1 || isMyMessage) {
+                  const isDeliveredAny = msg.IsDelivered ?? msg.isDelivered;
+                  const isReadAny = msg.IsRead ?? msg.isRead;
+                  console.log("Message render:", {
+                    idx: index,
+                    id: msg.id,
+                    senderId: msg.senderId ?? msg.SenderId,
+                    receiverId: msg.receiverId ?? msg.ReceiverId,
+                    isMyMessage,
+                    isDeliveredAny,
+                    isReadAny,
+                    hasTimestamp: !!msg.timestamp
+                  });
+                }
+              } catch {}
               console.log("Message check:", { 
                 msgSenderId: msg.senderId, 
                 currentUserId: user?.id, 
