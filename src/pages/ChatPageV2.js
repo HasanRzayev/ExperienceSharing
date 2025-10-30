@@ -113,6 +113,7 @@ const ChatPageV2 = () => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
   const signalRUrl = process.env.REACT_APP_SIGNALR_HUB_URL || 'https://experiencesharingbackend.runasp.net/api/hubs/message';
   const [connection, setConnection] = useState(null);
+  const [connectionReady, setConnectionReady] = useState(false);
 
   // Fetch current user
   const fetchCurrentUser = async () => {
@@ -153,17 +154,21 @@ const ChatPageV2 = () => {
 
     conn.start()
       .then(() => {
+        console.log('[ChatPageV2] SignalR connected', { state: conn.state, connectionId: conn.connectionId });
         setConnection(conn);
+        setConnectionReady(true);
       })
       .catch((e) => console.warn('SignalR connect failed (ChatPageV2):', e));
 
     conn.on('MessagesRead', (payload) => {
       try {
         const { ReceiverId, ReadAt } = payload || {};
+        console.log('[ChatPageV2] MessagesRead event', payload);
         setMessages(prev => prev.map(m => {
-          // my sent messages to that receiver become read
-          if (String(m.senderId || m.SenderId) === String(user?.id) && String(m.receiverId || m.ReceiverId) === String(ReceiverId)) {
-            return { ...m, IsRead: true, ReadAt: ReadAt || m.ReadAt };
+          const sId = m.senderId ?? m.SenderId ?? m.sender?.id;
+          const rId = m.receiverId ?? m.ReceiverId;
+          if (String(sId) === String(user?.id) && String(rId) === String(ReceiverId)) {
+            return { ...m, IsRead: true, isRead: true, ReadAt: ReadAt || m.ReadAt || m.readAt };
           }
           return m;
         }));
@@ -174,7 +179,8 @@ const ChatPageV2 = () => {
       try {
         const { MessageId, ReadAt } = payload || {};
         if (!MessageId) return;
-        setMessages(prev => prev.map(m => (m.id === MessageId ? { ...m, IsRead: true, ReadAt: ReadAt || m.ReadAt } : m)));
+        console.log('[ChatPageV2] MessageRead event', payload);
+        setMessages(prev => prev.map(m => (m.id === MessageId ? { ...m, IsRead: true, isRead: true, ReadAt: ReadAt || m.ReadAt || m.readAt } : m)));
       } catch {}
     });
 
@@ -225,7 +231,15 @@ const ChatPageV2 = () => {
       const response = await axios.get(`${apiBaseUrl}/Messages/conversation/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setMessages(response.data || []);
+      const list = Array.isArray(response.data) ? response.data : [];
+      const normalized = list.map(m => ({
+        ...m,
+        // unify flags for UI
+        IsDelivered: m.IsDelivered ?? m.isDelivered ?? false,
+        IsRead: m.IsRead ?? m.isRead ?? false,
+        ReadAt: m.ReadAt ?? m.readAt ?? null
+      }));
+      setMessages(normalized);
     } catch (error) {
       console.error('Error fetching messages:', error);
       
@@ -257,9 +271,11 @@ const ChatPageV2 = () => {
     fetchUserMessages(user.id);
     // Mark read / delivered when opening the chat
     try {
-      if (connection && connection.state === 'Connected') {
+      if (connectionReady && connection && connection.state === 'Connected') {
         connection.invoke('MarkMessagesAsRead', user.id).catch(() => {});
         connection.invoke('MarkConversationAsDelivered', user.id).catch(() => {});
+      } else {
+        console.log('[ChatPageV2] Deferring mark read/delivered until connection is ready');
       }
     } catch {}
   };
@@ -430,7 +446,7 @@ const ChatPageV2 = () => {
         fetchUserMessages(selectedChat.id);
         // Opportunistic mark as read while viewing
         try {
-          if (connection && connection.state === 'Connected') {
+          if (connectionReady && connection && connection.state === 'Connected') {
             connection.invoke('MarkMessagesAsRead', selectedChat.id).catch(() => {});
           }
         } catch {}
@@ -439,7 +455,18 @@ const ChatPageV2 = () => {
       }
     }, 3000);
     return () => clearInterval(intervalId);
-  }, [selectedChat, chatType, connection]);
+  }, [selectedChat, chatType, connection, connectionReady]);
+
+  // If connection becomes ready after a user was selected, mark read/delivered once
+  useEffect(() => {
+    if (connectionReady && selectedChat && chatType === 'user') {
+      try {
+        connection.invoke('MarkMessagesAsRead', selectedChat.id).catch(() => {});
+        connection.invoke('MarkConversationAsDelivered', selectedChat.id).catch(() => {});
+        console.log('[ChatPageV2] Invoked mark read/delivered after connection ready');
+      } catch {}
+    }
+  }, [connectionReady]);
 
   const handleCreateGroup = async (e) => {
     e.preventDefault();
