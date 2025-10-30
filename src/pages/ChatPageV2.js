@@ -223,6 +223,7 @@ const ChatPageV2 = () => {
                 return {
                   ...m,
                   id: messageData.id ?? m.id,
+                  Id: messageData.id ?? m.Id,
                   IsDelivered: (messageData.IsDelivered ?? messageData.isDelivered ?? true),
                   IsRead: (messageData.IsRead ?? messageData.isRead ?? m.IsRead ?? m.isRead ?? false),
                   ReadAt: messageData.ReadAt ?? messageData.readAt ?? m.ReadAt ?? m.readAt ?? null,
@@ -1243,8 +1244,9 @@ const ChatPageV2 = () => {
                           : String(msg.sender?.id) === String(user?.id);
                         try {
                           if (isOwnMessage) {
-                            const d = msg.IsDelivered ?? msg.isDelivered;
-                            const r = msg.IsRead ?? msg.isRead;
+                            const idAny = msg.Id ?? msg.id;
+                            const d = (msg.IsDelivered ?? msg.isDelivered) || deliveredIds.has(idAny);
+                            const r = (msg.IsRead ?? msg.isRead) || readIds.has(idAny);
                             console.log('[ChatPageV2] Render tick', { idx: index, id: msg.id, isOwnMessage, delivered: d, read: r });
                           }
                         } catch {}
@@ -1312,8 +1314,9 @@ const ChatPageV2 = () => {
                                     {isOwnMessage && (
                                       <span className="ml-1 select-none" style={{ fontSize: '14px', fontWeight: 700 }}>
                                         {(() => {
-                                          const isDeliveredAny = msg.IsDelivered ?? msg.isDelivered;
-                                          const isReadAny = msg.IsRead ?? msg.isRead;
+                                          const idAny = msg.Id ?? msg.id;
+                                          const isDeliveredAny = (msg.IsDelivered ?? msg.isDelivered) || deliveredIds.has(idAny);
+                                          const isReadAny = (msg.IsRead ?? msg.isRead) || readIds.has(idAny);
                                           if (isReadAny) return (<span style={{ color: '#34B7F1' }}>✓✓</span>);
                                           if (isDeliveredAny) return (<span style={{ color: '#9ca3af' }}>✓✓</span>);
                                           return (<span style={{ color: '#ffffff' }}>✓</span>);
