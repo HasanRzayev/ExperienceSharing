@@ -410,31 +410,56 @@ const ChatPageV2 = () => {
 
     try {
       if (chatType === 'user') {
-        await axios.post(
-          `${apiBaseUrl}/Messages`,
-          {
-            receiverId: selectedChat.id,
-            content: newMessage.trim(),
-            mediaUrl: fileUrl,
-            mediaType: mediaType
-          },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        // Optimistic UI update for instant feedback
-        setMessages(prev => [
-          ...prev,
-          {
-            id: `temp-${Date.now()}`,
-            senderId: user?.id,
-            receiverId: selectedChat.id,
-            content: newMessage.trim(),
-            mediaUrl: fileUrl,
-            mediaType: mediaType,
-            timestamp: new Date().toISOString()
-          }
-        ]);
-        // Fetch latest from server
-        fetchUserMessages(selectedChat.id);
+        const messagePayload = {
+          senderId: user?.id,
+          receiverId: selectedChat.id,
+          content: newMessage.trim(),
+          mediaUrl: fileUrl,
+          mediaType: mediaType,
+          timestamp: new Date().toISOString()
+        };
+
+        if (connectionReady && connection && connection.state === 'Connected') {
+          // Prefer SignalR so delivery (✓✓) çalışsın
+          await connection.invoke('SendMessage', messagePayload);
+          // Optimistic add
+          setMessages(prev => [
+            ...prev,
+            {
+              ...messagePayload,
+              id: `temp-${Date.now()}`,
+              IsDelivered: false,
+              IsRead: false
+            }
+          ]);
+        } else {
+          // Fallback REST
+          await axios.post(
+            `${apiBaseUrl}/Messages`,
+            {
+              receiverId: selectedChat.id,
+              content: newMessage.trim(),
+              mediaUrl: fileUrl,
+              mediaType: mediaType
+            },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          setMessages(prev => [
+            ...prev,
+            {
+              id: `temp-${Date.now()}`,
+              senderId: user?.id,
+              receiverId: selectedChat.id,
+              content: newMessage.trim(),
+              mediaUrl: fileUrl,
+              mediaType: mediaType,
+              timestamp: new Date().toISOString(),
+              IsDelivered: false,
+              IsRead: false
+            }
+          ]);
+          fetchUserMessages(selectedChat.id);
+        }
       } else if (chatType === 'group') {
         await axios.post(
           `${apiBaseUrl}/GroupChat/${selectedChat.id}/messages`,
