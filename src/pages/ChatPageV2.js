@@ -1231,6 +1231,13 @@ const ChatPageV2 = () => {
                         const isOwnMessage = chatType === 'user'
                           ? String(msg.senderId) === String(user?.id)
                           : String(msg.sender?.id) === String(user?.id);
+                        try {
+                          if (isOwnMessage) {
+                            const d = msg.IsDelivered ?? msg.isDelivered;
+                            const r = msg.IsRead ?? msg.isRead;
+                            console.log('[ChatPageV2] Render tick', { idx: index, id: msg.id, isOwnMessage, delivered: d, read: r });
+                          }
+                        } catch {}
 
                         return (
                           <div
