@@ -10,6 +10,10 @@ using Microsoft.AspNetCore.Http;
 using System.IdentityModel.Tokens.Jwt;
 using Experience.Dto;
 using Experience.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -220,6 +224,35 @@ public class MessagesController : ControllerBase
             .ToListAsync();
 
         return Ok(messages);
+    }
+
+    // Mark all messages from sender as read for current user
+    [HttpPost("mark-read/{senderId}")]
+    public async Task<IActionResult> MarkConversationAsRead(int senderId)
+    {
+        var userId = GetUserIdFromHeader();
+        if (userId == 0)
+        {
+            return Unauthorized(new { message = "User ID not found in token" });
+        }
+
+        var unread = await _context.Messages
+            .Where(m => m.SenderId == senderId && m.ReceiverId == userId && !m.IsRead)
+            .ToListAsync();
+
+        if (!unread.Any())
+        {
+            return Ok(new { updated = 0 });
+        }
+
+        foreach (var m in unread)
+        {
+            m.IsRead = true;
+            m.ReadAt = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok(new { updated = unread.Count });
     }
     [HttpGet("admin")]
     public async Task<IActionResult> GetMessagesForAdmin(int page = 1, int pageSize = 10, string? search = null)

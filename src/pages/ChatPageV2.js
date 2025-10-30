@@ -352,6 +352,10 @@ const ChatPageV2 = () => {
       } else {
         console.log('[ChatPageV2] Deferring mark read/delivered until connection is ready');
       }
+      // REST fallback to mark read if hub method is unavailable
+      axios.post(`${apiBaseUrl}/Messages/mark-read/${user.id}`, {}, { headers: { Authorization: `Bearer ${token}` } })
+        .then(() => fetchUserMessages(user.id))
+        .catch(() => {});
     } catch (e) { console.warn('Mark invocations error', e); }
   };
 
@@ -551,6 +555,10 @@ const ChatPageV2 = () => {
             connection.invoke('MarkMessagesAsRead', selectedChat.id).catch((e) => console.warn('MarkMessagesAsRead failed', e));
           }
         } catch {}
+        // REST fallback
+        axios.post(`${apiBaseUrl}/Messages/mark-read/${selectedChat.id}`, {}, { headers: { Authorization: `Bearer ${token}` } })
+          .then(() => fetchUserMessages(selectedChat.id))
+          .catch(() => {});
       } else if (chatType === 'group') {
         fetchGroupMessages(selectedChat.id);
       }
