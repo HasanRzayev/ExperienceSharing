@@ -117,6 +117,12 @@ const ChatPageV2 = () => {
   // Some backends may not expose hub methods for read/delivered marking
   const enableHubMarking = false;
 
+  // Keep latest values to avoid stale closures inside SignalR handlers
+  const userRef = useRef(null);
+  const selectedChatRef = useRef(null);
+  useEffect(() => { userRef.current = user; }, [user]);
+  useEffect(() => { selectedChatRef.current = selectedChat; }, [selectedChat]);
+
   // Fetch current user
   const fetchCurrentUser = async () => {
     try {
@@ -189,17 +195,17 @@ const ChatPageV2 = () => {
     // ReceiveMessage echo: when I send via API, backend also broadcasts; use it to mark delivered/read
     conn.on('ReceiveMessage', (messageData) => {
       try {
-        const currentUserId = user?.id;
-        if (!currentUserId) return;
+        const currentUserId = userRef.current?.id;
         console.log('[ChatPageV2] ReceiveMessage', {
           id: messageData?.id,
           senderId: messageData?.senderId,
           receiverId: messageData?.receiverId,
           isDelivered: messageData?.IsDelivered ?? messageData?.isDelivered,
-          isRead: messageData?.IsRead ?? messageData?.isRead
+          isRead: messageData?.IsRead ?? messageData?.isRead,
+          currentUserId
         });
         // If this echo is my message, update local message flags
-        if (String(messageData.senderId) === String(currentUserId)) {
+        if (currentUserId && String(messageData.senderId) === String(currentUserId)) {
           setMessages(prev => {
             let updated = false;
             const next = prev.map(m => {
