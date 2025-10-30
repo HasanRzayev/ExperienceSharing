@@ -208,7 +208,7 @@ const ChatPageV2 = () => {
         if (currentUserId && String(messageData.senderId) === String(currentUserId)) {
           setMessages(prev => {
             let updated = false;
-            const next = prev.map(m => {
+            let next = prev.map(m => {
               const samePair = String(m.senderId ?? m.SenderId ?? m.sender?.id) === String(messageData.senderId)
                 && String(m.receiverId ?? m.ReceiverId) === String(messageData.receiverId);
               const sameContent = (m.content || '') === (messageData.content || '');
@@ -225,6 +225,18 @@ const ChatPageV2 = () => {
               }
               return m;
             });
+            if (!updated) {
+              for (let i = next.length - 1; i >= 0; i--) {
+                const m = next[i];
+                const samePair = String(m.senderId ?? m.SenderId ?? m.sender?.id) === String(messageData.senderId)
+                  && String(m.receiverId ?? m.ReceiverId) === String(messageData.receiverId);
+                if (samePair) {
+                  next = next.map((msg, idx) => idx === i ? { ...msg, IsDelivered: true } : msg);
+                  updated = true;
+                  break;
+                }
+              }
+            }
             return next;
           });
         }
