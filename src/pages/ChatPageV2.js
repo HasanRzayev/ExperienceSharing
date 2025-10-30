@@ -114,6 +114,8 @@ const ChatPageV2 = () => {
   const signalRUrl = process.env.REACT_APP_SIGNALR_HUB_URL || 'https://experiencesharingbackend.runasp.net/api/hubs/message';
   const [connection, setConnection] = useState(null);
   const [connectionReady, setConnectionReady] = useState(false);
+  // Some backends may not expose hub methods for read/delivered marking
+  const enableHubMarking = false;
 
   // Fetch current user
   const fetchCurrentUser = async () => {
@@ -307,7 +309,7 @@ const ChatPageV2 = () => {
     fetchUserMessages(user.id);
     // Mark read / delivered when opening the chat
     try {
-      if (connectionReady && connection && connection.state === 'Connected') {
+      if (enableHubMarking && connectionReady && connection && connection.state === 'Connected') {
         console.log('[ChatPageV2] Invoking mark calls on select user', { userId: user.id });
         connection.invoke('MarkMessagesAsRead', user.id).catch((e) => console.warn('MarkMessagesAsRead failed', e));
         connection.invoke('MarkConversationAsDelivered', user.id).catch((e) => console.warn('MarkConversationAsDelivered failed', e));
@@ -483,7 +485,7 @@ const ChatPageV2 = () => {
         fetchUserMessages(selectedChat.id);
         // Opportunistic mark as read while viewing
         try {
-          if (connectionReady && connection && connection.state === 'Connected') {
+          if (enableHubMarking && connectionReady && connection && connection.state === 'Connected') {
             connection.invoke('MarkMessagesAsRead', selectedChat.id).catch((e) => console.warn('MarkMessagesAsRead failed', e));
           }
         } catch {}
@@ -496,7 +498,7 @@ const ChatPageV2 = () => {
 
   // If connection becomes ready after a user was selected, mark read/delivered once
   useEffect(() => {
-    if (connectionReady && selectedChat && chatType === 'user') {
+    if (enableHubMarking && connectionReady && selectedChat && chatType === 'user') {
       try {
         connection.invoke('MarkMessagesAsRead', selectedChat.id).catch(() => {});
         connection.invoke('MarkConversationAsDelivered', selectedChat.id).catch(() => {});
