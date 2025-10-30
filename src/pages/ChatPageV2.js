@@ -184,7 +184,7 @@ const ChatPageV2 = () => {
           }
           return m;
         }));
-        setReadIds(prev => new Set(prev).add(ReceiverId));
+        // Do not add ReceiverId to readIds set (we track by message id)
       } catch {}
     });
 
@@ -194,7 +194,7 @@ const ChatPageV2 = () => {
         if (!MessageId) return;
         console.log('[ChatPageV2] MessageRead event', payload);
         setMessages(prev => prev.map(m => (m.id === MessageId ? { ...m, IsRead: true, isRead: true, ReadAt: ReadAt || m.ReadAt || m.readAt } : m)));
-        setReadIds(prev => new Set(prev).add(MessageId));
+        setReadIds(prev => { const s = new Set(prev); s.add(String(MessageId)); return s; });
       } catch {}
     });
 
@@ -246,8 +246,8 @@ const ChatPageV2 = () => {
             }
             return next;
           });
-          if (messageData?.id) {
-            setDeliveredIds(prev => new Set(prev).add(messageData.id));
+          if (messageData?.id !== undefined && messageData?.id !== null) {
+            setDeliveredIds(prev => { const s = new Set(prev); s.add(String(messageData.id)); return s; });
           }
         }
       } catch {}
@@ -308,8 +308,8 @@ const ChatPageV2 = () => {
         const idAny = m.Id ?? m.id;
         return {
           ...m,
-          IsDelivered: deliveredIds.has(idAny) ? true : !!isDelivered,
-          IsRead: readIds.has(idAny) ? true : !!isRead,
+          IsDelivered: deliveredIds.has(String(idAny)) ? true : !!isDelivered,
+          IsRead: readIds.has(String(idAny)) ? true : !!isRead,
           ReadAt: readAt
         };
       });
@@ -1245,8 +1245,8 @@ const ChatPageV2 = () => {
                         try {
                           if (isOwnMessage) {
                             const idAny = msg.Id ?? msg.id;
-                            const d = (msg.IsDelivered ?? msg.isDelivered) || deliveredIds.has(idAny);
-                            const r = (msg.IsRead ?? msg.isRead) || readIds.has(idAny);
+                            const d = (msg.IsDelivered ?? msg.isDelivered) || deliveredIds.has(String(idAny));
+                            const r = (msg.IsRead ?? msg.isRead) || readIds.has(String(idAny));
                             console.log('[ChatPageV2] Render tick', { idx: index, id: msg.id, isOwnMessage, delivered: d, read: r });
                           }
                         } catch {}
@@ -1316,8 +1316,8 @@ const ChatPageV2 = () => {
                                       <span className="ml-1 select-none" style={{ fontSize: '14px', fontWeight: 700 }}>
                                         {(() => {
                                           const idAny = msg.Id ?? msg.id;
-                                          const isDeliveredAny = (msg.IsDelivered ?? msg.isDelivered) || deliveredIds.has(idAny);
-                                          const isReadAny = (msg.IsRead ?? msg.isRead) || readIds.has(idAny);
+                                          const isDeliveredAny = (msg.IsDelivered ?? msg.isDelivered) || deliveredIds.has(String(idAny));
+                                          const isReadAny = (msg.IsRead ?? msg.isRead) || readIds.has(String(idAny));
                                           if (isReadAny) return (<span style={{ color: '#34B7F1' }}>✓✓</span>);
                                           if (isDeliveredAny) return (<span style={{ color: '#9ca3af' }}>✓✓</span>);
                                           return (<span style={{ color: '#ffffff' }}>✓</span>);
