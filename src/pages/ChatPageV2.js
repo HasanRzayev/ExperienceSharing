@@ -114,8 +114,8 @@ const ChatPageV2 = () => {
   const signalRUrl = process.env.REACT_APP_SIGNALR_HUB_URL || 'https://experiencesharingbackend.runasp.net/api/hubs/message';
   const [connection, setConnection] = useState(null);
   const [connectionReady, setConnectionReady] = useState(false);
-  // Some backends may not expose hub methods for read/delivered marking
-  const enableHubMarking = false;
+  // Enable hub marking so reads are sent to backend if available
+  const enableHubMarking = true;
 
   // Keep latest values to avoid stale closures inside SignalR handlers
   const userRef = useRef(null);
