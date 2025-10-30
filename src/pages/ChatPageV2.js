@@ -1271,11 +1271,12 @@ const ChatPageV2 = () => {
                                   </p>
                                 )}
                                 <div
-                                  className={`rounded-2xl px-4 py-2 ${
+                                  className={`rounded-2xl px-4 py-3 shadow-md ${
                                     isOwnMessage
-                                      ? 'bg-purple-600 text-white'
-                                      : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-white'
-                                  }`}
+                                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
+                                      : 'bg-white/90 dark:bg-gray-800/90 text-gray-800 dark:text-white border border-gray-200/60 dark:border-gray-700/60 backdrop-blur'
+                                  } max-w-[520px]`}
+                                  style={{ wordBreak: 'break-word' }}
                                 >
                                   {/* Media Display */}
                                   {msg.mediaUrl && msg.mediaType === "image" && (
@@ -1304,7 +1305,7 @@ const ChatPageV2 = () => {
                                   {msg.content && <p className="break-words">{msg.content}</p>}
                                   
                                   {/* Timestamp + Read receipts for own messages */}
-                                  <div className={`flex items-center gap-2 mt-1 ${isOwnMessage ? 'text-purple-200' : 'text-gray-500'}`}>
+                                  <div className={`flex items-center gap-2 mt-2 ${isOwnMessage ? 'text-purple-100' : 'text-gray-500'}`}>
                                     <span>
                                       {new Date(msg.sentAt || msg.timestamp).toLocaleTimeString([], {
                                         hour: '2-digit',
