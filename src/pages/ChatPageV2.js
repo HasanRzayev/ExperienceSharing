@@ -1114,13 +1114,26 @@ const ChatPageV2 = () => {
                                   {/* Text Content */}
                                   {msg.content && <p className="break-words">{msg.content}</p>}
                                   
-                                  {/* Timestamp */}
-                                  <p className={`text-xs mt-1 ${isOwnMessage ? 'text-purple-200' : 'text-gray-500'}`}>
-                                    {new Date(msg.sentAt || msg.timestamp).toLocaleTimeString([], {
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    })}
-                                  </p>
+                                  {/* Timestamp + Read receipts for own messages */}
+                                  <div className={`flex items-center gap-2 mt-1 ${isOwnMessage ? 'text-purple-200' : 'text-gray-500'}`}>
+                                    <span>
+                                      {new Date(msg.sentAt || msg.timestamp).toLocaleTimeString([], {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </span>
+                                    {isOwnMessage && (
+                                      <span className="ml-1 select-none" style={{ fontSize: '14px', fontWeight: 700 }}>
+                                        {(() => {
+                                          const isDeliveredAny = msg.IsDelivered ?? msg.isDelivered;
+                                          const isReadAny = msg.IsRead ?? msg.isRead;
+                                          if (isReadAny) return (<span style={{ color: '#34B7F1' }}>✓✓</span>);
+                                          if (isDeliveredAny) return (<span style={{ color: '#9ca3af' }}>✓✓</span>);
+                                          return (<span style={{ color: '#ffffff' }}>✓</span>);
+                                        })()}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
