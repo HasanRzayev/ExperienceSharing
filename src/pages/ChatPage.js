@@ -1079,7 +1079,7 @@ const filteredUsers = users.filter(user =>
                           </span>
                         )}
                         {isMyMessage && (
-                          <span className="ml-1 select-none">
+                          <span className="ml-1 select-none" style={{ fontSize: '14px', fontWeight: 700 }}>
                             {(() => {
                               const isRead = msg.IsRead ?? msg.isRead;
                               const isDelivered = msg.IsDelivered ?? msg.isDelivered;
