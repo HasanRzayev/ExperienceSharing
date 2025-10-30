@@ -123,6 +123,10 @@ const ChatPageV2 = () => {
   useEffect(() => { userRef.current = user; }, [user]);
   useEffect(() => { selectedChatRef.current = selectedChat; }, [selectedChat]);
 
+  // Client-side overrides to prevent polling from wiping delivery/read state
+  const [deliveredIds, setDeliveredIds] = useState(new Set());
+  const [readIds, setReadIds] = useState(new Set());
+
   // Fetch current user
   const fetchCurrentUser = async () => {
     try {
@@ -180,6 +184,7 @@ const ChatPageV2 = () => {
           }
           return m;
         }));
+        setReadIds(prev => new Set(prev).add(ReceiverId));
       } catch {}
     });
 
@@ -189,6 +194,7 @@ const ChatPageV2 = () => {
         if (!MessageId) return;
         console.log('[ChatPageV2] MessageRead event', payload);
         setMessages(prev => prev.map(m => (m.id === MessageId ? { ...m, IsRead: true, isRead: true, ReadAt: ReadAt || m.ReadAt || m.readAt } : m)));
+        setReadIds(prev => new Set(prev).add(MessageId));
       } catch {}
     });
 
@@ -239,6 +245,9 @@ const ChatPageV2 = () => {
             }
             return next;
           });
+          if (messageData?.id) {
+            setDeliveredIds(prev => new Set(prev).add(messageData.id));
+          }
         }
       } catch {}
     });
@@ -295,10 +304,11 @@ const ChatPageV2 = () => {
         const readAt = m.ReadAt ?? m.readAt ?? null;
         const isRead = (m.IsRead ?? m.isRead) || !!readAt;
         const isDelivered = (m.IsDelivered ?? m.isDelivered) || isRead; // read implies delivered
+        const idAny = m.Id ?? m.id;
         return {
           ...m,
-          IsDelivered: !!isDelivered,
-          IsRead: !!isRead,
+          IsDelivered: deliveredIds.has(idAny) ? true : !!isDelivered,
+          IsRead: readIds.has(idAny) ? true : !!isRead,
           ReadAt: readAt
         };
       });
