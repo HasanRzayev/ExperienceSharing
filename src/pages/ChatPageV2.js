@@ -184,6 +184,38 @@ const ChatPageV2 = () => {
       } catch {}
     });
 
+    // ReceiveMessage echo: when I send via API, backend also broadcasts; use it to mark delivered/read
+    conn.on('ReceiveMessage', (messageData) => {
+      try {
+        const currentUserId = user?.id;
+        if (!currentUserId) return;
+        // If this echo is my message, update local message flags
+        if (String(messageData.senderId) === String(currentUserId)) {
+          setMessages(prev => {
+            let updated = false;
+            const next = prev.map(m => {
+              const samePair = String(m.senderId ?? m.SenderId ?? m.sender?.id) === String(messageData.senderId)
+                && String(m.receiverId ?? m.ReceiverId) === String(messageData.receiverId);
+              const sameContent = (m.content || '') === (messageData.content || '');
+              if (!updated && samePair && sameContent) {
+                updated = true;
+                return {
+                  ...m,
+                  id: messageData.id ?? m.id,
+                  IsDelivered: (messageData.IsDelivered ?? messageData.isDelivered ?? true),
+                  IsRead: (messageData.IsRead ?? messageData.isRead ?? m.IsRead ?? m.isRead ?? false),
+                  ReadAt: messageData.ReadAt ?? messageData.readAt ?? m.ReadAt ?? m.readAt ?? null,
+                  timestamp: messageData.timestamp ?? messageData.sentAt ?? m.timestamp
+                };
+              }
+              return m;
+            });
+            return next;
+          });
+        }
+      } catch {}
+    });
+
     return () => {
       try { conn.stop(); } catch {}
     };
