@@ -946,10 +946,18 @@ const filteredUsers = users.filter(user =>
           ) : (
             messages.map((msg, index) => {
               // Backend-dən gələn IsFromCurrentUser field-ini istifadə edək, yoxdursa manual hesabla
-              const currentUserId = user?.id || user?.userId;
+              const currentUserId = user?.id ?? user?.userId;
+              // Robust kimlik karşılaştırması (string/number desteği)
+              const normalizeId = (val) => {
+                if (val === null || val === undefined) return null;
+                // sayısal görünümlü string ise aynılaştır
+                const num = Number(val);
+                if (!Number.isNaN(num)) return String(num);
+                return String(val).trim();
+              };
               const isMyMessage = msg.IsFromCurrentUser !== undefined 
-                ? msg.IsFromCurrentUser 
-                : (currentUserId && parseInt(msg.senderId) === parseInt(currentUserId));
+                ? !!msg.IsFromCurrentUser 
+                : (normalizeId(msg.senderId) !== null && normalizeId(currentUserId) !== null && normalizeId(msg.senderId) === normalizeId(currentUserId));
               console.log("Message check:", { 
                 msgSenderId: msg.senderId, 
                 currentUserId: user?.id, 
