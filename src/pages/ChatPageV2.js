@@ -232,13 +232,17 @@ const ChatPageV2 = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       const list = Array.isArray(response.data) ? response.data : [];
-      const normalized = list.map(m => ({
-        ...m,
-        // unify flags for UI
-        IsDelivered: m.IsDelivered ?? m.isDelivered ?? false,
-        IsRead: m.IsRead ?? m.isRead ?? false,
-        ReadAt: m.ReadAt ?? m.readAt ?? null
-      }));
+      const normalized = list.map(m => {
+        const readAt = m.ReadAt ?? m.readAt ?? null;
+        const isRead = (m.IsRead ?? m.isRead) || !!readAt;
+        const isDelivered = (m.IsDelivered ?? m.isDelivered) || isRead; // read implies delivered
+        return {
+          ...m,
+          IsDelivered: !!isDelivered,
+          IsRead: !!isRead,
+          ReadAt: readAt
+        };
+      });
       setMessages(normalized);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -272,12 +276,13 @@ const ChatPageV2 = () => {
     // Mark read / delivered when opening the chat
     try {
       if (connectionReady && connection && connection.state === 'Connected') {
-        connection.invoke('MarkMessagesAsRead', user.id).catch(() => {});
-        connection.invoke('MarkConversationAsDelivered', user.id).catch(() => {});
+        console.log('[ChatPageV2] Invoking mark calls on select user', { userId: user.id });
+        connection.invoke('MarkMessagesAsRead', user.id).catch((e) => console.warn('MarkMessagesAsRead failed', e));
+        connection.invoke('MarkConversationAsDelivered', user.id).catch((e) => console.warn('MarkConversationAsDelivered failed', e));
       } else {
         console.log('[ChatPageV2] Deferring mark read/delivered until connection is ready');
       }
-    } catch {}
+    } catch (e) { console.warn('Mark invocations error', e); }
   };
 
   const handleSelectGroup = (group) => {
@@ -447,7 +452,7 @@ const ChatPageV2 = () => {
         // Opportunistic mark as read while viewing
         try {
           if (connectionReady && connection && connection.state === 'Connected') {
-            connection.invoke('MarkMessagesAsRead', selectedChat.id).catch(() => {});
+            connection.invoke('MarkMessagesAsRead', selectedChat.id).catch((e) => console.warn('MarkMessagesAsRead failed', e));
           }
         } catch {}
       } else if (chatType === 'group') {
