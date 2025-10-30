@@ -1087,9 +1087,9 @@ const filteredUsers = users.filter(user =>
                                 return (<span style={{ color: '#34B7F1' }}>✓✓</span>);
                               }
                               if (isDelivered) {
-                                return (<span>✓✓</span>);
+                                return (<span style={{ color: '#e5e7eb' }}>✓✓</span>);
                               }
-                              return (<span>✓</span>);
+                              return (<span style={{ color: '#ffffff' }}>✓</span>);
                             })()}
                           </span>
                         )}
