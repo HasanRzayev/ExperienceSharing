@@ -191,6 +191,13 @@ const ChatPageV2 = () => {
       try {
         const currentUserId = user?.id;
         if (!currentUserId) return;
+        console.log('[ChatPageV2] ReceiveMessage', {
+          id: messageData?.id,
+          senderId: messageData?.senderId,
+          receiverId: messageData?.receiverId,
+          isDelivered: messageData?.IsDelivered ?? messageData?.isDelivered,
+          isRead: messageData?.IsRead ?? messageData?.isRead
+        });
         // If this echo is my message, update local message flags
         if (String(messageData.senderId) === String(currentUserId)) {
           setMessages(prev => {
@@ -421,6 +428,7 @@ const ChatPageV2 = () => {
 
         if (connectionReady && connection && connection.state === 'Connected') {
           // Prefer SignalR so delivery (✓✓) çalışsın
+          console.log('[ChatPageV2] Invoking SendMessage via SignalR', { to: selectedChat.id });
           await connection.invoke('SendMessage', messagePayload);
           // Optimistic add
           setMessages(prev => [
