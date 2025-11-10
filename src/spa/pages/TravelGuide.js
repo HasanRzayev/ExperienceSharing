@@ -1,0 +1,598 @@
+import React, { useState } from "react";
+import {
+  FaSearch,
+  FaMapMarkerAlt,
+  FaHiking,
+  FaLandmark,
+  FaCamera,
+  FaUtensils,
+  FaSpa,
+  FaParachuteBox,
+} from "react-icons/fa";
+import { MdExplore } from "react-icons/md";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+function TravelGuide() {
+  const [location, setLocation] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [recommendations, setRecommendations] = useState(null);
+  const [error, setError] = useState("");
+
+  const categories = [
+    {
+      icon: FaHiking,
+      title: "Nature & Hiking",
+      color: "from-green-500 to-emerald-600",
+      emoji: "🏞️",
+    },
+    {
+      icon: FaLandmark,
+      title: "Cultural & Historical",
+      color: "from-amber-500 to-orange-600",
+      emoji: "🏛️",
+    },
+    {
+      icon: FaCamera,
+      title: "Entertainment & Social",
+      color: "from-purple-500 to-pink-600",
+      emoji: "📸",
+    },
+    {
+      icon: FaUtensils,
+      title: "Food & Dining",
+      color: "from-red-500 to-rose-600",
+      emoji: "🍽️",
+    },
+    {
+      icon: FaSpa,
+      title: "Relaxation & Wellness",
+      color: "from-blue-500 to-cyan-600",
+      emoji: "🧘‍♂️",
+    },
+    {
+      icon: FaParachuteBox,
+      title: "Adventure & Sports",
+      color: "from-orange-500 to-red-600",
+      emoji: "🚤",
+    },
+  ];
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+
+    if (!location.trim()) {
+      setError("Please enter a location");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setRecommendations(null);
+
+    try {
+      const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
+
+      if (!apiKey) {
+        throw new Error(
+          "Gemini API key not configured. Please add REACT_APP_GEMINI_API_KEY to your .env file.",
+        );
+      }
+
+      const prompt = `You are a travel guide assistant. Provide detailed travel recommendations for "${location}".
+
+Please provide information in the following categories (use exactly these headings):
+
+🏞️ Nature & Hiking Activities:
+List specific places, trails, parks, beaches, lakes, or natural attractions. Include what makes each special.
+
+🏛️ Cultural & Historical Sites:
+List museums, historical landmarks, ancient sites, religious buildings, and cultural attractions with brief descriptions.
+
+📸 Entertainment & Social Activities:
+List entertainment venues, clubs, bars, photo spots, shopping areas, and social meeting places.
+
+🍽️ Food & Dining:
+List famous restaurants, local cuisine to try, food markets, cafes, and unique dining experiences.
+
+🧘‍♂️ Relaxation & Wellness:
+List spas, wellness centers, yoga studios, peaceful spots, and relaxation activities.
+
+🚤 Adventure & Sports:
+List adventure activities like diving, kayaking, zip-lining, skiing, water sports, and extreme sports available.
+
+📍 Best Photo Spots:
+List the most Instagram-worthy locations for photography.
+
+💡 Local Tips:
+Provide 3-5 essential tips for visiting this location.
+
+Format each section clearly with bullet points. Be specific with names and locations where possible.`;
+
+      // Initialize Gemini AI with latest stable configuration
+      const genAI = new GoogleGenerativeAI(apiKey);
+
+      // Use the correct model identifier
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash",
+        generationConfig: {
+          temperature: 0.7,
+          topP: 0.95,
+          topK: 40,
+          maxOutputTokens: 2048,
+        },
+      });
+
+      // Generate content
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+
+      if (text) {
+        setRecommendations(parseRecommendations(text));
+      } else {
+        throw new Error("No recommendations received from AI");
+      }
+    } catch (err) {
+      console.error("Error fetching recommendations:", err);
+
+      let errorMessage = "Failed to fetch recommendations. ";
+
+      if (err.message?.includes("API key")) {
+        errorMessage += "Please check your API key in the .env file.";
+      } else if (
+        err.message?.includes("404") ||
+        err.message?.includes("not found")
+      ) {
+        errorMessage +=
+          "The AI model is currently unavailable. Please check your API key permissions and ensure Gemini API is enabled in Google Cloud Console.";
+      } else if (err.message?.includes("quota")) {
+        errorMessage += "API quota exceeded. Please try again later.";
+      } else {
+        errorMessage += err.message || "Please try again.";
+      }
+
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const parseRecommendations = (text) => {
+    const sections = {
+      nature: "",
+      cultural: "",
+      entertainment: "",
+      food: "",
+      relaxation: "",
+      adventure: "",
+      photoSpots: "",
+      tips: "",
+    };
+
+    // Split by emoji headers
+    const natureSplit = text.split(/🏞️\s*Nature\s*&\s*Hiking\s*Activities?:/i);
+    const culturalSplit = text.split(
+      /🏛️\s*Cultural\s*&\s*Historical\s*Sites?:/i,
+    );
+    const entertainmentSplit = text.split(
+      /📸\s*Entertainment\s*&\s*Social\s*Activities?:/i,
+    );
+    const foodSplit = text.split(/🍽️\s*Food\s*&\s*Dining:/i);
+    const relaxationSplit = text.split(/🧘‍♂️\s*Relaxation\s*&\s*Wellness:/i);
+    const adventureSplit = text.split(/🚤\s*Adventure\s*&\s*Sports:/i);
+    const photoSplit = text.split(/📍\s*Best\s*Photo\s*Spots?:/i);
+    const tipsSplit = text.split(/💡\s*Local\s*Tips?:/i);
+
+    if (natureSplit.length > 1) {
+      sections.nature = natureSplit[1].split(/🏛️|📸|🍽️|🧘‍♂️|🚤|📍|💡/)[0].trim();
+    }
+    if (culturalSplit.length > 1) {
+      sections.cultural = culturalSplit[1].split(/📸|🍽️|🧘‍♂️|🚤|📍|💡/)[0].trim();
+    }
+    if (entertainmentSplit.length > 1) {
+      sections.entertainment = entertainmentSplit[1]
+        .split(/🍽️|🧘‍♂️|🚤|📍|💡/)[0]
+        .trim();
+    }
+    if (foodSplit.length > 1) {
+      sections.food = foodSplit[1].split(/🧘‍♂️|🚤|📍|💡/)[0].trim();
+    }
+    if (relaxationSplit.length > 1) {
+      sections.relaxation = relaxationSplit[1].split(/🚤|📍|💡/)[0].trim();
+    }
+    if (adventureSplit.length > 1) {
+      sections.adventure = adventureSplit[1].split(/📍|💡/)[0].trim();
+    }
+    if (photoSplit.length > 1) {
+      sections.photoSpots = photoSplit[1].split(/💡/)[0].trim();
+    }
+    if (tipsSplit.length > 1) {
+      sections.tips = tipsSplit[1].trim();
+    }
+
+    return sections;
+  };
+
+  // Format markdown text to HTML
+  const formatMarkdown = (text) => {
+    if (!text) return null;
+
+    // Split by lines
+    const lines = text.split("\n");
+    const formatted = [];
+
+    lines.forEach((line, index) => {
+      if (!line.trim()) {
+        formatted.push(<br key={`br-${index}`} />);
+        return;
+      }
+
+      // Parse bullet points
+      if (line.trim().startsWith("*") || line.trim().startsWith("-")) {
+        const content = line.replace(/^[\*\-]\s*/, "");
+        // Parse bold text **text**
+        const parts = content.split(/\*\*(.+?)\*\*/g);
+
+        formatted.push(
+          <div key={index} className="mb-3 flex gap-3">
+            <span className="mt-1 text-lg font-bold text-purple-600">•</span>
+            <div className="flex-1">
+              {parts.map((part, i) =>
+                i % 2 === 1 ? (
+                  <strong key={i} className="font-bold text-gray-900">
+                    {part}
+                  </strong>
+                ) : (
+                  <span key={i}>{part}</span>
+                ),
+              )}
+            </div>
+          </div>,
+        );
+      } else {
+        // Regular text with bold parsing
+        const parts = line.split(/\*\*(.+?)\*\*/g);
+        formatted.push(
+          <p key={index} className="mb-2">
+            {parts.map((part, i) =>
+              i % 2 === 1 ? (
+                <strong key={i} className="font-bold text-gray-900">
+                  {part}
+                </strong>
+              ) : (
+                <span key={i}>{part}</span>
+              ),
+            )}
+          </p>,
+        );
+      }
+    });
+
+    return formatted;
+  };
+
+  const renderSection = (title, content, icon, color, emoji) => {
+    if (!content) return null;
+
+    const Icon = icon;
+
+    return (
+      <div className="animate-fadeInUp rounded-xl border-l-4 border-transparent bg-white p-6 shadow-lg transition-shadow duration-300 hover:border-purple-500 hover:shadow-xl">
+        <div className="mb-6 flex items-center gap-3 border-b-2 border-gray-100 pb-3">
+          <div
+            className={`size-14 bg-gradient-to-br ${color} flex items-center justify-center rounded-xl text-3xl shadow-lg transition-transform hover:scale-110`}
+          >
+            {emoji}
+          </div>
+          <h3 className="text-2xl font-bold text-gray-800">{title}</h3>
+        </div>
+        <div className="text-base leading-relaxed text-gray-700">
+          {formatMarkdown(content)}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 px-4 py-20 text-white">
+        {/* Animated Background */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute left-0 top-0 size-96 animate-pulse rounded-full bg-white blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 size-96 animate-pulse rounded-full bg-pink-300 blur-3xl delay-1000"></div>
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-4xl text-center">
+          <div className="mb-6 flex justify-center">
+            <div className="flex size-24 animate-bounce items-center justify-center rounded-full bg-white/20 shadow-2xl backdrop-blur-sm">
+              <MdExplore className="text-6xl" />
+            </div>
+          </div>
+          <h1 className="mb-4 bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-5xl font-bold text-transparent md:text-6xl">
+            AI Travel Guide
+          </h1>
+          <p className="mb-10 text-2xl font-light text-blue-50">
+            Discover amazing activities and hidden gems powered by AI
+          </p>
+
+          {/* Search Form */}
+          <form onSubmit={handleSearch} className="mx-auto max-w-2xl">
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-6">
+                <FaMapMarkerAlt className="text-xl text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Where do you want to explore? (e.g., Paris, Bali, Tokyo, Baku...)"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="w-full rounded-full border-4 border-white/80 bg-white/95 py-6 pl-16 pr-36 text-xl text-gray-800 shadow-2xl outline-none backdrop-blur-lg transition-all placeholder:text-gray-400 focus:border-white focus:ring-4 focus:ring-white/50"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="hover:shadow-3xl absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-3 rounded-full bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 px-10 py-4 font-bold text-white shadow-2xl transition-all hover:scale-105 hover:from-pink-600 hover:via-purple-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading ? (
+                  <>
+                    <div className="border-3 size-6 animate-spin rounded-full border-white border-t-transparent"></div>
+                    <span className="text-lg">Searching...</span>
+                  </>
+                ) : (
+                  <>
+                    <FaSearch className="text-xl" />
+                    <span className="text-lg">Explore</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+
+          {error && (
+            <div className="mx-auto mt-6 max-w-2xl">
+              <div className="rounded-2xl border-2 border-red-300 bg-red-50 p-6 shadow-lg">
+                <div className="flex items-start gap-4">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-red-500">
+                    <span className="text-2xl font-bold text-white">!</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="mb-2 text-lg font-bold text-red-800">
+                      Oops! Something went wrong
+                    </h3>
+                    <p className="text-red-700">{error}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Loading State */}
+      {loading && (
+        <div className="mx-auto max-w-4xl px-4 py-20">
+          <div className="rounded-3xl bg-white p-12 text-center shadow-2xl">
+            <div className="mb-6 flex justify-center">
+              <div className="relative">
+                <div className="size-24 animate-spin rounded-full border-8 border-purple-200 border-t-purple-600"></div>
+                <MdExplore className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse text-4xl text-purple-600" />
+              </div>
+            </div>
+            <h3 className="mb-3 text-3xl font-bold text-gray-800">
+              Exploring {location}...
+            </h3>
+            <p className="mb-4 text-lg text-gray-600">
+              Our AI is discovering the best activities and hidden gems for you
+            </p>
+            <div className="flex justify-center gap-2">
+              <div className="size-3 animate-bounce rounded-full bg-purple-600"></div>
+              <div className="size-3 animate-bounce rounded-full bg-blue-600 delay-100"></div>
+              <div className="size-3 animate-bounce rounded-full bg-indigo-600 delay-200"></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Categories Preview */}
+      {!recommendations && !loading && (
+        <div className="mx-auto max-w-7xl px-4 py-16">
+          <div className="mb-12 text-center">
+            <h2 className="mb-4 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-4xl font-bold text-transparent md:text-5xl">
+              What You'll Discover
+            </h2>
+            <p className="mx-auto max-w-2xl text-lg text-gray-600">
+              Enter any location and get AI-powered recommendations across six
+              amazing categories
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {categories.map((category, index) => {
+              const Icon = category.icon;
+              return (
+                <div
+                  key={index}
+                  className="animate-fadeInUp group cursor-pointer rounded-2xl border-2 border-transparent bg-white p-8 shadow-lg transition-all duration-500 hover:-translate-y-3 hover:border-purple-200 hover:shadow-2xl"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div
+                    className={`size-20 bg-gradient-to-br ${category.color} mb-6 flex items-center justify-center rounded-2xl text-4xl shadow-xl transition-transform group-hover:scale-110`}
+                  >
+                    {category.emoji}
+                  </div>
+                  <h3 className="mb-3 text-2xl font-bold text-gray-800 transition-colors group-hover:text-purple-600">
+                    {category.title}
+                  </h3>
+                  <p className="leading-relaxed text-gray-600">
+                    Get personalized recommendations for the best{" "}
+                    {category.title.toLowerCase()} experiences
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Results Section */}
+      {recommendations && (
+        <div className="mx-auto max-w-7xl px-4 py-12">
+          <div className="animate-fadeInUp mb-12 text-center">
+            <div className="mb-4 inline-block rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-2 font-semibold text-white shadow-lg">
+              ✨ AI Recommendations
+            </div>
+            <h2 className="mb-4 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-5xl font-bold text-transparent md:text-6xl">
+              Your Guide to {location}
+            </h2>
+            <p className="mx-auto max-w-2xl text-xl text-gray-600">
+              Personalized recommendations powered by Google Gemini AI
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {renderSection(
+              "Nature & Hiking Activities",
+              recommendations.nature,
+              FaHiking,
+              "from-green-500 to-emerald-600",
+              "🏞️",
+            )}
+            {renderSection(
+              "Cultural & Historical Sites",
+              recommendations.cultural,
+              FaLandmark,
+              "from-amber-500 to-orange-600",
+              "🏛️",
+            )}
+            {renderSection(
+              "Entertainment & Social",
+              recommendations.entertainment,
+              FaCamera,
+              "from-purple-500 to-pink-600",
+              "📸",
+            )}
+            {renderSection(
+              "Food & Dining",
+              recommendations.food,
+              FaUtensils,
+              "from-red-500 to-rose-600",
+              "🍽️",
+            )}
+            {renderSection(
+              "Relaxation & Wellness",
+              recommendations.relaxation,
+              FaSpa,
+              "from-blue-500 to-cyan-600",
+              "🧘‍♂️",
+            )}
+            {renderSection(
+              "Adventure & Sports",
+              recommendations.adventure,
+              FaParachuteBox,
+              "from-orange-500 to-red-600",
+              "🚤",
+            )}
+          </div>
+
+          {/* Photo Spots */}
+          {recommendations.photoSpots && (
+            <div className="mt-6 rounded-2xl bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 p-8 text-white shadow-2xl transition-transform hover:scale-[1.02]">
+              <div className="mb-6 flex items-center gap-4 border-b-2 border-white/30 pb-4">
+                <div className="flex size-16 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                  <FaCamera className="text-4xl" />
+                </div>
+                <h3 className="text-3xl font-bold">Best Photo Spots</h3>
+              </div>
+              <div className="text-lg leading-relaxed">
+                {formatMarkdown(recommendations.photoSpots)}
+              </div>
+            </div>
+          )}
+
+          {/* Local Tips */}
+          {recommendations.tips && (
+            <div className="mt-6 rounded-2xl bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 p-8 text-white shadow-2xl transition-transform hover:scale-[1.02]">
+              <div className="mb-6 flex items-center gap-4 border-b-2 border-white/30 pb-4">
+                <div className="flex size-16 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                  <span className="text-5xl">💡</span>
+                </div>
+                <h3 className="text-3xl font-bold">Local Tips</h3>
+              </div>
+              <div className="text-lg leading-relaxed">
+                {formatMarkdown(recommendations.tips)}
+              </div>
+            </div>
+          )}
+
+          {/* Search Again Button */}
+          <div className="mb-8 mt-16 text-center">
+            <button
+              onClick={() => {
+                setRecommendations(null);
+                setLocation("");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="hover:shadow-3xl group mx-auto flex items-center gap-3 rounded-full bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 px-12 py-5 text-xl font-bold text-white shadow-2xl transition-all hover:scale-105 hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700"
+            >
+              <FaSearch className="text-2xl transition-transform group-hover:rotate-12" />
+              <span>Explore Another Destination</span>
+              <span className="text-2xl transition-transform group-hover:translate-x-1">
+                →
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fadeInUp {
+          animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .delay-100 {
+          animation-delay: 0.1s;
+        }
+
+        .delay-200 {
+          animation-delay: 0.2s;
+        }
+
+        .delay-1000 {
+          animation-delay: 1s;
+        }
+
+        /* Custom scrollbar for better UX */
+        ::-webkit-scrollbar {
+          width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+          background: linear-gradient(to bottom, #9333EA, #4F46E5);
+          border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to bottom, #7E22CE, #4338CA);
+        }
+      `}</style>
+    </main>
+  );
+}
+
+export default TravelGuide;

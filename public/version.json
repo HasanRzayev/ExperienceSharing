@@ -1,0 +1,17 @@
+{
+  "version": "2.0.2",
+  "buildDate": "2025-01-20T11:00:00Z",
+  "buildNumber": 3,
+  "features": [
+    "Silent 401 error handling with validateStatus",
+    "User-friendly login prompts",
+    "Cookie verification logging",
+    "Proper cookie attributes (path, sameSite, secure)"
+  ],
+  "changes": [
+    "Fixed SaveButton 401 errors",
+    "Fixed RatingComponent 401 errors",
+    "Added cookie debugging",
+    "Force cache clear"
+  ]
+}
