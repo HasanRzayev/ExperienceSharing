@@ -1211,8 +1211,8 @@ const ChatPageV2 = () => {
     }
   };
 
-  const handleSelectUser = async (user) => {
-    setSelectedChat(user);
+  const handleSelectUser = async (contactUser) => {
+    setSelectedChat(contactUser);
     setChatType('user');
     
     // ÖNEMLİ: Chat açıldığında, bu kullanıcıdan bana gelen mesajların ID'lerini readIdsRef'e ekle
@@ -1220,15 +1220,15 @@ const ChatPageV2 = () => {
     try {
       const currentUser = userRef.current || user;
       const currentUserIdNormalized = normalizeId(getUserId(currentUser));
-      const selectedUserIdNormalized = normalizeId(getUserId(user) ?? user?.id);
+      const selectedUserIdNormalized = normalizeId(getUserId(contactUser) ?? contactUser?.id);
       console.log('[ChatPageV2] handleSelectUser: Adding messages to readIdsRef', {
-        selectedUserId: user.id,
+        selectedUserId: contactUser.id,
         currentUserId: currentUser?.id,
         userRefCurrent: userRef.current,
         userState: user
       });
       if (currentUserIdNormalized) {
-        const msgResponse = await axios.get(`${apiBaseUrl}/Messages/conversation/${user.id}`, {
+        const msgResponse = await axios.get(`${apiBaseUrl}/Messages/conversation/${contactUser.id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const messages = Array.isArray(msgResponse.data) ? msgResponse.data : [];
@@ -1247,7 +1247,7 @@ const ChatPageV2 = () => {
         if (fromUserToMe.length > 0) {
           const messageIdsToAdd = fromUserToMe.map(m => String(m.Id ?? m.id)).filter(id => id && id !== 'undefined' && id !== 'null');
           console.log('[ChatPageV2] Adding message IDs to readIdsRef on chat open', { 
-            userId: user.id, 
+            userId: contactUser.id, 
             messageIds: messageIdsToAdd,
             count: messageIdsToAdd.length
           });
@@ -1266,27 +1266,27 @@ const ChatPageV2 = () => {
       console.error('[ChatPageV2] Error marking messages as read on chat open:', err);
     }
     
-    fetchUserMessages(user.id);
+    fetchUserMessages(contactUser.id);
     
     // Unread count'u sıfırla (chat açıldığında)
     setUnreadCounts(prev => {
       const updated = { ...prev };
-      updated[user.id] = 0;
+      updated[contactUser.id] = 0;
       return updated;
     });
     
     // Mark read / delivered when opening the chat
     try {
       if (enableHubMarking && connectionReady && connection && connection.state === 'Connected') {
-        console.log('[ChatPageV2] Invoking mark calls on select user', { userId: user.id });
-        connection.invoke('MarkMessagesAsRead', user.id).catch((e) => console.warn('MarkMessagesAsRead failed', e));
-        connection.invoke('MarkConversationAsDelivered', user.id).catch((e) => console.warn('MarkConversationAsDelivered failed', e));
+        console.log('[ChatPageV2] Invoking mark calls on select user', { userId: contactUser.id });
+        connection.invoke('MarkMessagesAsRead', contactUser.id).catch((e) => console.warn('MarkMessagesAsRead failed', e));
+        connection.invoke('MarkConversationAsDelivered', contactUser.id).catch((e) => console.warn('MarkConversationAsDelivered failed', e));
       } else {
         console.log('[ChatPageV2] Deferring mark read/delivered until connection is ready');
       }
       // REST fallback to mark read if hub method is unavailable
-      axios.post(`${apiBaseUrl}/Messages/mark-read/${user.id}`, {}, { headers: { Authorization: `Bearer ${token}` } })
-        .then(() => fetchUserMessages(user.id))
+      axios.post(`${apiBaseUrl}/Messages/mark-read/${contactUser.id}`, {}, { headers: { Authorization: `Bearer ${token}` } })
+        .then(() => fetchUserMessages(contactUser.id))
         .catch(() => {});
     } catch (e) { console.warn('Mark invocations error', e); }
   };
