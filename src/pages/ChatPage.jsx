@@ -6,8 +6,7 @@ import Cookies from "js-cookie";
 import { Dropdown } from "flowbite-react";
 import { HiOutlinePhotograph, HiOutlineVideoCamera, HiOutlineVolumeUp } from "react-icons/hi";
 import EmojiPicker from "emoji-picker-react";
-
-import MicRecorder from "mic-recorder-to-mp3";
+import { ensureMicRecorder } from "../utils/ensureMicRecorder";
 export async function uploadFile(file) {
   console.log("Checking file type:", file);
 
@@ -205,12 +204,20 @@ const stopRecording = () => {
     }
   };
   useEffect(() => {
-    const newRecorder = new MicRecorder({ bitRate: 128 });
+    let isMounted = true;
+    ensureMicRecorder()
+      .then((MicRecorderCtor) => {
+        if (!isMounted) return;
+        const newRecorder = new MicRecorderCtor({ bitRate: 128 });
         setRecorder(newRecorder);
+      })
+      .catch((error) => {
+        console.error("Failed to load mic recorder:", error);
+      });
 
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(() => console.log("Microphone permission granted"))
-            .catch(() => console.log("Microphone access denied"));
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(() => console.log("Microphone permission granted"))
+      .catch(() => console.log("Microphone access denied"));
     console.log("Fetching user profile...");
     setUserLoading(true);
   
@@ -253,6 +260,9 @@ const stopRecording = () => {
         console.error("Error fetching user:", err);
         setUserLoading(false);
       });
+    return () => {
+      isMounted = false;
+    };
   }, []);
   
 

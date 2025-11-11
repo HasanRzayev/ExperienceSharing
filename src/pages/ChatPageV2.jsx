@@ -5,8 +5,8 @@ import Cookies from 'js-cookie';
 import { FaUsers, FaUser, FaPlus, FaSearch, FaPaperPlane, FaTimes, FaEllipsisV, FaInfoCircle, FaSignOutAlt, FaTrash, FaBan, FaBroom, FaCheckSquare, FaCheck } from 'react-icons/fa';
 import { HiOutlinePhotograph, HiOutlineVideoCamera, HiOutlineVolumeUp } from "react-icons/hi";
 import EmojiPicker from "emoji-picker-react";
-import MicRecorder from "mic-recorder-to-mp3";
 import { HubConnectionBuilder } from '@microsoft/signalr';
+import { ensureMicRecorder } from '../utils/ensureMicRecorder';
 
 // Upload file to Cloudinary
 export async function uploadFile(file) {
@@ -182,9 +182,16 @@ const ChatPageV2 = () => {
       return;
     }
     
-    // Initialize microphone recorder
-    const newRecorder = new MicRecorder({ bitRate: 128 });
-    setRecorder(newRecorder);
+    let isMounted = true;
+    ensureMicRecorder()
+      .then((MicRecorderCtor) => {
+        if (!isMounted) return;
+        const newRecorder = new MicRecorderCtor({ bitRate: 128 });
+        setRecorder(newRecorder);
+      })
+      .catch((error) => {
+        console.error('Failed to load mic recorder:', error);
+      });
 
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(() => console.log("Microphone permission granted"))
@@ -604,6 +611,7 @@ const ChatPageV2 = () => {
     });
 
     return () => {
+      isMounted = false;
       try { conn.stop(); } catch {}
     };
   }, [token]);
