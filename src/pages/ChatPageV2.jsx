@@ -8,6 +8,50 @@ import EmojiPicker from "emoji-picker-react";
 import { HubConnectionBuilder } from '@microsoft/signalr';
 import { ensureMicRecorder } from '../utils/ensureMicRecorder';
 
+const normalizeId = (value) => {
+  if (value === undefined || value === null) return null;
+  const str = String(value).trim();
+  if (!str || str.toLowerCase() === 'undefined' || str.toLowerCase() === 'null') return null;
+  return str;
+};
+
+const getUserId = (userLike) =>
+  userLike?.id ?? userLike?.Id ?? userLike?.userId ?? userLike?.UserId ?? userLike?.ID ?? null;
+
+const getSenderId = (messageLike) =>
+  messageLike?.senderId ??
+  messageLike?.SenderId ??
+  messageLike?.senderID ??
+  messageLike?.SenderID ??
+  messageLike?.senderUserId ??
+  messageLike?.SenderUserId ??
+  messageLike?.fromUserId ??
+  messageLike?.FromUserId ??
+  messageLike?.sender?.id ??
+  messageLike?.sender?.Id ??
+  messageLike?.sender?.userId ??
+  messageLike?.sender?.UserId ??
+  messageLike?.Sender?.Id ??
+  messageLike?.Sender?.ID ??
+  null;
+
+const getReceiverId = (messageLike) =>
+  messageLike?.receiverId ??
+  messageLike?.ReceiverId ??
+  messageLike?.receiverID ??
+  messageLike?.ReceiverID ??
+  messageLike?.receiverUserId ??
+  messageLike?.ReceiverUserId ??
+  messageLike?.toUserId ??
+  messageLike?.ToUserId ??
+  messageLike?.receiver?.id ??
+  messageLike?.receiver?.Id ??
+  messageLike?.receiver?.userId ??
+  messageLike?.receiver?.UserId ??
+  messageLike?.Receiver?.Id ??
+  messageLike?.Receiver?.ID ??
+  null;
+
 // Upload file to Cloudinary
 export async function uploadFile(file) {
   console.log("Checking file type:", file);
@@ -234,7 +278,8 @@ const ChatPageV2 = () => {
         const ReceiverId = payload?.receiverId ?? payload?.ReceiverId ?? null;
         const MessageIds = payload?.messageIds ?? payload?.MessageIds ?? null;
         const ReadAt = payload?.readAt ?? payload?.ReadAt ?? null;
-        const currentUserId = userRef.current?.id ?? user?.id ?? null;
+        const currentUserObj = userRef.current || user;
+        const currentUserId = normalizeId(getUserId(currentUserObj));
         
         console.log('[ChatPageV2] MessagesRead event parsed', { 
           MessageIds, 
@@ -298,7 +343,9 @@ const ChatPageV2 = () => {
           
           // HEMEN badge'i güncelle - tüm kullanıcılar için
           console.log('[ChatPageV2] MessagesRead event: Immediately updating badges');
-          const currentUserIdForBadge = userRef.current?.id ?? user?.id;
+          const currentUserForBadge = userRef.current || user;
+          const currentUserIdForBadgeRaw = getUserId(currentUserForBadge);
+          const currentUserIdForBadge = normalizeId(currentUserIdForBadgeRaw);
           
           // Önce kullanıcıları API'den çek (users state'i boş olabilir)
           try {
@@ -324,14 +371,21 @@ const ChatPageV2 = () => {
                     headers: { Authorization: `Bearer ${token}` }
                   });
                   const messages = Array.isArray(msgResponse.data) ? msgResponse.data : [];
+                  const contactUserIdNormalized = normalizeId(
+                    getUserId(contactUser) ?? contactUser?.id ?? contactUser?.userId
+                  );
                   
                   // Bu kullanıcıdan bana gelen ve okunmamış mesajları say
                   const fromContactToMe = messages.filter(m => {
-                  const sId = m.SenderId ?? m.senderId ?? m.sender?.id;
-                  const rId = m.ReceiverId ?? m.receiverId ?? m.receiver?.id;
-                  return String(sId) === String(contactUser.id) && 
-                         String(rId) === String(currentUserIdForBadge);
-                });
+                    const senderNormalized = normalizeId(getSenderId(m));
+                    const receiverNormalized = normalizeId(getReceiverId(m));
+                    return (
+                      contactUserIdNormalized &&
+                      senderNormalized === contactUserIdNormalized &&
+                      currentUserIdForBadge &&
+                      receiverNormalized === currentUserIdForBadge
+                    );
+                  });
                 
                   const readIdsArray = Array.from(readIdsRef.current);
                   
@@ -414,74 +468,88 @@ const ChatPageV2 = () => {
             console.error('[ChatPageV2] ❌ Error fetching users for badge update:', usersErr);
           }
           
-          // Sonra mesajları güncelle
-          // Not: currentUserId undefined olabilir, bu yüzden senderId kontrolünü skip ediyoruz
-          // Sadece MessageIds set'indeki tüm mesajları güncelle
-          setMessages(prev => {
-            const updated = prev.map(m => {
-              const msgId = String(m.id ?? m.Id);
-              const msgSenderId = m.senderId ?? m.SenderId ?? m.sender?.id;
-              
-              // MessageIds set'indeyse güncelle (senderId kontrolü opsiyonel)
-              if (messageIdSet.has(msgId)) {
-                // currentUserId undefined ise tüm mesajları güncelle
-                // currentUserId varsa sadece kendi mesajlarımızı güncelle
-                const shouldUpdate = !currentUserId || String(msgSenderId) === String(currentUserId);
-                
-                if (shouldUpdate) {
-                  console.log('[ChatPageV2] ✅ Marking message as read:', msgId, { 
-                    msgSenderId, 
-                    currentUserId,
-                    finalReceiverId,
-                    shouldUpdate
-                  });
-                  return { 
-                    ...m, 
-                    IsRead: true, 
-                    isRead: true, 
-                    ReadAt: finalReadAt || m.ReadAt || m.readAt || new Date().toISOString() 
-                  };
-                }
-              }
+        // Sonra mesajları güncelle
+        // Not: currentUserId undefined olabilir, bu yüzden senderId kontrolünü skip ediyoruz
+        // Sadece MessageIds set'indeki tüm mesajları güncelle
+        const currentUserIdNormalizedLocal = currentUserIdForBadge;
+        const currentUserIdRawLocal = currentUserIdForBadgeRaw;
+        setMessages(prev => {
+          const updated = prev.map(m => {
+            const msgId = String(m.id ?? m.Id);
+            if (!messageIdSet.has(msgId)) {
               return m;
-            });
+            }
             
-            const updatedReadMessages = updated.filter(m => {
-              const msgId = String(m.id ?? m.Id);
-              return messageIdSet.has(msgId);
-            });
+            const msgSenderIdRaw = getSenderId(m);
+            const msgSenderIdNormalized = normalizeId(msgSenderIdRaw);
             
-            console.log('[ChatPageV2] ✅ Updated messages count:', updatedReadMessages.length);
-            console.log('[ChatPageV2] ✅ Updated messages:', updatedReadMessages.map(m => ({ 
-              id: m.id ?? m.Id, 
-              IsRead: m.IsRead, 
-              isRead: m.isRead 
-            })));
+            // currentUserId undefined ise tüm mesajları güncelle
+            // currentUserId varsa sadece kendi mesajlarımızı güncelle
+            const shouldUpdate =
+              !currentUserIdNormalizedLocal ||
+              (msgSenderIdNormalized && msgSenderIdNormalized === currentUserIdNormalizedLocal);
             
-            // Unread count'u güncelle (mesajlar okundu)
-            // Bu event benim gönderdiğim mesajların okunduğunu bildiriyor
-            // Ama badge'de gösterdiğimiz: Bana gelen okunmamış mesajlar
-            // Sorun: readIdsRef güncelleniyor ama badge yeniden hesaplanmıyor
-            // Çözüm: İlgili kullanıcı için badge'i yeniden hesapla
-            
-            // finalReceiverId = mesajları okuyan kişi (mesajları gönderdiğim kişi)
-            // Eğer finalReceiverId benim id'im ise, bu mesajları ben gönderdim demektir
-            // Bu durumda badge'de bir değişiklik olmaz çünkü badge bana gelen mesajları gösteriyor
-            // Ama eğer başka bir kullanıcıdan bana gelen mesajlar okunmuşsa, badge'i güncelle
-            
-            // Badge güncellemesi yukarıda yapılıyor (readIdsRef güncellendikten HEMEN SONRA)
-            
-            return updated;
+            if (shouldUpdate) {
+              console.log('[ChatPageV2] ✅ Marking message as read:', msgId, { 
+                msgSenderId: msgSenderIdRaw, 
+                currentUserId: currentUserIdRawLocal,
+                finalReceiverId,
+                shouldUpdate
+              });
+              return { 
+                ...m, 
+                IsRead: true, 
+                isRead: true, 
+                ReadAt: finalReadAt || m.ReadAt || m.readAt || new Date().toISOString() 
+              };
+            }
+            return m;
           });
+          
+          const updatedReadMessages = updated.filter(m => {
+            const msgId = String(m.id ?? m.Id);
+            return messageIdSet.has(msgId);
+          });
+          
+          console.log('[ChatPageV2] ✅ Updated messages count:', updatedReadMessages.length);
+          console.log('[ChatPageV2] ✅ Updated messages:', updatedReadMessages.map(m => ({ 
+            id: m.id ?? m.Id, 
+            IsRead: m.IsRead, 
+            isRead: m.isRead 
+          })));
+          
+          // Unread count'u güncelle (mesajlar okundu)
+          // Bu event benim gönderdiğim mesajların okunduğunu bildiriyor
+          // Ama badge'de gösterdiğimiz: Bana gelen okunmamış mesajlar
+          // Sorun: readIdsRef güncelleniyor ama badge yeniden hesaplanmıyor
+          // Çözüm: İlgili kullanıcı için badge'i yeniden hesapla
+          
+          // finalReceiverId = mesajları okuyan kişi (mesajları gönderdiğim kişi)
+          // Eğer finalReceiverId benim id'im ise, bu mesajları ben gönderdim demektir
+          // Bu durumda badge'de bir değişiklik olmaz çünkü badge bana gelen mesajları gösteriyor
+          // Ama eğer başka bir kullanıcıdan bana gelen mesajlar okunmuşsa, badge'i güncelle
+          
+          // Badge güncellemesi yukarıda yapılıyor (readIdsRef güncellendikten HEMEN SONRA)
+          
+          return updated;
+        });
         } else {
           // Eski format için (ReceiverId ile)
-          const currentUserId = userRef.current?.id;
+        const currentUser = userRef.current || user;
+        const currentUserIdNormalized = normalizeId(getUserId(currentUser));
           setMessages(prev => {
             const messageIdsToMark = [];
             const updated = prev.map(m => {
-              const sId = m.senderId ?? m.SenderId ?? m.sender?.id;
-              const rId = m.receiverId ?? m.ReceiverId;
-              if (String(sId) === String(currentUserId) && String(rId) === String(ReceiverId)) {
+            const sIdNormalized = normalizeId(getSenderId(m));
+            const rIdNormalized = normalizeId(getReceiverId(m));
+            const receiverNormalized = normalizeId(ReceiverId);
+            if (
+              currentUserIdNormalized &&
+              sIdNormalized === currentUserIdNormalized &&
+              rIdNormalized &&
+              receiverNormalized &&
+              rIdNormalized === receiverNormalized
+            ) {
                 const msgId = String(m.id ?? m.Id);
                 messageIdsToMark.push(msgId);
                 readIdsRef.current.add(msgId); // Ref'i de direkt güncelle
@@ -533,22 +601,32 @@ const ChatPageV2 = () => {
     // ReceiveMessage echo: when I send via API, backend also broadcasts; use it to mark delivered/read
     conn.on('ReceiveMessage', (messageData) => {
       try {
-        const currentUserId = userRef.current?.id;
+        const currentUser = userRef.current || user;
+        const currentUserIdNormalized = normalizeId(getUserId(currentUser));
+        const incomingSenderIdRaw = getSenderId(messageData);
+        const incomingReceiverIdRaw = getReceiverId(messageData);
+        const incomingSenderIdNormalized = normalizeId(incomingSenderIdRaw);
+        const incomingReceiverIdNormalized = normalizeId(incomingReceiverIdRaw);
         console.log('[ChatPageV2] ReceiveMessage', {
           id: messageData?.id,
-          senderId: messageData?.senderId,
-          receiverId: messageData?.receiverId,
+          senderId: incomingSenderIdRaw,
+          receiverId: incomingReceiverIdRaw,
           isDelivered: messageData?.IsDelivered ?? messageData?.isDelivered,
           isRead: messageData?.IsRead ?? messageData?.isRead,
-          currentUserId
+          currentUserId: currentUserIdNormalized
         });
         // If this echo is my message, update local message flags
-        if (currentUserId && String(messageData.senderId) === String(currentUserId)) {
+        if (currentUserIdNormalized && incomingSenderIdNormalized === currentUserIdNormalized) {
           setMessages(prev => {
             let updated = false;
             let next = prev.map(m => {
-              const samePair = String(m.senderId ?? m.SenderId ?? m.sender?.id) === String(messageData.senderId)
-                && String(m.receiverId ?? m.ReceiverId) === String(messageData.receiverId);
+              const existingSenderIdNormalized = normalizeId(getSenderId(m));
+              const existingReceiverIdNormalized = normalizeId(getReceiverId(m));
+              const samePair =
+                existingSenderIdNormalized &&
+                existingReceiverIdNormalized &&
+                existingSenderIdNormalized === incomingSenderIdNormalized &&
+                existingReceiverIdNormalized === incomingReceiverIdNormalized;
               const sameContent = (m.content || '') === (messageData.content || '');
               if (!updated && samePair && sameContent) {
                 updated = true;
@@ -567,8 +645,13 @@ const ChatPageV2 = () => {
             if (!updated) {
               for (let i = next.length - 1; i >= 0; i--) {
                 const m = next[i];
-                const samePair = String(m.senderId ?? m.SenderId ?? m.sender?.id) === String(messageData.senderId)
-                  && String(m.receiverId ?? m.ReceiverId) === String(messageData.receiverId);
+                const existingSenderIdNormalized = normalizeId(getSenderId(m));
+                const existingReceiverIdNormalized = normalizeId(getReceiverId(m));
+                const samePair =
+                  existingSenderIdNormalized &&
+                  existingReceiverIdNormalized &&
+                  existingSenderIdNormalized === incomingSenderIdNormalized &&
+                  existingReceiverIdNormalized === incomingReceiverIdNormalized;
                 if (samePair) {
                   next = next.map((msg, idx) => idx === i ? { ...msg, IsDelivered: true } : msg);
                   updated = true;
@@ -596,9 +679,10 @@ const ChatPageV2 = () => {
               setLastMessageTimes(prev => {
                 const updated = { ...prev };
                 // Mesajı gönderen veya alan kişinin ID'sini bul
-                const otherUserId = String(messageData.senderId) === String(currentUserId) 
-                  ? messageData.receiverId 
-                  : messageData.senderId;
+                const otherUserId =
+                  incomingSenderIdNormalized === currentUserIdNormalized
+                    ? incomingReceiverIdRaw
+                    : incomingSenderIdRaw;
                 if (otherUserId) {
                   updated[otherUserId] = msgTime;
                 }
@@ -664,17 +748,25 @@ const ChatPageV2 = () => {
             // Bu kullanıcıdan bana gelen ve OKUNMAMIŞ (read: false) mesajları say
             // ÖNEMLİ: Sadece contactUser'dan bana (currentUser) gelen mesajları say, benim gönderdiğim mesajları sayma!
             // Sadece IsRead: false olan mesajları say (okunmamış mesajlar)
+            const contactUserIdNormalized = normalizeId(
+              contactUser?.id ?? contactUser?.userId ?? contactUser?.Id ?? contactUser?.UserId
+            );
+            const currentUserIdNormalized = normalizeId(getUserId(currentUser));
+
             const unreadMessages = messages.filter(m => {
-              const senderId = m.SenderId ?? m.senderId ?? m.sender?.id;
-              const receiverId = m.ReceiverId ?? m.receiverId ?? m.receiver?.id;
+              const senderIdNormalized = normalizeId(getSenderId(m));
+              const receiverIdNormalized = normalizeId(getReceiverId(m));
               const isRead = m.IsRead ?? m.isRead ?? false;
               const msgId = String(m.Id ?? m.id ?? '');
               
               // Kontrol 1: Bu kullanıcıdan (contactUser) bana (currentUser) gelen mesajlar mı?
               // Yani senderId === contactUser.id VE receiverId === currentUser.id
               // ÖNEMLİ: Benim gönderdiğim mesajları (senderId === currentUser.id) sayma!
-              const isFromContactToMe = String(senderId) === String(contactUser.id) && 
-                                         String(receiverId) === String(currentUser.id);
+              const isFromContactToMe =
+                contactUserIdNormalized &&
+                currentUserIdNormalized &&
+                senderIdNormalized === contactUserIdNormalized &&
+                receiverIdNormalized === currentUserIdNormalized;
               
               if (!isFromContactToMe) {
                 // Bu mesaj bana gönderilmiş değil veya ben gönderdim, sayma
@@ -708,9 +800,14 @@ const ChatPageV2 = () => {
             
             // Debug: Detaylı log (her zaman göster)
             const fromContactToMe = messages.filter(m => {
-              const sId = m.SenderId ?? m.senderId ?? m.sender?.id;
-              const rId = m.ReceiverId ?? m.receiverId ?? m.receiver?.id;
-              return String(sId) === String(contactUser.id) && String(rId) === String(currentUser.id);
+              const senderNormalized = normalizeId(getSenderId(m));
+              const receiverNormalized = normalizeId(getReceiverId(m));
+              return (
+                contactUserIdNormalized &&
+                currentUserIdNormalized &&
+                senderNormalized === contactUserIdNormalized &&
+                receiverNormalized === currentUserIdNormalized
+              );
             });
             
             // Okunmuş mesajları say: API'den gelen IsRead değeri VE readIdsRef kontrolü
@@ -1018,13 +1115,17 @@ const ChatPageV2 = () => {
         // ÖNEMLİ: Chat açıldığında, bu kullanıcıdan bana gelen mesajların ID'lerini readIdsRef'e ekle
         // Bu, backend henüz güncellemese bile badge'i hemen günceller
         const currentUser = userRef.current || user;
-        if (currentUser && currentUser.id && userId && sorted.length > 0) {
+        if (currentUser && userId && sorted.length > 0) {
+          const currentUserIdNormalized = normalizeId(getUserId(currentUser));
+          const targetUserIdNormalized = normalizeId(userId);
           // Bu kullanıcıdan (userId) bana (currentUser) gelen mesajları bul
           const fromUserToMe = sorted.filter(m => {
-            const senderId = m.SenderId ?? m.senderId ?? m.sender?.id;
-            const receiverId = m.ReceiverId ?? m.receiverId ?? m.receiver?.id;
-            return String(senderId) === String(userId) && 
-                   String(receiverId) === String(currentUser.id);
+            const senderIdNormalized = normalizeId(getSenderId(m));
+            const receiverIdNormalized = normalizeId(getReceiverId(m));
+            return (
+              senderIdNormalized === targetUserIdNormalized &&
+              receiverIdNormalized === currentUserIdNormalized
+            );
           });
           
           // Bu mesajların ID'lerini readIdsRef'e ekle
@@ -1118,13 +1219,15 @@ const ChatPageV2 = () => {
     // Bu, backend henüz güncellemese bile badge'i hemen günceller
     try {
       const currentUser = userRef.current || user;
+      const currentUserIdNormalized = normalizeId(getUserId(currentUser));
+      const selectedUserIdNormalized = normalizeId(getUserId(user) ?? user?.id);
       console.log('[ChatPageV2] handleSelectUser: Adding messages to readIdsRef', {
         selectedUserId: user.id,
         currentUserId: currentUser?.id,
         userRefCurrent: userRef.current,
         userState: user
       });
-      if (currentUser && currentUser.id) {
+      if (currentUserIdNormalized) {
         const msgResponse = await axios.get(`${apiBaseUrl}/Messages/conversation/${user.id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -1132,10 +1235,12 @@ const ChatPageV2 = () => {
         
         // Bu kullanıcıdan (user) bana (currentUser) gelen mesajları bul
         const fromUserToMe = messages.filter(m => {
-          const senderId = m.SenderId ?? m.senderId ?? m.sender?.id;
-          const receiverId = m.ReceiverId ?? m.receiverId ?? m.receiver?.id;
-          return String(senderId) === String(user.id) && 
-                 String(receiverId) === String(currentUser.id);
+          const senderIdNormalized = normalizeId(getSenderId(m));
+          const receiverIdNormalized = normalizeId(getReceiverId(m));
+          return (
+            senderIdNormalized === selectedUserIdNormalized &&
+            receiverIdNormalized === currentUserIdNormalized
+          );
         });
         
         // Bu mesajların ID'lerini readIdsRef'e ekle
@@ -1291,9 +1396,13 @@ const ChatPageV2 = () => {
 
     try {
       if (chatType === 'user') {
+        const senderRaw = getUserId(user) ?? user?.id;
+        const receiverRaw = selectedChat.id;
         const messagePayload = {
-          senderId: user?.id,
-          receiverId: selectedChat.id,
+          senderId: senderRaw,
+          SenderId: senderRaw,
+          receiverId: receiverRaw,
+          ReceiverId: receiverRaw,
           content: newMessage.trim(),
           mediaUrl: fileUrl,
           mediaType: mediaType,
@@ -1331,7 +1440,9 @@ const ChatPageV2 = () => {
           const tempMessage = {
             id: `temp-${Date.now()}`,
             senderId: user?.id,
+            SenderId: user?.id,
             receiverId: selectedChat.id,
+            ReceiverId: selectedChat.id,
             content: newMessage.trim(),
             mediaUrl: fileUrl,
             mediaType: mediaType,
@@ -1362,6 +1473,8 @@ const ChatPageV2 = () => {
           ...prev,
           {
             id: `temp-${Date.now()}`,
+            senderId: user?.id,
+            SenderId: user?.id,
             sender: { id: user?.id, userName: user?.userName, profileImage: user?.profileImage },
             content: newMessage.trim(),
             mediaUrl: fileUrl,
@@ -1453,12 +1566,20 @@ const ChatPageV2 = () => {
             }
             
             // Bu kullanıcıdan bana gelen mesajları filtrele
+            const contactUserIdNormalized = normalizeId(
+              contactUser?.id ?? contactUser?.userId ?? contactUser?.Id ?? contactUser?.UserId
+            );
+            const currentUserIdNormalized = normalizeId(getUserId(user));
             const fromContactToMe = messages.filter(m => {
-              const senderId = m.SenderId ?? m.senderId ?? m.sender?.id;
-              const receiverId = m.ReceiverId ?? m.receiverId ?? m.receiver?.id;
+              const senderIdNormalized = normalizeId(getSenderId(m));
+              const receiverIdNormalized = normalizeId(getReceiverId(m));
               // ÖNEMLİ: Sadece contactUser'dan bana (user) gelen mesajları say, benim gönderdiğim mesajları sayma!
-              return String(senderId) === String(contactUser.id) && 
-                     String(receiverId) === String(user.id);
+              return (
+                contactUserIdNormalized &&
+                currentUserIdNormalized &&
+                senderIdNormalized === contactUserIdNormalized &&
+                receiverIdNormalized === currentUserIdNormalized
+              );
             });
             
             // ÖNEMLİ: Eğer bu kullanıcının chat'i açıksa (selectedChat), mesajları readIdsRef'e ekle
@@ -2235,9 +2356,15 @@ const ChatPageV2 = () => {
                     ) : (
                       messages.map((msg, index) => {
                         // Determine if message is from current user
-                        const isOwnMessage = chatType === 'user'
-                          ? String(msg.senderId) === String(user?.id)
-                          : String(msg.sender?.id) === String(user?.id);
+                        const currentUserIdNormalized = normalizeId(getUserId(user));
+                        const messageSenderIdNormalized = normalizeId(getSenderId(msg));
+                        const isOwnMessage =
+                          msg.isMine === true ||
+                          (msg.IsFromCurrentUser !== undefined
+                            ? !!msg.IsFromCurrentUser
+                            : currentUserIdNormalized !== null &&
+                              messageSenderIdNormalized !== null &&
+                              currentUserIdNormalized === messageSenderIdNormalized);
                         try {
                           if (isOwnMessage) {
                             const idAny = msg.Id ?? msg.id;
