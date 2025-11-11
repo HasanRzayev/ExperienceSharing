@@ -1,0 +1,92 @@
+{
+  "name": "wanderly",
+  "version": "2.0.2",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "sideEffects": ["*.css"],
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "dev:frontend": "vite",
+    "dev": "concurrently \"npm run backend\" \"npm run start\"",
+    "build": "vite build",
+    "build:analyze": "npm run build && source-map-explorer 'dist/assets/*.js'",
+    "preview": "vite preview",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"Test runner not configured for Vite\"",
+    "backend": "node backend-server.js"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "dependencies": {
+    "@emoji-mart/react": "^1.1.1",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@giphy/js-fetch-api": "^5.6.0",
+    "@google/generative-ai": "^0.24.1",
+    "@microsoft/signalr": "^8.0.17",
+    "@react-oauth/google": "^0.12.2",
+    "axios": "^1.8.2",
+    "cors": "^2.8.5",
+    "emoji-mart": "^5.6.0",
+    "emoji-picker-react": "^4.14.0",
+    "express": "^5.1.0",
+    "flowbite-react": "^0.8.0",
+    "gif-picker-react": "^1.4.0",
+    "giphy-js-sdk-core": "^1.0.6",
+    "js-cookie": "^3.0.5",
+    "jsonwebtoken": "^9.0.2",
+    "lamejs": "^1.2.1",
+    "leaflet": "^1.9.4",
+    "mic-recorder-to-mp3": "^2.2.2",
+    "multer": "^2.0.2",
+    "qrcode": "^1.5.4",
+    "react": "^18.2.0",
+    "react-bootstrap": "^2.10.9",
+    "react-dom": "^18.2.0",
+    "react-icons": "^5.5.0",
+    "react-insta-stories": "^2.8.0",
+    "react-leaflet": "^4.2.1",
+    "react-router-dom": "^7.3.0",
+    "socket.io": "^4.8.1",
+    "sweetalert": "^2.1.2",
+    "sweetalert2": "^11.17.2",
+    "web-vitals": "^3.5.2"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^14.2.1",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.26",
+    "@types/react": "^18.2.65",
+    "@types/react-dom": "^18.2.21",
+    "@types/react-router-dom": "^5.3.3",
+    "@vitejs/plugin-react": "^4.3.2",
+    "concurrently": "^8.2.2",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-tailwindcss": "^3.15.1",
+    "source-map-explorer": "^2.5.3",
+    "cross-env": "^7.0.3",
+    "prettier-plugin-tailwindcss": "^0.5.12",
+    "tailwindcss": "^3.4.1",
+    "vite": "^5.4.0",
+    "typescript": "^4.9.5"
+  }
+}
