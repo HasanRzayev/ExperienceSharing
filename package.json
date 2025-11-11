@@ -6,7 +6,9 @@
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
   },
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "type": "module",
   "scripts": {
     "start": "vite",
@@ -79,14 +81,15 @@
     "@types/react-dom": "^18.2.21",
     "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^4.3.2",
+    "autoprefixer": "^10.4.22",
     "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-tailwindcss": "^3.15.1",
-    "source-map-explorer": "^2.5.3",
-    "cross-env": "^7.0.3",
     "prettier-plugin-tailwindcss": "^0.5.12",
+    "source-map-explorer": "^2.5.3",
     "tailwindcss": "^3.4.1",
-    "vite": "^5.4.0",
-    "typescript": "^4.9.5"
+    "typescript": "^4.9.5",
+    "vite": "^5.4.0"
   }
 }
