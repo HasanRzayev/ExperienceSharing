@@ -1,5 +1,8 @@
+import lamejs from 'lamejs';
+
 const globalScope = globalThis as typeof globalThis & {
   process?: { env?: Record<string, string> };
+  Lame?: unknown;
 };
 
 if (!globalScope.process) {
@@ -24,6 +27,10 @@ if (typeof import.meta.env.MODE !== 'undefined') {
 if (!processEnv.REACT_APP_API_BASE_URL) {
   processEnv.REACT_APP_API_BASE_URL =
     'https://experiencesharingbackend.runasp.net/api';
+}
+
+if (!globalScope.Lame) {
+  globalScope.Lame = lamejs;
 }
 
 export const env = processEnv;
