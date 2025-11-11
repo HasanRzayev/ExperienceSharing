@@ -281,6 +281,7 @@ export async function uploadFile(file) {
 const ChatPageV2 = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const token = Cookies.get('token');
   const [activeTab, setActiveTab] = useState('chats'); // 'chats' or 'groups'
   const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -365,7 +366,6 @@ const ChatPageV2 = () => {
   const [showChatOptions, setShowChatOptions] = useState(false);
   
   const messagesEndRef = useRef(null);
-  const token = Cookies.get('token');
 
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
   const signalRUrl = process.env.REACT_APP_SIGNALR_HUB_URL || 'https://experiencesharingbackend.runasp.net/api/hubs/message';
