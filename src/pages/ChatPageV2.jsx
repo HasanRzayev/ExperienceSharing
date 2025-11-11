@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { FaUsers, FaUser, FaPlus, FaSearch, FaPaperPlane, FaTimes, FaEllipsisV, FaInfoCircle, FaSignOutAlt, FaTrash, FaBan, FaBroom, FaCheckSquare, FaCheck } from 'react-icons/fa';
@@ -68,6 +68,7 @@ export async function uploadFile(file) {
 
 const ChatPageV2 = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('chats'); // 'chats' or 'groups'
   const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -118,6 +119,25 @@ const ChatPageV2 = () => {
   const signalRUrl = process.env.REACT_APP_SIGNALR_HUB_URL || 'https://experiencesharingbackend.runasp.net/api/hubs/message';
   const [connection, setConnection] = useState(null);
   const [connectionReady, setConnectionReady] = useState(false);
+  const [pendingUserId, setPendingUserId] = useState(() => {
+    const stateTarget = location.state?.targetUserId;
+    if (stateTarget) return stateTarget;
+    const params = new URLSearchParams(location.search || '');
+    return params.get('userId') || params.get('user');
+  });
+
+  useEffect(() => {
+    const stateTarget = location.state?.targetUserId;
+    const params = new URLSearchParams(location.search || '');
+    const queryTarget = params.get('userId') || params.get('user');
+    const nextTarget = stateTarget ?? queryTarget ?? null;
+    if (
+      (nextTarget === null && pendingUserId !== null) ||
+      (nextTarget !== null && String(nextTarget) !== String(pendingUserId))
+    ) {
+      setPendingUserId(nextTarget);
+    }
+  }, [location, pendingUserId]);
   // Enable hub marking so reads are sent to backend if available
   const enableHubMarking = true;
 
@@ -1173,6 +1193,20 @@ const ChatPageV2 = () => {
       fetchGroupMembers(group.id);
     }
   };
+
+  useEffect(() => {
+    if (!pendingUserId) return;
+    if (!Array.isArray(users) || users.length === 0) return;
+    const matchedUser = users.find((u) => String(u.id) === String(pendingUserId));
+    if (matchedUser) {
+      handleSelectUser(matchedUser);
+      setPendingUserId(null);
+      if (location.state?.targetUserId || location.search) {
+        navigate('/chatpage', { replace: true, state: {} });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingUserId, users]);
 
   const fetchGroupMembers = async (groupId) => {
     try {

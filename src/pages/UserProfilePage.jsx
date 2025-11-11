@@ -34,7 +34,9 @@ const UserProfilePage = () => {
   }, [token, userId]);
 
   const handleMessageClick = () => {
-    navigate(`/messages/${userId}`); // userId'yi URL'ye dahil edin
+    navigate('/chatpage', {
+      state: { targetUserId: userId },
+    });
   };
 
   if (!userData) {
