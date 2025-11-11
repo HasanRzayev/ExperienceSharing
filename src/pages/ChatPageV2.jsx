@@ -7,6 +7,9 @@ import { HiOutlinePhotograph, HiOutlineVideoCamera, HiOutlineVolumeUp } from "re
 import EmojiPicker from "emoji-picker-react";
 import { HubConnectionBuilder } from '@microsoft/signalr';
 import { ensureMicRecorder } from '../utils/ensureMicRecorder';
+import { getApiBaseUrl, getCloudinaryBaseEndpoint, getSignalRHubUrl } from '../utils/env';
+
+const CLOUDINARY_BASE_ENDPOINT = getCloudinaryBaseEndpoint();
 
 const normalizeId = (value) => {
   if (value === undefined || value === null) return null;
@@ -164,6 +167,12 @@ const normalizeMessageRecord = (messageLike) => {
     messageLike.sender?.FirstName ??
     null;
 
+  const existingDeliveryState =
+    messageLike.deliveryState ??
+    messageLike.DeliveryState ??
+    messageLike.status ??
+    null;
+
   const senderRawObject = messageLike.sender ?? messageLike.Sender ?? null;
   const normalizedSender = senderRawObject
     ? {
@@ -191,6 +200,19 @@ const normalizeMessageRecord = (messageLike) => {
     : null;
 
   const id = rawId ?? `temp-${Date.now()}`;
+  let deliveryState = existingDeliveryState;
+  if (!deliveryState) {
+    const idString = id ? String(id) : '';
+    if (isReadRaw) {
+      deliveryState = 'read';
+    } else if (isDeliveredRaw) {
+      deliveryState = 'delivered';
+    } else if (idString.startsWith('temp-')) {
+      deliveryState = 'sending';
+    } else {
+      deliveryState = 'sent';
+    }
+  }
 
   return {
     ...messageLike,
@@ -217,6 +239,8 @@ const normalizeMessageRecord = (messageLike) => {
     senderName,
     SenderName: senderName,
     sender: normalizedSender,
+    deliveryState,
+    DeliveryState: deliveryState,
   };
 };
 
@@ -244,7 +268,12 @@ export async function uploadFile(file) {
   const fileType = file.type.split("/")[0]; // "image", "video", "audio"
   const fileExtension = file.name.split('.').pop().toLowerCase(); // File extension
 
-  let cloudinaryEndpoint = process.env.REACT_APP_CLOUDINARY_ENDPOINT;
+  if (!CLOUDINARY_BASE_ENDPOINT) {
+    console.error('Cloudinary endpoint is not configured. Please set VITE_CLOUDINARY_ENDPOINT.');
+    return null;
+  }
+
+  let cloudinaryEndpoint = CLOUDINARY_BASE_ENDPOINT;
 
   if (fileType === "image") {
       cloudinaryEndpoint += "image/upload";
@@ -367,8 +396,8 @@ const ChatPageV2 = () => {
   
   const messagesEndRef = useRef(null);
 
-  const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
-  const signalRUrl = process.env.REACT_APP_SIGNALR_HUB_URL || 'https://experiencesharingbackend.runasp.net/api/hubs/message';
+  const apiBaseUrl = getApiBaseUrl();
+  const signalRUrl = getSignalRHubUrl();
   const [connection, setConnection] = useState(null);
   const [connectionReady, setConnectionReady] = useState(false);
   const [pendingUserId, setPendingUserId] = useState(() => {
@@ -716,7 +745,9 @@ const ChatPageV2 = () => {
                 ...m, 
                 IsRead: true, 
                 isRead: true, 
-                ReadAt: finalReadAt || m.ReadAt || m.readAt || new Date().toISOString() 
+                ReadAt: finalReadAt || m.ReadAt || m.readAt || new Date().toISOString(),
+                deliveryState: 'read',
+                DeliveryState: 'read'
               });
             }
             return normalizeMessageRecord(m);
@@ -769,7 +800,7 @@ const ChatPageV2 = () => {
                 const msgId = String(m.id ?? m.Id);
                 messageIdsToMark.push(msgId);
                 readIdsRef.current.add(msgId); // Ref'i de direkt güncelle
-                return normalizeMessageRecord({ ...m, IsRead: true, isRead: true, ReadAt: ReadAt || m.ReadAt || m.readAt || new Date().toISOString() });
+                return normalizeMessageRecord({ ...m, IsRead: true, isRead: true, ReadAt: ReadAt || m.ReadAt || m.readAt || new Date().toISOString(), deliveryState: 'read', DeliveryState: 'read' });
               }
               return normalizeMessageRecord(m);
             });
@@ -807,7 +838,7 @@ const ChatPageV2 = () => {
         });
         setMessages(prev => prev.map(m => {
           if (String(m.id ?? m.Id) === msgIdStr) {
-            return normalizeMessageRecord({ ...m, IsRead: true, isRead: true, ReadAt: ReadAt || m.ReadAt || m.readAt });
+            return normalizeMessageRecord({ ...m, IsRead: true, isRead: true, ReadAt: ReadAt || m.ReadAt || m.readAt, deliveryState: 'read', DeliveryState: 'read' });
           }
           return normalizeMessageRecord(m);
         }));
@@ -857,7 +888,9 @@ const ChatPageV2 = () => {
                   IsRead: normalizedIncoming.IsRead ?? normalizedIncoming.isRead ?? normalizedExisting.IsRead ?? normalizedExisting.isRead ?? false,
                   isRead: normalizedIncoming.IsRead ?? normalizedIncoming.isRead ?? normalizedExisting.IsRead ?? normalizedExisting.isRead ?? false,
                   ReadAt: normalizedIncoming.ReadAt ?? normalizedIncoming.readAt ?? normalizedExisting.ReadAt ?? normalizedExisting.readAt ?? null,
-                  timestamp: normalizedIncoming.timestamp ?? normalizedIncoming.sentAt ?? normalizedExisting.timestamp
+                  timestamp: normalizedIncoming.timestamp ?? normalizedIncoming.sentAt ?? normalizedExisting.timestamp,
+                  deliveryState: 'delivered',
+                  DeliveryState: 'delivered'
                 });
               }
               return normalizedExisting;
@@ -875,7 +908,7 @@ const ChatPageV2 = () => {
                 if (samePair) {
                   next = next.map((msg, idx) =>
                     idx === i
-                      ? normalizeMessageRecord({ ...msg, IsDelivered: true, isDelivered: true })
+                      ? normalizeMessageRecord({ ...msg, IsDelivered: true, isDelivered: true, deliveryState: 'delivered', DeliveryState: 'delivered' })
                       : normalizeMessageRecord(msg)
                   );
                   updated = true;
@@ -1314,12 +1347,31 @@ const ChatPageV2 = () => {
             finalIsDelivered = (existingMsg?.IsDelivered ?? existingMsg?.isDelivered ?? false) || !!isDeliveredFromApi;
           }
 
+          const existingDeliveryState =
+            existingMsg?.deliveryState ??
+            existingMsg?.DeliveryState ??
+            null;
+          let calculatedDeliveryState = existingDeliveryState;
+          if (!calculatedDeliveryState) {
+            if (finalIsRead) {
+              calculatedDeliveryState = 'read';
+            } else if (finalIsDelivered) {
+              calculatedDeliveryState = 'delivered';
+            } else if (idStr && idStr.startsWith('temp-')) {
+              calculatedDeliveryState = 'sending';
+            } else {
+              calculatedDeliveryState = existingMsg?.deliveryState ?? existingMsg?.DeliveryState ?? null;
+            }
+          }
+
           return normalizeMessageRecord({
             ...m,
             // SignalR event'lerinden gelen güncellemeleri önceliklendir
             IsDelivered: finalIsDelivered,
             IsRead: finalIsRead,
             ReadAt: readAt || existingMsg?.ReadAt || existingMsg?.readAt || null,
+            deliveryState: calculatedDeliveryState,
+            DeliveryState: calculatedDeliveryState,
           });
         });
 
@@ -1663,7 +1715,9 @@ const ChatPageV2 = () => {
             ...messagePayload,
             id: `temp-${Date.now()}`,
             IsDelivered: false,
-            IsRead: false
+            IsRead: false,
+            deliveryState: 'sending',
+            DeliveryState: 'sending'
           };
           setMessages(prev => {
             const normalizedPrev = prev.map(normalizeMessageRecord);
@@ -1696,7 +1750,9 @@ const ChatPageV2 = () => {
             mediaType: mediaType,
             timestamp: new Date().toISOString(),
             IsDelivered: false,
-            IsRead: false
+            IsRead: false,
+            deliveryState: 'sending',
+            DeliveryState: 'sending'
           };
           setMessages(prev => {
             const normalizedPrev = prev.map(normalizeMessageRecord);
@@ -1730,7 +1786,9 @@ const ChatPageV2 = () => {
             content: newMessage.trim(),
             mediaUrl: fileUrl,
             mediaType: mediaType,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            deliveryState: 'sending',
+            DeliveryState: 'sending'
           });
           return [...normalizedPrev, optimistic];
         });
@@ -2694,33 +2752,44 @@ const ChatPageV2 = () => {
                                       <span className="ml-1 select-none" style={{ fontSize: '14px', fontWeight: 700 }}>
                                         {(() => {
                                           const idAny = msg.Id ?? msg.id;
-                                          const idStr = String(idAny);
-                                          // ÖNCELİK: readIdsRef set'ini kontrol et (en önemli!)
+                                          const idStr = String(idAny || '');
                                           const inReadIdsSet = readIdsRef.current.has(idStr);
                                           const inDeliveredIdsSet = deliveredIdsRef.current.has(idStr);
                                           const msgIsRead = msg.IsRead ?? msg.isRead ?? false;
                                           const msgIsDelivered = msg.IsDelivered ?? msg.isDelivered ?? false;
-                                          
-                                          // readIds set'indeyse kesinlikle read olmalı
-                                          const isReadAny = inReadIdsSet || msgIsRead;
-                                          const isDeliveredAny = inReadIdsSet || inDeliveredIdsSet || msgIsDelivered;
-                                          
-                                          // Debug log (sadece kendi mesajlarımız için)
-                                          if (index < 5) { // İlk 5 mesaj için log
+                                          let status = msg.deliveryState ?? msg.DeliveryState ?? null;
+                                          if (!status) {
+                                            if (inReadIdsSet || msgIsRead) {
+                                              status = 'read';
+                                            } else if (inDeliveredIdsSet || msgIsDelivered) {
+                                              status = 'delivered';
+                                            } else if (idStr.startsWith('temp-')) {
+                                              status = 'sending';
+                                            } else {
+                                              status = 'sent';
+                                            }
+                                          } else if (status === 'delivered' && (inReadIdsSet || msgIsRead)) {
+                                            status = 'read';
+                                          }
+
+                                          if (index < 5) {
                                             console.log('[ChatPageV2] Render tick check', { 
-                                              id: idStr, 
-                                              inReadIdsSet, 
-                                              msgIsRead, 
-                                              isReadAny,
+                                              id: idStr,
+                                              status,
+                                              inReadIdsSet,
                                               inDeliveredIdsSet,
-                                              msgIsDelivered,
-                                              isDeliveredAny 
+                                              msgIsRead,
+                                              msgIsDelivered
                                             });
                                           }
-                                          
-                                          if (isReadAny) return (<span style={{ color: '#34B7F1', fontSize: '14px', fontWeight: 700 }}>✓✓</span>);
-                                          if (isDeliveredAny) return (<span style={{ color: '#9ca3af', fontSize: '14px', fontWeight: 700 }}>✓✓</span>);
-                                          return (<span style={{ color: '#ffffff', fontSize: '14px', fontWeight: 700 }}>✓</span>);
+
+                                          if (status === 'read') {
+                                            return <span style={{ color: '#34B7F1', fontSize: '14px', fontWeight: 700 }}>✓✓</span>;
+                                          }
+                                          if (status === 'delivered') {
+                                            return <span style={{ color: '#9ca3af', fontSize: '14px', fontWeight: 700 }}>✓✓</span>;
+                                          }
+                                          return <span style={{ color: '#d1d5db', fontSize: '14px', fontWeight: 700 }}>✓</span>;
                                         })()}
                                       </span>
                                     )}

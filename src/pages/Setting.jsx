@@ -7,6 +7,7 @@ import { FaMobile, FaDesktop, FaTablet, FaQrcode, FaUnlink, FaShieldAlt } from "
 import QRCodeGenerator from "../components/QRCodeGenerator";
 import QRCodeScanner from "../components/QRCodeScanner";
 import deviceLinkService from "../services/DeviceLinkService";
+import { getApiBaseUrl, getCloudinaryBaseEndpoint } from "../utils/env";
 
 const UserProfile = () => {
   const [user, setUser] = useState(null);
@@ -25,6 +26,9 @@ const UserProfile = () => {
     userName: "",
     profileImage: "",
   });
+
+  const apiBaseUrl = getApiBaseUrl();
+  const cloudinaryBaseEndpoint = getCloudinaryBaseEndpoint();
 
   useEffect(() => {
     fetchUserProfile();
@@ -70,7 +74,7 @@ const UserProfile = () => {
       const token = Cookies.get("token");
       if (!token) throw new Error("No token found");
 
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/Auth/GetProfile`, {
+      const response = await axios.get(`${apiBaseUrl}/Auth/GetProfile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(response.data);
@@ -92,7 +96,7 @@ const UserProfile = () => {
       const token = Cookies.get("token");
       if (!token) throw new Error("No token found");
   
-      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/users/update`, formData, {
+      await axios.put(`${apiBaseUrl}/users/update`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
   
@@ -116,7 +120,10 @@ const UserProfile = () => {
     formData.append("upload_preset", "ml_default"); // Cloudinary upload preset
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_CLOUDINARY_ENDPOINT}image/upload`, formData);
+      if (!cloudinaryBaseEndpoint) {
+        throw new Error("Cloudinary endpoint is not configured");
+      }
+      const response = await axios.post(`${cloudinaryBaseEndpoint}image/upload`, formData);
       const imageUrl = response.data.secure_url;
 
       setFormData((prev) => ({
@@ -136,7 +143,7 @@ const UserProfile = () => {
       const token = Cookies.get("token");
       if (!token) throw new Error("No token found");
 
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/Device/linked-devices`, {
+      const response = await axios.get(`${apiBaseUrl}/Device/linked-devices`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLinkedDevices(response.data.devices || []);
@@ -156,7 +163,7 @@ const UserProfile = () => {
         deviceInfo: navigator.userAgent
       };
 
-      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/Device/generate-qr`, deviceInfo, {
+      const response = await axios.post(`${apiBaseUrl}/Device/generate-qr`, deviceInfo, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -180,7 +187,7 @@ const UserProfile = () => {
       const token = Cookies.get("token");
       if (!token) throw new Error("No token found");
 
-      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/Device/unlink/${deviceId}`, {
+      await axios.delete(`${apiBaseUrl}/Device/unlink/${deviceId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -197,7 +204,7 @@ const UserProfile = () => {
       const token = Cookies.get("token");
       if (!token) throw new Error("No token found");
 
-      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/Device/trust/${deviceId}`, 
+      await axios.put(`${apiBaseUrl}/Device/trust/${deviceId}`,
         { isTrusted: !isTrusted }, 
         {
           headers: { Authorization: `Bearer ${token}` },
