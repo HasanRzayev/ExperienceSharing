@@ -52,6 +52,174 @@ const getReceiverId = (messageLike) =>
   messageLike?.Receiver?.ID ??
   null;
 
+const normalizeUserRecord = (userLike) => {
+  if (!userLike || typeof userLike !== 'object') {
+    const normalizedId = normalizeId(userLike);
+    const numericId = typeof userLike === 'number' ? userLike : Number(normalizedId);
+    const fallbackId = Number.isNaN(numericId) ? (normalizedId ?? userLike ?? null) : numericId;
+    const finalId = fallbackId !== null && fallbackId !== undefined ? fallbackId : null;
+    return finalId !== null
+      ? {
+          id: finalId,
+          Id: finalId,
+          userId: finalId,
+          UserId: finalId,
+          username: null,
+          userName: null,
+          UserName: null,
+        }
+      : null;
+  }
+
+  const rawId =
+    userLike.id ??
+    userLike.Id ??
+    userLike.userId ??
+    userLike.UserId ??
+    userLike.ID ??
+    null;
+  const normalizedId = normalizeId(rawId);
+  const numericId = typeof rawId === 'number' ? rawId : Number(normalizedId);
+  const fallbackId = Number.isNaN(numericId) ? (normalizedId ?? rawId ?? null) : numericId;
+
+  const userName =
+    userLike.userName ??
+    userLike.UserName ??
+    userLike.username ??
+    userLike.Username ??
+    null;
+
+  return {
+    ...userLike,
+    id: fallbackId,
+    Id: fallbackId,
+    userId: fallbackId,
+    UserId: fallbackId,
+    userName,
+    UserName: userName ?? userLike.UserName ?? userLike.userName,
+    username: userName ?? userLike.username,
+  };
+};
+
+const normalizeMessageRecord = (messageLike) => {
+  if (!messageLike || typeof messageLike !== 'object') return messageLike;
+
+  const rawId =
+    messageLike.id ??
+    messageLike.Id ??
+    messageLike.messageId ??
+    messageLike.MessageId ??
+    messageLike.tempId ??
+    messageLike.TempId ??
+    null;
+
+  const senderIdRaw = getSenderId(messageLike);
+  const receiverIdRaw = getReceiverId(messageLike);
+  const senderIdNormalized = normalizeId(senderIdRaw);
+  const receiverIdNormalized = normalizeId(receiverIdRaw);
+
+  const timestamp =
+    messageLike.timestamp ??
+    messageLike.Timestamp ??
+    messageLike.sentAt ??
+    messageLike.SentAt ??
+    messageLike.createdAt ??
+    messageLike.CreatedAt ??
+    null;
+
+  const content = messageLike.content ?? messageLike.Content ?? '';
+  const mediaUrl = messageLike.mediaUrl ?? messageLike.MediaUrl ?? null;
+  const mediaType = messageLike.mediaType ?? messageLike.MediaType ?? null;
+
+  const isDeliveredRaw =
+    messageLike.isDelivered ??
+    messageLike.IsDelivered ??
+    messageLike.delivered ??
+    false;
+  const isReadRaw =
+    messageLike.isRead ??
+    messageLike.IsRead ??
+    messageLike.read ??
+    false;
+
+  const senderProfileImage =
+    messageLike.senderProfileImage ??
+    messageLike.SenderProfileImage ??
+    messageLike.sender?.profileImage ??
+    messageLike.sender?.ProfileImage ??
+    messageLike.sender?.avatar ??
+    messageLike.sender?.Avatar ??
+    null;
+
+  const senderName =
+    messageLike.senderName ??
+    messageLike.SenderName ??
+    messageLike.sender?.userName ??
+    messageLike.sender?.UserName ??
+    messageLike.sender?.username ??
+    messageLike.sender?.Username ??
+    messageLike.sender?.fullName ??
+    messageLike.sender?.FullName ??
+    messageLike.sender?.firstName ??
+    messageLike.sender?.FirstName ??
+    null;
+
+  const senderRawObject = messageLike.sender ?? messageLike.Sender ?? null;
+  const normalizedSender = senderRawObject
+    ? {
+        ...senderRawObject,
+        id: normalizeId(getUserId(senderRawObject)) ?? senderIdNormalized,
+        userName:
+          senderRawObject.userName ??
+          senderRawObject.UserName ??
+          senderRawObject.username ??
+          senderRawObject.Username ??
+          senderName,
+        profileImage:
+          senderRawObject.profileImage ??
+          senderRawObject.ProfileImage ??
+          senderRawObject.avatar ??
+          senderRawObject.Avatar ??
+          senderProfileImage,
+      }
+    : senderIdNormalized || senderName || senderProfileImage
+    ? {
+        id: senderIdNormalized,
+        userName: senderName,
+        profileImage: senderProfileImage,
+      }
+    : null;
+
+  const id = rawId ?? `temp-${Date.now()}`;
+
+  return {
+    ...messageLike,
+    id,
+    Id: id,
+    senderId: senderIdNormalized,
+    SenderId: senderIdNormalized,
+    receiverId: receiverIdNormalized,
+    ReceiverId: receiverIdNormalized,
+    timestamp,
+    Timestamp: timestamp,
+    content,
+    Content: content,
+    mediaUrl,
+    MediaUrl: mediaUrl,
+    mediaType,
+    MediaType: mediaType,
+    isDelivered: !!isDeliveredRaw,
+    IsDelivered: !!isDeliveredRaw,
+    isRead: !!isReadRaw,
+    IsRead: !!isReadRaw,
+    senderProfileImage,
+    SenderProfileImage: senderProfileImage,
+    senderName,
+    SenderName: senderName,
+    sender: normalizedSender,
+  };
+};
+
 // Upload file to Cloudinary
 export async function uploadFile(file) {
   console.log("Checking file type:", file);
@@ -117,6 +285,46 @@ const ChatPageV2 = () => {
   const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState([]);
   const [user, setUser] = useState(null); // Current user state
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const decodeUserIdFromToken = (jwtToken) => {
+    if (!jwtToken || typeof jwtToken !== 'string') return null;
+    const parts = jwtToken.split('.');
+    if (parts.length < 2) return null;
+    try {
+      const payloadRaw = parts[1]
+        .replace(/-/g, '+')
+        .replace(/_/g, '/')
+        .padEnd(Math.ceil(parts[1].length / 4) * 4, '=');
+      const decodedPayload = atob(payloadRaw);
+      const payload = JSON.parse(decodedPayload);
+      const claim =
+        payload?.nameid ??
+        payload?.NameId ??
+        payload?.sub ??
+        payload?.id ??
+        payload?.Id ??
+        payload?.userId ??
+        payload?.UserId ??
+        null;
+      return claim ?? null;
+    } catch (err) {
+      console.warn('[ChatPageV2] Failed to decode token payload', err);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    if (!token) {
+      setCurrentUserId(null);
+      return;
+    }
+    const decoded = decodeUserIdFromToken(token);
+    if (decoded !== null && decoded !== undefined) {
+      const normalized = normalizeId(decoded);
+      setCurrentUserId(normalized);
+    }
+  }, [token]);
+
   const [selectedChat, setSelectedChat] = useState(null);
   const [chatType, setChatType] = useState(null); // 'user' or 'group'
   const [messages, setMessages] = useState([]);
@@ -214,7 +422,15 @@ const ChatPageV2 = () => {
       const response = await axios.get(`${apiBaseUrl}/Users/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUser(response.data);
+      const raw = response.data;
+      const normalizedUser = normalizeUserRecord(raw);
+      if (normalizedUser) {
+        setUser(normalizedUser);
+        const normalized = normalizeId(getUserId(normalizedUser));
+        if (normalized) setCurrentUserId(normalized);
+      } else {
+        setUser(null);
+      }
     } catch (error) {
       console.error('Error fetching current user:', error);
     }
@@ -477,7 +693,7 @@ const ChatPageV2 = () => {
           const updated = prev.map(m => {
             const msgId = String(m.id ?? m.Id);
             if (!messageIdSet.has(msgId)) {
-              return m;
+              return normalizeMessageRecord(m);
             }
             
             const msgSenderIdRaw = getSenderId(m);
@@ -496,14 +712,14 @@ const ChatPageV2 = () => {
                 finalReceiverId,
                 shouldUpdate
               });
-              return { 
+              return normalizeMessageRecord({ 
                 ...m, 
                 IsRead: true, 
                 isRead: true, 
                 ReadAt: finalReadAt || m.ReadAt || m.readAt || new Date().toISOString() 
-              };
+              });
             }
-            return m;
+            return normalizeMessageRecord(m);
           });
           
           const updatedReadMessages = updated.filter(m => {
@@ -531,7 +747,7 @@ const ChatPageV2 = () => {
           
           // Badge güncellemesi yukarıda yapılıyor (readIdsRef güncellendikten HEMEN SONRA)
           
-          return updated;
+          return updated.map(normalizeMessageRecord);
         });
         } else {
           // Eski format için (ReceiverId ile)
@@ -553,9 +769,9 @@ const ChatPageV2 = () => {
                 const msgId = String(m.id ?? m.Id);
                 messageIdsToMark.push(msgId);
                 readIdsRef.current.add(msgId); // Ref'i de direkt güncelle
-                return { ...m, IsRead: true, isRead: true, ReadAt: ReadAt || m.ReadAt || m.readAt || new Date().toISOString() };
+                return normalizeMessageRecord({ ...m, IsRead: true, isRead: true, ReadAt: ReadAt || m.ReadAt || m.readAt || new Date().toISOString() });
               }
-              return m;
+              return normalizeMessageRecord(m);
             });
             // readIds set'ini güncelle (hem state hem de ref)
             if (messageIdsToMark.length > 0) {
@@ -569,7 +785,7 @@ const ChatPageV2 = () => {
                 return s;
               });
             }
-            return updated;
+            return updated.map(normalizeMessageRecord);
           });
         }
       } catch (err) {
@@ -590,10 +806,10 @@ const ChatPageV2 = () => {
           return s; 
         });
         setMessages(prev => prev.map(m => {
-          if (String(m.id) === msgIdStr) {
-            return { ...m, IsRead: true, isRead: true, ReadAt: ReadAt || m.ReadAt || m.readAt };
+          if (String(m.id ?? m.Id) === msgIdStr) {
+            return normalizeMessageRecord({ ...m, IsRead: true, isRead: true, ReadAt: ReadAt || m.ReadAt || m.readAt });
           }
-          return m;
+          return normalizeMessageRecord(m);
         }));
       } catch {}
     });
@@ -601,46 +817,50 @@ const ChatPageV2 = () => {
     // ReceiveMessage echo: when I send via API, backend also broadcasts; use it to mark delivered/read
     conn.on('ReceiveMessage', (messageData) => {
       try {
+        const normalizedIncoming = normalizeMessageRecord(messageData || {});
         const currentUser = userRef.current || user;
         const currentUserIdNormalized = normalizeId(getUserId(currentUser));
-        const incomingSenderIdRaw = getSenderId(messageData);
-        const incomingReceiverIdRaw = getReceiverId(messageData);
+        const incomingSenderIdRaw = getSenderId(normalizedIncoming);
+        const incomingReceiverIdRaw = getReceiverId(normalizedIncoming);
         const incomingSenderIdNormalized = normalizeId(incomingSenderIdRaw);
         const incomingReceiverIdNormalized = normalizeId(incomingReceiverIdRaw);
         console.log('[ChatPageV2] ReceiveMessage', {
-          id: messageData?.id,
+          id: normalizedIncoming?.id,
           senderId: incomingSenderIdRaw,
           receiverId: incomingReceiverIdRaw,
-          isDelivered: messageData?.IsDelivered ?? messageData?.isDelivered,
-          isRead: messageData?.IsRead ?? messageData?.isRead,
+          isDelivered: normalizedIncoming?.IsDelivered ?? normalizedIncoming?.isDelivered,
+          isRead: normalizedIncoming?.IsRead ?? normalizedIncoming?.isRead,
           currentUserId: currentUserIdNormalized
         });
         // If this echo is my message, update local message flags
         if (currentUserIdNormalized && incomingSenderIdNormalized === currentUserIdNormalized) {
           setMessages(prev => {
             let updated = false;
-            let next = prev.map(m => {
-              const existingSenderIdNormalized = normalizeId(getSenderId(m));
-              const existingReceiverIdNormalized = normalizeId(getReceiverId(m));
+            let next = prev.map(existing => {
+              const normalizedExisting = normalizeMessageRecord(existing);
+              const existingSenderIdNormalized = normalizeId(getSenderId(normalizedExisting));
+              const existingReceiverIdNormalized = normalizeId(getReceiverId(normalizedExisting));
               const samePair =
                 existingSenderIdNormalized &&
                 existingReceiverIdNormalized &&
                 existingSenderIdNormalized === incomingSenderIdNormalized &&
                 existingReceiverIdNormalized === incomingReceiverIdNormalized;
-              const sameContent = (m.content || '') === (messageData.content || '');
+              const sameContent = (normalizedExisting.content || '') === (normalizedIncoming.content || '');
               if (!updated && samePair && sameContent) {
                 updated = true;
-                return {
-                  ...m,
-                  id: messageData.id ?? m.id,
-                  Id: messageData.id ?? m.Id,
-                  IsDelivered: (messageData.IsDelivered ?? messageData.isDelivered ?? true),
-                  IsRead: (messageData.IsRead ?? messageData.isRead ?? m.IsRead ?? m.isRead ?? false),
-                  ReadAt: messageData.ReadAt ?? messageData.readAt ?? m.ReadAt ?? m.readAt ?? null,
-                  timestamp: messageData.timestamp ?? messageData.sentAt ?? m.timestamp
-                };
+                return normalizeMessageRecord({
+                  ...normalizedExisting,
+                  id: normalizedIncoming.id ?? normalizedExisting.id,
+                  Id: normalizedIncoming.id ?? normalizedExisting.Id,
+                  IsDelivered: normalizedIncoming.IsDelivered ?? normalizedIncoming.isDelivered ?? true,
+                  isDelivered: normalizedIncoming.IsDelivered ?? normalizedIncoming.isDelivered ?? true,
+                  IsRead: normalizedIncoming.IsRead ?? normalizedIncoming.isRead ?? normalizedExisting.IsRead ?? normalizedExisting.isRead ?? false,
+                  isRead: normalizedIncoming.IsRead ?? normalizedIncoming.isRead ?? normalizedExisting.IsRead ?? normalizedExisting.isRead ?? false,
+                  ReadAt: normalizedIncoming.ReadAt ?? normalizedIncoming.readAt ?? normalizedExisting.ReadAt ?? normalizedExisting.readAt ?? null,
+                  timestamp: normalizedIncoming.timestamp ?? normalizedIncoming.sentAt ?? normalizedExisting.timestamp
+                });
               }
-              return m;
+              return normalizedExisting;
             });
             if (!updated) {
               for (let i = next.length - 1; i >= 0; i--) {
@@ -653,16 +873,20 @@ const ChatPageV2 = () => {
                   existingSenderIdNormalized === incomingSenderIdNormalized &&
                   existingReceiverIdNormalized === incomingReceiverIdNormalized;
                 if (samePair) {
-                  next = next.map((msg, idx) => idx === i ? { ...msg, IsDelivered: true } : msg);
+                  next = next.map((msg, idx) =>
+                    idx === i
+                      ? normalizeMessageRecord({ ...msg, IsDelivered: true, isDelivered: true })
+                      : normalizeMessageRecord(msg)
+                  );
                   updated = true;
                   break;
                 }
               }
             }
-            return next;
+            return next.map(normalizeMessageRecord);
           });
-          if (messageData?.id !== undefined && messageData?.id !== null) {
-            const msgIdStr = String(messageData.id);
+          if (normalizedIncoming?.id !== undefined && normalizedIncoming?.id !== null) {
+            const msgIdStr = String(normalizedIncoming.id);
             setDeliveredIds(prev => { 
               const s = new Set(prev); 
               s.add(msgIdStr);
@@ -672,7 +896,7 @@ const ChatPageV2 = () => {
           }
           
           // Son mesaj zamanını güncelle (mesaj geldiğinde veya gönderildiğinde)
-          const msgTimestamp = messageData?.timestamp ?? messageData?.Timestamp ?? messageData?.sentAt;
+          const msgTimestamp = normalizedIncoming?.timestamp ?? normalizedIncoming?.Timestamp ?? normalizedIncoming?.sentAt;
           if (msgTimestamp && selectedChat?.id) {
             const msgTime = new Date(msgTimestamp).getTime();
             if (msgTime > 0) {
@@ -1034,33 +1258,47 @@ const ChatPageV2 = () => {
       // Mevcut mesajları koru (SignalR event'lerinden gelen güncellemeleri kaybetmemek için)
       setMessages(prev => {
         console.log('[ChatPageV2] fetchUserMessages prev messages count', prev.length);
+        const prevNormalized = prev.map(normalizeMessageRecord);
         const prevMap = new Map();
-        prev.forEach(m => {
-          const idStr = String(m.id ?? m.Id);
+        prevNormalized.forEach(m => {
+          const idRaw = m.id ?? m.Id;
+          const idStrNormalized = normalizeId(idRaw);
+          const idStr = idStrNormalized ?? (idRaw !== undefined && idRaw !== null ? String(idRaw) : null);
           if (idStr && idStr !== 'undefined' && idStr !== 'null') {
             prevMap.set(idStr, m);
           }
         });
-        
-        const normalized = list.map(m => {
+
+        const normalizedList = list.map(normalizeMessageRecord);
+
+        const merged = normalizedList.map(m => {
           const readAt = m.ReadAt ?? m.readAt ?? null;
-          const isRead = (m.IsRead ?? m.isRead) || !!readAt;
-          const isDelivered = (m.IsDelivered ?? m.isDelivered) || isRead; // read implies delivered
+          const isReadFromApi = (m.IsRead ?? m.isRead) || !!readAt;
+          const isDeliveredFromApi = (m.IsDelivered ?? m.isDelivered) || isReadFromApi; // read implies delivered
           const idAny = m.Id ?? m.id;
-          const idStr = String(idAny);
-          
+          const idStrNormalized = normalizeId(idAny);
+          const idStr = idStrNormalized ?? (idAny !== undefined && idAny !== null ? String(idAny) : null);
+          if (!idStr) {
+            return normalizeMessageRecord({
+              ...m,
+              IsDelivered: isDeliveredFromApi,
+              IsRead: isReadFromApi,
+              ReadAt: readAt,
+            });
+          }
+
           // SignalR event'lerinden gelen güncellemeleri önceliklendir (readIds/deliveredIds set'inden)
           // Ref'leri kullanarak güncel değerleri al (closure sorununu önlemek için)
           const isReadFromSet = readIdsRef.current.has(idStr);
           const isDeliveredFromSet = deliveredIdsRef.current.has(idStr);
-          
+
           // Eğer mevcut mesajda SignalR event'lerinden gelen read/delivered bilgisi varsa, onu koru
           const existingMsg = prevMap.get(idStr);
-          
+
           // ÖNCELİK: readIds set'indeyse kesinlikle read olmalı (en önemli kontrol!)
           let finalIsRead = false;
           let finalIsDelivered = false;
-          
+
           if (isReadFromSet) {
             // readIds set'indeyse kesinlikle read ve delivered olmalı
             finalIsRead = true;
@@ -1069,57 +1307,63 @@ const ChatPageV2 = () => {
           } else if (isDeliveredFromSet) {
             // deliveredIds set'indeyse delivered olmalı ama read değil
             finalIsDelivered = true;
-            finalIsRead = (existingMsg?.IsRead ?? existingMsg?.isRead ?? false) || !!isRead;
+            finalIsRead = (existingMsg?.IsRead ?? existingMsg?.isRead ?? false) || !!isReadFromApi;
           } else {
             // Set'lerde yoksa, mevcut mesajın değerini koru veya API'den gelen değeri kullan
-            finalIsRead = (existingMsg?.IsRead ?? existingMsg?.isRead ?? false) || !!isRead;
-            finalIsDelivered = (existingMsg?.IsDelivered ?? existingMsg?.isDelivered ?? false) || !!isDelivered;
+            finalIsRead = (existingMsg?.IsRead ?? existingMsg?.isRead ?? false) || !!isReadFromApi;
+            finalIsDelivered = (existingMsg?.IsDelivered ?? existingMsg?.isDelivered ?? false) || !!isDeliveredFromApi;
           }
-          
-          return {
+
+          return normalizeMessageRecord({
             ...m,
             // SignalR event'lerinden gelen güncellemeleri önceliklendir
             IsDelivered: finalIsDelivered,
             IsRead: finalIsRead,
-            ReadAt: readAt || existingMsg?.ReadAt || existingMsg?.readAt || null
-          };
+            ReadAt: readAt || existingMsg?.ReadAt || existingMsg?.readAt || null,
+          });
         });
-        
+
         // Yeni mesajları ekle veya mevcut mesajları güncelle
         const finalMap = new Map();
-        normalized.forEach(newMsg => {
-          const idStr = String(newMsg.id ?? newMsg.Id);
+        merged.forEach(newMsg => {
+          const idRaw = newMsg.id ?? newMsg.Id;
+          const idStrNormalized = normalizeId(idRaw);
+          const idStr = idStrNormalized ?? (idRaw !== undefined && idRaw !== null ? String(idRaw) : null);
           if (idStr && idStr !== 'undefined' && idStr !== 'null') {
-            finalMap.set(idStr, newMsg);
+            finalMap.set(idStr, normalizeMessageRecord(newMsg));
           }
         });
-        
+
         // Mevcut mesajlardan yeni listede olmayanları da ekle (eğer readIds set'indeyse koru)
-        prev.forEach(existingMsg => {
-          const idStr = String(existingMsg.id ?? existingMsg.Id);
+        prevNormalized.forEach(existingMsg => {
+          const idRaw = existingMsg.id ?? existingMsg.Id;
+          const idStrNormalized = normalizeId(idRaw);
+          const idStr = idStrNormalized ?? (idRaw !== undefined && idRaw !== null ? String(idRaw) : null);
           if (idStr && idStr !== 'undefined' && idStr !== 'null' && !finalMap.has(idStr)) {
             // Eğer readIds set'indeyse, mesajı koru (silme)
             if (readIdsRef.current.has(idStr) || deliveredIdsRef.current.has(idStr)) {
-              finalMap.set(idStr, existingMsg);
+              finalMap.set(idStr, normalizeMessageRecord(existingMsg));
             }
           }
         });
-        
+
         // Timestamp'e göre sırala
         const sorted = Array.from(finalMap.values()).sort((a, b) => {
           const timeA = new Date(a.timestamp ?? a.Timestamp ?? 0).getTime();
           const timeB = new Date(b.timestamp ?? b.Timestamp ?? 0).getTime();
           return timeA - timeB;
         });
-        
+
+        const normalizedSorted = sorted.map(normalizeMessageRecord);
+
         // ÖNEMLİ: Chat açıldığında, bu kullanıcıdan bana gelen mesajların ID'lerini readIdsRef'e ekle
         // Bu, backend henüz güncellemese bile badge'i hemen günceller
         const currentUser = userRef.current || user;
-        if (currentUser && userId && sorted.length > 0) {
+        if (currentUser && userId && normalizedSorted.length > 0) {
           const currentUserIdNormalized = normalizeId(getUserId(currentUser));
           const targetUserIdNormalized = normalizeId(userId);
           // Bu kullanıcıdan (userId) bana (currentUser) gelen mesajları bul
-          const fromUserToMe = sorted.filter(m => {
+          const fromUserToMe = normalizedSorted.filter(m => {
             const senderIdNormalized = normalizeId(getSenderId(m));
             const receiverIdNormalized = normalizeId(getReceiverId(m));
             return (
@@ -1172,7 +1416,7 @@ const ChatPageV2 = () => {
         }
         
         // Debug: readIds set'indeki mesajların IsRead değerlerini kontrol et
-        sorted.forEach(msg => {
+        normalizedSorted.forEach(msg => {
           const msgIdStr = String(msg.id ?? msg.Id);
           if (readIdsRef.current.has(msgIdStr)) {
             console.log('[ChatPageV2] fetchUserMessages: Message should be read', { 
@@ -1184,7 +1428,7 @@ const ChatPageV2 = () => {
           }
         });
         
-        return sorted;
+        return normalizedSorted;
       });
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -1205,7 +1449,8 @@ const ChatPageV2 = () => {
       const response = await axios.get(`${apiBaseUrl}/GroupChat/${groupId}/messages`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setMessages(response.data || []);
+      const list = Array.isArray(response.data) ? response.data.map(normalizeMessageRecord) : [];
+      setMessages(list);
     } catch (error) {
       console.error('Error fetching group messages:', error);
     }
@@ -1420,7 +1665,10 @@ const ChatPageV2 = () => {
             IsDelivered: false,
             IsRead: false
           };
-          setMessages(prev => [...prev, tempMessage]);
+          setMessages(prev => {
+            const normalizedPrev = prev.map(normalizeMessageRecord);
+            return [...normalizedPrev, normalizeMessageRecord(tempMessage)];
+          });
           
           // Son mesaj zamanını güncelle (mesaj gönderildiğinde)
           const now = Date.now();
@@ -1450,7 +1698,10 @@ const ChatPageV2 = () => {
             IsDelivered: false,
             IsRead: false
           };
-          setMessages(prev => [...prev, tempMessage]);
+          setMessages(prev => {
+            const normalizedPrev = prev.map(normalizeMessageRecord);
+            return [...normalizedPrev, normalizeMessageRecord(tempMessage)];
+          });
           
           // Son mesaj zamanını güncelle (mesaj gönderildiğinde)
           const now = Date.now();
@@ -1469,9 +1720,9 @@ const ChatPageV2 = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         // Optimistic UI update for group as well
-        setMessages(prev => [
-          ...prev,
-          {
+        setMessages(prev => {
+          const normalizedPrev = prev.map(normalizeMessageRecord);
+          const optimistic = normalizeMessageRecord({
             id: `temp-${Date.now()}`,
             senderId: user?.id,
             SenderId: user?.id,
@@ -1480,8 +1731,9 @@ const ChatPageV2 = () => {
             mediaUrl: fileUrl,
             mediaType: mediaType,
             timestamp: new Date().toISOString()
-          }
-        ]);
+          });
+          return [...normalizedPrev, optimistic];
+        });
         fetchGroupMessages(selectedChat.id);
       }
       
@@ -2356,7 +2608,9 @@ const ChatPageV2 = () => {
                     ) : (
                       messages.map((msg, index) => {
                         // Determine if message is from current user
-                        const currentUserIdNormalized = normalizeId(getUserId(user));
+                        const effectiveCurrentUserId =
+                          currentUserId ?? normalizeId(getUserId(user));
+                        const currentUserIdNormalized = effectiveCurrentUserId;
                         const messageSenderIdNormalized = normalizeId(getSenderId(msg));
                         const isOwnMessage =
                           msg.isMine === true ||
