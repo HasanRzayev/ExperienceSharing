@@ -159,7 +159,7 @@ const NavbarComponent = () => {
                 Share
               </button>
               <button
-                onClick={() => navigate("/ChatPage")}
+                onClick={() => navigate("/chatpage")}
                 className="text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Messages
@@ -377,7 +377,7 @@ const NavbarComponent = () => {
           Share
             </button>
             <button
-              onClick={() => handleMenuClick("/ChatPage")}
+              onClick={() => handleMenuClick("/chatpage")}
               className="text-gray-700 hover:text-orange-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
         >
           Messages
