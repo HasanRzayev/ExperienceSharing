@@ -160,11 +160,23 @@ const StatusViewer = ({ isOpen, onClose, statuses, currentUser, onStatusDelete, 
 
   if (!isOpen || !currentStatus) return null;
 
-  // Check if the status belongs to the current user
-  const isOwnStatus = currentUser && (
-    currentStatus.user?.id === currentUser.id || 
-    currentStatus.userId === currentUser.id
-  );
+  const normalizeId = (value) => {
+    if (value === null || value === undefined) return null;
+    if (typeof value === 'object') {
+      if ('id' in value) return normalizeId(value.id);
+      if ('Id' in value) return normalizeId(value.Id);
+      return null;
+    }
+    const str = String(value).trim();
+    return str.length ? str : null;
+  };
+
+  const statusOwnerId = normalizeId(currentStatus.user) 
+    ?? normalizeId(currentStatus.userId) 
+    ?? normalizeId(currentStatus.UserId);
+  const viewerId = normalizeId(currentUser?.id ?? currentUser?.Id ?? currentUser);
+
+  const isOwnStatus = Boolean(statusOwnerId && viewerId && statusOwnerId === viewerId);
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">

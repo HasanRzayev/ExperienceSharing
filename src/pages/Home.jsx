@@ -368,7 +368,10 @@ function Home() {
       
       // Add id field from userExperiences
       const userData = response.data;
-      if (userData.userExperiences && userData.userExperiences.length > 0) {
+      const derivedId = userData?.id ?? userData?.Id ?? userData?.userId;
+      if (derivedId) {
+        userData.id = derivedId;
+      } else if (userData.userExperiences && userData.userExperiences.length > 0) {
         userData.id = userData.userExperiences[0].userId;
       }
       
