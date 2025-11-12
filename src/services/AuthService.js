@@ -1,8 +1,9 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import swal from 'sweetalert';
+import { getApiBaseUrl } from '../utils/env';
 
-const API_URL = `${process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api'}/Auth`;
+const API_URL = `${getApiBaseUrl()}/Auth`;
 
 const register = async (firstName, lastName, email, password, country, profileImage = null, userName) => {
   try {
