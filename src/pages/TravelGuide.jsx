@@ -101,40 +101,80 @@ Format each section clearly with bullet points. Be specific with names and locat
       // Initialize Gemini AI with latest stable configuration
       const genAI = new GoogleGenerativeAI(apiKey);
       
-      // Use the correct model identifier
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-2.5-flash",
-        generationConfig: {
-          temperature: 0.7,
-          topP: 0.95,
-          topK: 40,
-          maxOutputTokens: 2048,
-        },
-      });
+      // Try models in order of preference with retry mechanism
+      const models = ["gemini-1.5-flash", "gemini-pro", "gemini-2.5-flash"];
+      let lastError = null;
+      let text = null;
 
-      // Generate content
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-      
-      if (text) {
-        setRecommendations(parseRecommendations(text));
-      } else {
-        throw new Error("No recommendations received from AI");
+      for (const modelName of models) {
+        try {
+          const model = genAI.getGenerativeModel({ 
+            model: modelName,
+            generationConfig: {
+              temperature: 0.7,
+              topP: 0.95,
+              topK: 40,
+              maxOutputTokens: 2048,
+            },
+          });
+
+          // Generate content with retry logic
+          let attempts = 0;
+          const maxRetries = 3;
+          const retryDelay = 2000; // 2 seconds
+
+          while (attempts < maxRetries) {
+            try {
+              const result = await model.generateContent(prompt);
+              const response = await result.response;
+              text = response.text();
+              break; // Success, exit retry loop
+            } catch (err) {
+              attempts++;
+              lastError = err;
+              
+              // If it's a 503 or overloaded error and we have retries left, wait and retry
+              if (attempts < maxRetries && (
+                err.message?.includes("503") || 
+                err.message?.includes("overloaded") ||
+                err.message?.includes("quota")
+              )) {
+                console.log(`Model ${modelName} overloaded, retrying attempt ${attempts}/${maxRetries}...`);
+                await new Promise(resolve => setTimeout(resolve, retryDelay * attempts));
+                continue;
+              }
+              throw err; // Re-throw if not retryable or out of retries
+            }
+          }
+
+          if (text) break; // Success with this model, exit model loop
+        } catch (err) {
+          lastError = err;
+          console.log(`Model ${modelName} failed, trying next model...`);
+          continue; // Try next model
+        }
       }
+      
+      if (!text) {
+        throw lastError || new Error("No recommendations received from AI after trying all available models.");
+      }
+
+      setRecommendations(parseRecommendations(text));
     } catch (err) {
       console.error("Error fetching recommendations:", err);
       
       let errorMessage = "Failed to fetch recommendations. ";
       
-      if (err.message?.includes("API key")) {
-        errorMessage += "Please check your API key in the .env file.";
+      if (err.message?.includes("API key") || err.message?.includes("401") || err.message?.includes("403")) {
+        errorMessage += "Please check your API key in the environment variables.";
+      } else if (err.message?.includes("503") || err.message?.includes("overloaded")) {
+        errorMessage += "The AI service is currently overloaded. Please wait a moment and try again.";
       } else if (err.message?.includes("404") || err.message?.includes("not found")) {
         errorMessage += "The AI model is currently unavailable. Please check your API key permissions and ensure Gemini API is enabled in Google Cloud Console.";
-      } else if (err.message?.includes("quota")) {
-        errorMessage += "API quota exceeded. Please try again later.";
+      } else if (err.message?.includes("quota") || err.message?.includes("429")) {
+        errorMessage += "API quota exceeded. Please try again later or upgrade your API plan.";
       } else {
-        errorMessage += err.message || "Please try again.";
+        errorMessage += err.message || "An unexpected error occurred. Please try again.";
       }
       
       setError(errorMessage);
