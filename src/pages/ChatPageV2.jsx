@@ -1992,11 +1992,27 @@ const ChatPageV2 = () => {
       fetchGroups();
     } catch (error) {
       console.error('Error creating group:', error);
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data?.details || 
-                          error.message || 
-                          'Failed to create group';
-      console.error('Error details:', error.response?.data);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error response status:', error.response?.status);
+      console.error('Full error object:', JSON.stringify(error, null, 2));
+      
+      let errorMessage = 'Failed to create group';
+      
+      if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        } else if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response.data.details) {
+          errorMessage = error.response.data.details;
+        } else {
+          errorMessage = JSON.stringify(error.response.data);
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       alert(`Failed to create group: ${errorMessage}`);
     }
   };
