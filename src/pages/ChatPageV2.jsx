@@ -1974,7 +1974,7 @@ const ChatPageV2 = () => {
     }
 
     try {
-      await axios.post(
+      const response = await axios.post(
         `${apiBaseUrl}/GroupChat`,
         {
           name: groupName,
@@ -1992,7 +1992,12 @@ const ChatPageV2 = () => {
       fetchGroups();
     } catch (error) {
       console.error('Error creating group:', error);
-      alert('Failed to create group');
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.details || 
+                          error.message || 
+                          'Failed to create group';
+      console.error('Error details:', error.response?.data);
+      alert(`Failed to create group: ${errorMessage}`);
     }
   };
 
