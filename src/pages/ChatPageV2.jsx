@@ -269,7 +269,7 @@ export async function uploadFile(file) {
   const fileExtension = file.name.split('.').pop().toLowerCase(); // File extension
 
   if (!CLOUDINARY_BASE_ENDPOINT) {
-    console.error('Cloudinary endpoint is not configured. Please set VITE_CLOUDINARY_ENDPOINT.');
+    console.error('Cloudinary endpoint is not configured. Please set REACT_APP_CLOUDINARY_ENDPOINT.');
     return null;
   }
 

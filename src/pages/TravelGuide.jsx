@@ -61,10 +61,11 @@ function TravelGuide() {
     setRecommendations(null);
 
     try {
+      // Use REACT_APP_ prefix as setupProcessEnv.ts handles it
       const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
       
       if (!apiKey) {
-        throw new Error("Gemini API key not configured. Please add REACT_APP_GEMINI_API_KEY to your .env file.");
+        throw new Error("Gemini API key not configured. Please add REACT_APP_GEMINI_API_KEY to your environment variables.");
       }
 
       const prompt = `You are a travel guide assistant. Provide detailed travel recommendations for "${location}".
