@@ -954,11 +954,55 @@ const ChatPageV2 = () => {
       } catch {}
     });
 
+    // ReceiveGroupMessage: Real-time group messages
+    conn.on('ReceiveGroupMessage', (messageData) => {
+      try {
+        console.log('[ChatPageV2] ReceiveGroupMessage', messageData);
+        const normalizedIncoming = normalizeMessageRecord(messageData || {});
+        
+        // Only add message if we're currently viewing this group
+        if (chatType === 'group' && selectedChat) {
+          const currentGroupId = getGroupId(selectedChat);
+          const messageGroupId = normalizedIncoming?.groupId ?? normalizedIncoming?.GroupId;
+          
+          // Convert to numbers for comparison
+          const currentGroupIdNum = typeof currentGroupId === 'string' ? parseInt(currentGroupId, 10) : currentGroupId;
+          const messageGroupIdNum = typeof messageGroupId === 'string' ? parseInt(messageGroupId, 10) : messageGroupId;
+          
+          // Check if message belongs to current group
+          if (currentGroupIdNum && messageGroupIdNum && currentGroupIdNum === messageGroupIdNum) {
+            setMessages(prev => {
+              const normalizedPrev = prev.map(normalizeMessageRecord);
+              // Check if message already exists
+              const exists = normalizedPrev.some(m => {
+                const mId = normalizeId(m?.id ?? m?.Id);
+                const incomingId = normalizeId(normalizedIncoming?.id ?? normalizedIncoming?.Id);
+                return mId && incomingId && mId === incomingId;
+              });
+              
+              if (!exists) {
+                console.log('[ChatPageV2] Adding new group message to UI:', normalizedIncoming);
+                return [...normalizedPrev, normalizeMessageRecord(normalizedIncoming)];
+              }
+              return normalizedPrev;
+            });
+          } else {
+            console.log('[ChatPageV2] Received group message for different group:', {
+              currentGroupId: currentGroupIdNum,
+              messageGroupId: messageGroupIdNum
+            });
+          }
+        }
+      } catch (error) {
+        console.error('[ChatPageV2] Error handling ReceiveGroupMessage:', error);
+      }
+    });
+
     return () => {
       isMounted = false;
       try { conn.stop(); } catch {}
     };
-  }, [token]);
+  }, [token, chatType, selectedChat]);
 
   const fetchUsers = async () => {
     try {
@@ -1635,17 +1679,33 @@ const ChatPageV2 = () => {
       return;
     }
     
+    // Convert to number if it's a string
+    const numericGroupId = typeof groupId === 'string' ? parseInt(groupId, 10) : groupId;
+    if (isNaN(numericGroupId)) {
+      console.error('GroupId is not a valid number:', groupId);
+      alert('Error: Invalid Group ID');
+      return;
+    }
+    
     setSelectedChat(group);
     setChatType('group');
-    fetchGroupMessages(groupId);
+    fetchGroupMessages(numericGroupId);
+    
+    // Join SignalR group for real-time updates
+    if (connectionReady && connection && connection.state === 'Connected') {
+      console.log(`[ChatPageV2] Joining SignalR group: Group_${numericGroupId}`);
+      connection.invoke('JoinGroupChat', numericGroupId)
+        .then(() => console.log(`✅ Joined group ${numericGroupId}`))
+        .catch((e) => console.warn('JoinGroupChat failed', e));
+    }
     
     // If group already has members data, use it. Otherwise fetch separately
     if (group.members && Array.isArray(group.members)) {
       console.log('Using members from group object:', group.members);
       setGroupMembers(group.members);
     } else {
-      console.log('Fetching members separately for group:', groupId);
-      fetchGroupMembers(groupId);
+      console.log('Fetching members separately for group:', numericGroupId);
+      fetchGroupMembers(numericGroupId);
     }
   };
 
@@ -1956,6 +2016,24 @@ const ChatPageV2 = () => {
       } catch {}
     }
   }, [connectionReady]);
+
+  // Leave SignalR group when switching away from a group chat
+  useEffect(() => {
+    return () => {
+      // Cleanup: Leave SignalR group when component unmounts or chat changes
+      if (connectionReady && connection && connection.state === 'Connected' && chatType === 'group' && selectedChat) {
+        const groupId = getGroupId(selectedChat);
+        if (groupId) {
+          const numericGroupId = typeof groupId === 'string' ? parseInt(groupId, 10) : groupId;
+          if (!isNaN(numericGroupId)) {
+            console.log(`[ChatPageV2] Leaving SignalR group: Group_${numericGroupId}`);
+            connection.invoke('LeaveGroupChat', numericGroupId)
+              .catch((e) => console.warn('LeaveGroupChat failed', e));
+          }
+        }
+      }
+    };
+  }, [chatType, selectedChat, connectionReady, connection]);
   
   // Periyodik olarak unread count'ları güncelle (her 15 saniyede bir)
   useEffect(() => {
