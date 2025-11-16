@@ -21,6 +21,9 @@ const normalizeId = (value) => {
 const getUserId = (userLike) =>
   userLike?.id ?? userLike?.Id ?? userLike?.userId ?? userLike?.UserId ?? userLike?.ID ?? null;
 
+const getGroupId = (groupLike) =>
+  groupLike?.id ?? groupLike?.Id ?? groupLike?.groupId ?? groupLike?.GroupId ?? groupLike?.ID ?? null;
+
 const getSenderId = (messageLike) =>
   messageLike?.senderId ??
   messageLike?.SenderId ??
@@ -1263,7 +1266,14 @@ const ChatPageV2 = () => {
       });
       console.log('Groups data from API:', response.data);
       console.log('First group example:', response.data?.[0]);
-      setGroups(response.data || []);
+      
+      // Normalize group data - ensure id property exists
+      const normalizedGroups = (response.data || []).map(group => ({
+        ...group,
+        id: group.id ?? group.Id ?? group.GroupId ?? group.groupId ?? null
+      }));
+      
+      setGroups(normalizedGroups);
     } catch (error) {
       console.error('Error fetching groups:', error);
     }
@@ -1497,14 +1507,42 @@ const ChatPageV2 = () => {
   };
 
   const fetchGroupMessages = async (groupId) => {
+    if (!groupId || groupId === 'undefined' || groupId === 'null') {
+      console.error('Invalid groupId provided to fetchGroupMessages:', groupId);
+      console.error('Selected chat object:', selectedChat);
+      return;
+    }
+    
+    // Convert to number if it's a string
+    const numericGroupId = typeof groupId === 'string' ? parseInt(groupId, 10) : groupId;
+    if (isNaN(numericGroupId)) {
+      console.error('GroupId is not a valid number:', groupId);
+      return;
+    }
+    
     try {
-      const response = await axios.get(`${apiBaseUrl}/GroupChat/${groupId}/messages`, {
+      console.log(`Fetching group messages for groupId: ${numericGroupId}`);
+      const response = await axios.get(`${apiBaseUrl}/GroupChat/${numericGroupId}/messages`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('Group messages response:', response.data);
       const list = Array.isArray(response.data) ? response.data.map(normalizeMessageRecord) : [];
+      console.log('Normalized messages list:', list);
       setMessages(list);
     } catch (error) {
       console.error('Error fetching group messages:', error);
+      console.error('GroupId used:', numericGroupId);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      if (error.response?.status === 401) {
+        alert('You are not authorized to view messages in this group.');
+      } else if (error.response?.status === 404) {
+        alert('Group not found.');
+      } else {
+        alert(`Error fetching messages: ${error.response?.data?.message || error.message}`);
+      }
+      setMessages([]);
+      console.error('SelectedChat:', selectedChat);
     }
   };
 
@@ -1590,17 +1628,24 @@ const ChatPageV2 = () => {
 
   const handleSelectGroup = (group) => {
     console.log('Selected group:', group);
+    const groupId = getGroupId(group);
+    if (!groupId) {
+      console.error('Group ID is undefined when selecting group:', group);
+      alert('Error: Group ID is missing');
+      return;
+    }
+    
     setSelectedChat(group);
     setChatType('group');
-    fetchGroupMessages(group.id);
+    fetchGroupMessages(groupId);
     
     // If group already has members data, use it. Otherwise fetch separately
     if (group.members && Array.isArray(group.members)) {
       console.log('Using members from group object:', group.members);
       setGroupMembers(group.members);
     } else {
-      console.log('Fetching members separately for group:', group.id);
-      fetchGroupMembers(group.id);
+      console.log('Fetching members separately for group:', groupId);
+      fetchGroupMembers(groupId);
     }
   };
 
@@ -1619,36 +1664,59 @@ const ChatPageV2 = () => {
   }, [pendingUserId, users]);
 
   const fetchGroupMembers = async (groupId) => {
+    if (!groupId || groupId === 'undefined' || groupId === 'null') {
+      console.error('Invalid groupId provided to fetchGroupMembers:', groupId);
+      console.error('Selected chat object:', selectedChat);
+      return;
+    }
+    
+    // Convert to number if it's a string
+    const numericGroupId = typeof groupId === 'string' ? parseInt(groupId, 10) : groupId;
+    if (isNaN(numericGroupId)) {
+      console.error('GroupId is not a valid number:', groupId);
+      return;
+    }
+    
     try {
+      console.log(`Fetching group members for groupId: ${numericGroupId}`);
       // Try to get group details which might include members
-      const response = await axios.get(`${apiBaseUrl}/GroupChat/${groupId}`, {
+      const response = await axios.get(`${apiBaseUrl}/GroupChat/${numericGroupId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log('=== GROUP MEMBERS DEBUG ===');
       console.log('Group details from API:', response.data);
-      console.log('Members in group:', response.data?.members);
-      console.log('Members count:', response.data?.members?.length);
+      console.log('Members in group:', response.data?.Members || response.data?.members);
+      console.log('Members count:', (response.data?.Members || response.data?.members || [])?.length);
       
-      if (response.data?.members && response.data.members.length > 0) {
-        console.log('First member full object:', response.data.members[0]);
-        console.log('First member keys:', Object.keys(response.data.members[0]));
+      const members = response.data?.Members || response.data?.members || [];
+      if (members && members.length > 0) {
+        console.log('First member full object:', members[0]);
+        console.log('First member keys:', Object.keys(members[0]));
         
         // Check all possible name fields
-        const firstMember = response.data.members[0];
-        console.log('firstName:', firstMember.firstName);
-        console.log('firstname:', firstMember.firstname);
-        console.log('FirstName:', firstMember.FirstName);
-        console.log('userName:', firstMember.userName);
-        console.log('username:', firstMember.username);
-        console.log('Username:', firstMember.Username);
-        console.log('name:', firstMember.name);
-        console.log('Name:', firstMember.Name);
+        const firstMember = members[0];
+        const user = firstMember?.User || firstMember?.user;
+        if (user) {
+          console.log('User object:', user);
+          console.log('firstName:', user.firstName || user.FirstName);
+          console.log('userName:', user.userName || user.UserName);
+        }
       }
       console.log('=== END DEBUG ===');
       
-      setGroupMembers(response.data?.members || []);
+      setGroupMembers(members);
     } catch (error) {
       console.error('Error fetching group members:', error);
+      console.error('GroupId used:', numericGroupId);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      if (error.response?.status === 401) {
+        alert('You are not authorized to view members of this group.');
+      } else if (error.response?.status === 404) {
+        alert('Group not found.');
+      } else {
+        console.error(`Error fetching members: ${error.response?.data?.message || error.message}`);
+      }
       setGroupMembers([]);
     }
   };
@@ -1766,15 +1834,50 @@ const ChatPageV2 = () => {
           fetchUserMessages(selectedChat.id);
         }
       } else if (chatType === 'group') {
-        await axios.post(
-          `${apiBaseUrl}/GroupChat/${selectedChat.id}/messages`,
-          { 
-            content: newMessage.trim(),
-            mediaUrl: fileUrl,
-            mediaType: mediaType
-          },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const groupId = getGroupId(selectedChat);
+        if (!groupId) {
+          console.error('Group ID is undefined', selectedChat);
+          alert('Error: Group ID is missing');
+          return;
+        }
+        
+        // Convert to number if it's a string
+        const numericGroupId = typeof groupId === 'string' ? parseInt(groupId, 10) : groupId;
+        if (isNaN(numericGroupId)) {
+          console.error('GroupId is not a valid number:', groupId);
+          alert('Error: Invalid Group ID');
+          return;
+        }
+        
+        console.log(`Sending message to group ${numericGroupId}:`, {
+          content: newMessage.trim(),
+          mediaUrl: fileUrl,
+          mediaType: mediaType
+        });
+        
+        try {
+          await axios.post(
+            `${apiBaseUrl}/GroupChat/${numericGroupId}/messages`,
+            { 
+              content: newMessage.trim(),
+              mediaUrl: fileUrl,
+              mediaType: mediaType
+            },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        } catch (error) {
+          console.error('Error sending group message:', error);
+          console.error('Error response:', error.response?.data);
+          console.error('Error status:', error.response?.status);
+          if (error.response?.status === 401) {
+            alert('You are not authorized to send messages in this group.');
+          } else if (error.response?.status === 400) {
+            alert(`Error: ${error.response?.data?.message || 'Invalid message data'}`);
+          } else {
+            alert(`Error sending message: ${error.response?.data?.message || error.message}`);
+          }
+          return;
+        }
         // Optimistic UI update for group as well
         setMessages(prev => {
           const normalizedPrev = prev.map(normalizeMessageRecord);
@@ -1792,7 +1895,7 @@ const ChatPageV2 = () => {
           });
           return [...normalizedPrev, optimistic];
         });
-        fetchGroupMessages(selectedChat.id);
+        fetchGroupMessages(groupId);
       }
       
       setNewMessage('');
@@ -1829,7 +1932,12 @@ const ChatPageV2 = () => {
           .then(() => fetchUserMessages(selectedChat.id))
           .catch(() => {});
       } else if (chatType === 'group') {
-        fetchGroupMessages(selectedChat.id);
+        const groupId = getGroupId(selectedChat);
+        if (groupId) {
+          fetchGroupMessages(groupId);
+        } else {
+          console.error('Group ID is undefined when fetching messages', selectedChat);
+        }
       }
     }, 3000);
     return () => clearInterval(intervalId);
@@ -1998,22 +2106,38 @@ const ChatPageV2 = () => {
       console.error('Full error object:', JSON.stringify(error, null, 2));
       
       let errorMessage = 'Failed to create group';
+      let errorDetails = '';
       
       if (error.response?.data) {
-        if (typeof error.response.data === 'string') {
-          errorMessage = error.response.data;
-        } else if (error.response.data.message) {
-          errorMessage = error.response.data.message;
-        } else if (error.response.data.details) {
-          errorMessage = error.response.data.details;
+        const data = error.response.data;
+        if (typeof data === 'string') {
+          errorMessage = data;
         } else {
-          errorMessage = JSON.stringify(error.response.data);
+          if (data.message) {
+            errorMessage = data.message;
+          }
+          if (data.details) {
+            errorDetails = data.details;
+          }
+          if (data.stage) {
+            errorDetails += ` (Stage: ${data.stage})`;
+          }
+          if (data.hint) {
+            errorDetails += `\n\nHint: ${data.hint}`;
+          }
+          if (data.innerException) {
+            console.error('Inner exception:', data.innerException);
+          }
         }
       } else if (error.message) {
         errorMessage = error.message;
       }
       
-      alert(`Failed to create group: ${errorMessage}`);
+      const fullMessage = errorDetails 
+        ? `${errorMessage}\n\n${errorDetails}`
+        : errorMessage;
+      
+      alert(`Failed to create group:\n\n${fullMessage}`);
     }
   };
 
@@ -2083,16 +2207,37 @@ const ChatPageV2 = () => {
         );
         fetchUserMessages(selectedChat.id);
       } else if (chatType === 'group') {
-        await axios.post(
-          `${apiBaseUrl}/GroupChat/${selectedChat.id}/messages`,
-          { 
-            content: '',
-            mediaUrl: gifUrl,
-            mediaType: 'image'
-          },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        fetchGroupMessages(selectedChat.id);
+        const groupId = getGroupId(selectedChat);
+        if (!groupId) {
+          console.error('Group ID is undefined', selectedChat);
+          alert('Error: Group ID is missing');
+          return;
+        }
+        
+        // Convert to number if it's a string
+        const numericGroupId = typeof groupId === 'string' ? parseInt(groupId, 10) : groupId;
+        if (isNaN(numericGroupId)) {
+          console.error('GroupId is not a valid number:', groupId);
+          alert('Error: Invalid Group ID');
+          return;
+        }
+        
+        try {
+          await axios.post(
+            `${apiBaseUrl}/GroupChat/${numericGroupId}/messages`,
+            { 
+              content: '',
+              mediaUrl: gifUrl,
+              mediaType: 'image'
+            },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          fetchGroupMessages(numericGroupId);
+        } catch (error) {
+          console.error('Error sending GIF to group:', error);
+          console.error('Error response:', error.response?.data);
+          alert(`Error sending GIF: ${error.response?.data?.message || error.message}`);
+        }
       }
       
       setShowGifPicker(false);
@@ -2182,9 +2327,24 @@ const ChatPageV2 = () => {
   const handleLeaveGroup = async () => {
     if (!window.confirm('Are you sure you want to leave the group?')) return;
     
+    const groupId = getGroupId(selectedChat);
+    if (!groupId) {
+      console.error('Group ID is undefined', selectedChat);
+      alert('Error: Group ID is missing');
+      return;
+    }
+    
+    // Convert to number if it's a string
+    const numericGroupId = typeof groupId === 'string' ? parseInt(groupId, 10) : groupId;
+    if (isNaN(numericGroupId)) {
+      console.error('GroupId is not a valid number:', groupId);
+      alert('Error: Invalid Group ID');
+      return;
+    }
+    
     try {
       await axios.post(
-        `${apiBaseUrl}/GroupChat/${selectedChat.id}/leave`,
+        `${apiBaseUrl}/GroupChat/${numericGroupId}/leave`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -2193,6 +2353,7 @@ const ChatPageV2 = () => {
       fetchGroups();
     } catch (error) {
       console.error('Error leaving group:', error);
+      console.error('Error response:', error.response?.data);
       alert('Error occurred: ' + (error.response?.data?.message || error.message));
     }
   };
@@ -2206,9 +2367,24 @@ const ChatPageV2 = () => {
           `${apiBaseUrl}/Messages/conversation/${selectedChat.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-      } else {
+      } else if (chatType === 'group') {
+        const groupId = getGroupId(selectedChat);
+        if (!groupId) {
+          console.error('Group ID is undefined', selectedChat);
+          alert('Error: Group ID is missing');
+          return;
+        }
+        
+        // Convert to number if it's a string
+        const numericGroupId = typeof groupId === 'string' ? parseInt(groupId, 10) : groupId;
+        if (isNaN(numericGroupId)) {
+          console.error('GroupId is not a valid number:', groupId);
+          alert('Error: Invalid Group ID');
+          return;
+        }
+        
         await axios.delete(
-          `${apiBaseUrl}/GroupChat/${selectedChat.id}/messages`,
+          `${apiBaseUrl}/GroupChat/${numericGroupId}/messages`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
@@ -2274,15 +2450,31 @@ const ChatPageV2 = () => {
   const handleRemoveMember = async (memberId) => {
     if (!window.confirm('Are you sure you want to remove this member from the group?')) return;
     
+    const groupId = getGroupId(selectedChat);
+    if (!groupId) {
+      console.error('Group ID is undefined', selectedChat);
+      alert('Error: Group ID is missing');
+      return;
+    }
+    
+    // Convert to number if it's a string
+    const numericGroupId = typeof groupId === 'string' ? parseInt(groupId, 10) : groupId;
+    if (isNaN(numericGroupId)) {
+      console.error('GroupId is not a valid number:', groupId);
+      alert('Error: Invalid Group ID');
+      return;
+    }
+    
     try {
       await axios.delete(
-        `${apiBaseUrl}/GroupChat/${selectedChat.id}/members/${memberId}`,
+        `${apiBaseUrl}/GroupChat/${numericGroupId}/members/${memberId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert('Member removed from group');
-      fetchGroupMembers(selectedChat.id);
+      fetchGroupMembers(numericGroupId);
     } catch (error) {
       console.error('Error removing member:', error);
+      console.error('Error response:', error.response?.data);
       alert('Error occurred: ' + (error.response?.data?.message || error.message));
     }
   };
@@ -2430,19 +2622,19 @@ const ChatPageV2 = () => {
                       </button>
                     </div>
                   ) : (
-                    groups.map((group) => {
+                    groups.map((group, index) => {
                       // Check if group image is via.placeholder and replace with ui-avatars
                       let groupImage = group.groupImage || group.GroupImage;
                       if (!groupImage || groupImage.includes('via.placeholder')) {
-                        groupImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(group.name || 'Group')}&background=random`;
+                        groupImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(group.name || group.Name || 'Group')}&background=random`;
                       }
                       
                       return (
                       <div
-                        key={group.id}
+                        key={getGroupId(group) || `group-${index}`}
                         onClick={() => handleSelectGroup(group)}
                         className={`p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                          selectedChat?.id === group.id && chatType === 'group' ? 'bg-purple-50 dark:bg-purple-900/20 border-l-4 border-l-purple-600' : ''
+                          getGroupId(selectedChat) === getGroupId(group) && chatType === 'group' ? 'bg-purple-50 dark:bg-purple-900/20 border-l-4 border-l-purple-600' : ''
                         }`}
                       >
                         <div className="flex items-center gap-3">
