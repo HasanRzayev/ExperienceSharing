@@ -1977,9 +1977,9 @@ const ChatPageV2 = () => {
       const response = await axios.post(
         `${apiBaseUrl}/GroupChat`,
         {
-          name: groupName,
-          description: groupDescription,
-          memberIds: selectedMembers
+          name: groupName.trim(),
+          description: groupDescription?.trim() || '',
+          memberIds: selectedMembers || []
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
