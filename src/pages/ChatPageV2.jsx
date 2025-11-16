@@ -1849,20 +1849,23 @@ const ChatPageV2 = () => {
           return;
         }
         
-        console.log(`Sending message to group ${numericGroupId}:`, {
-          content: newMessage.trim(),
-          mediaUrl: fileUrl,
-          mediaType: mediaType
-        });
+        // Build payload - only include fields that have values
+        const payload = {
+          content: newMessage.trim() || ""
+        };
+        
+        // Only add mediaUrl and mediaType if fileUrl exists
+        if (fileUrl) {
+          payload.mediaUrl = fileUrl;
+          payload.mediaType = mediaType || "";
+        }
+        
+        console.log(`Sending message to group ${numericGroupId}:`, payload);
         
         try {
           await axios.post(
             `${apiBaseUrl}/GroupChat/${numericGroupId}/messages`,
-            { 
-              content: newMessage.trim(),
-              mediaUrl: fileUrl,
-              mediaType: mediaType
-            },
+            payload,
             { headers: { Authorization: `Bearer ${token}` } }
           );
         } catch (error) {
