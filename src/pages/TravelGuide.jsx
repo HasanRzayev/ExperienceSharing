@@ -259,9 +259,9 @@ Format each section clearly with bullet points. Be specific with names and locat
             <div className="flex-1">
               {parts.map((part, i) => 
                 i % 2 === 1 ? (
-                  <strong key={i} className="font-bold text-gray-900">{part}</strong>
+                  <strong key={i} className="font-bold text-gray-900 dark:text-gray-100">{part}</strong>
                 ) : (
-                  <span key={i}>{part}</span>
+                  <span key={i} className="text-gray-800 dark:text-gray-200">{part}</span>
                 )
               )}
             </div>
@@ -274,9 +274,9 @@ Format each section clearly with bullet points. Be specific with names and locat
           <p key={index} className="mb-2">
             {parts.map((part, i) => 
               i % 2 === 1 ? (
-                <strong key={i} className="font-bold text-gray-900">{part}</strong>
+                <strong key={i} className="font-bold text-gray-900 dark:text-gray-100">{part}</strong>
               ) : (
-                <span key={i}>{part}</span>
+                <span key={i} className="text-gray-800 dark:text-gray-200">{part}</span>
               )
             )}
           </p>
@@ -300,7 +300,7 @@ Format each section clearly with bullet points. Be specific with names and locat
           </div>
           <h3 className="text-2xl font-bold text-gray-800">{title}</h3>
         </div>
-        <div className="text-gray-700 leading-relaxed text-base">
+        <div className="text-gray-800 dark:text-gray-200 leading-relaxed text-base">
           {formatMarkdown(content)}
         </div>
       </div>

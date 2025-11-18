@@ -160,7 +160,14 @@ const UserProfilePage = () => {
     {/* Paylaşımlar */}
 <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
   {userExperiences.length > 0 ? (
-    userExperiences.map((post, index) => {
+    [...userExperiences]
+      .sort((a, b) => {
+        // Sort by date descending (newest first)
+        const dateA = new Date(a.date || a.Date || 0).getTime();
+        const dateB = new Date(b.date || b.Date || 0).getTime();
+        return dateB - dateA;
+      })
+      .map((post, index) => {
       // Normalize post data (handle both camelCase and PascalCase)
       const postId = post.id || post.Id || post.userId || `temp-${index}`;
       const imageUrls = post.imageUrls || post.ImageUrls || [];

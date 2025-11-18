@@ -274,7 +274,11 @@ const NewExperience = () => {
       formData.append("Title", title.trim());
       formData.append("Description", description.trim());
       formData.append("Location", location.trim());
-      formData.append("Date", date.trim());
+      // Ensure date is in ISO format, if empty use current date
+      const dateValue = date.trim() || new Date().toISOString();
+      // If date is in YYYY-MM-DD format, convert to ISO
+      const finalDate = dateValue.includes('T') ? dateValue : new Date(dateValue + 'T00:00:00').toISOString();
+      formData.append("Date", finalDate);
       
       // Tag-ları ayrı-ayrı append et (JSON.stringify istifadə etmə!)
       tags.filter(tag => tag.trim()).forEach((tag) => {

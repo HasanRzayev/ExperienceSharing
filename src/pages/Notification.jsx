@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { Button } from "flowbite-react";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { getApiBaseUrl } from "../utils/env";
 
 export default function FollowRequestsPage() {
   const [followRequests, setFollowRequests] = useState([]);
   const token = Cookies.get("token");
+  const apiBaseUrl = getApiBaseUrl();
 
   useEffect(() => {
     // Token yoxlanılır və yoxdursa, səhv göstərilir
@@ -18,7 +20,7 @@ export default function FollowRequestsPage() {
 
     // Follow requestləri alırıq
     axios
-      .get(`${process.env.REACT_APP_API_BASE_URL}/Followers/follow-requests`, {
+      .get(`${apiBaseUrl}/Followers/follow-requests`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
@@ -38,7 +40,7 @@ export default function FollowRequestsPage() {
       // Backend pattern-ə əsasən followerId istifadə edirik
       console.log("Trying with followerId:", request.followerId);
       await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/Followers/${request.followerId}/respond`,
+        `${apiBaseUrl}/Followers/${request.followerId}/respond`,
         { 
           isAccepted: isAccepted 
         },
