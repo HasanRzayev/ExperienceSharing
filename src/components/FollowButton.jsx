@@ -21,7 +21,7 @@ const FollowButton = ({ userId }) => {
       try {
         const apiBaseUrl = getApiBaseUrl();
         const response = await axios.get(
-          `${apiBaseUrl}/followers/${userId}/status`,
+          `${apiBaseUrl}/Followers/${userId}/status`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setStatus(response.data.status);
@@ -56,7 +56,7 @@ const FollowButton = ({ userId }) => {
 
         if (result.isConfirmed) {
           const apiBaseUrl = getApiBaseUrl();
-          await axios.delete(`${apiBaseUrl}/followers/${userId}`, {
+          await axios.delete(`${apiBaseUrl}/Followers/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -75,7 +75,7 @@ const FollowButton = ({ userId }) => {
         if (result.isConfirmed) {
           const apiBaseUrl = getApiBaseUrl();
           await axios.post(
-            `${apiBaseUrl}/followers/cancel-follow-request`,
+            `${apiBaseUrl}/Followers/cancel-follow-request`,
             {
               followedId: userId,
             },
@@ -93,7 +93,7 @@ const FollowButton = ({ userId }) => {
       } else {
         const apiBaseUrl = getApiBaseUrl();
         await axios.post(
-          `${apiBaseUrl}/followers/${userId}/request`,
+          `${apiBaseUrl}/Followers/${userId}/request`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
