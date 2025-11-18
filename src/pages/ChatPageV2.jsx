@@ -2546,17 +2546,31 @@ const ChatPageV2 = () => {
       return;
     }
     
+    // Ensure memberId is a number
+    const numericMemberId = typeof memberId === 'string' ? parseInt(memberId, 10) : memberId;
+    if (isNaN(numericMemberId)) {
+      console.error('MemberId is not a valid number:', memberId);
+      alert('Error: Invalid Member ID');
+      return;
+    }
+    
     try {
-      await axios.delete(
-        `${apiBaseUrl}/GroupChat/${numericGroupId}/members/${memberId}`,
+      console.log(`Removing member ${numericMemberId} from group ${numericGroupId}`);
+      const response = await axios.delete(
+        `${apiBaseUrl}/GroupChat/${numericGroupId}/members/${numericMemberId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      console.log('Member removal response:', response.data);
       alert('Member removed from group');
+      // Refresh group members list
       fetchGroupMembers(numericGroupId);
+      // Also refresh groups list to update member count
+      fetchGroups();
     } catch (error) {
       console.error('Error removing member:', error);
       console.error('Error response:', error.response?.data);
-      alert('Error occurred: ' + (error.response?.data?.message || error.message));
+      const errorMessage = error.response?.data?.message || error.message || 'Unknown error occurred';
+      alert('Error occurred: ' + errorMessage);
     }
   };
 
@@ -2668,11 +2682,9 @@ const ChatPageV2 = () => {
                                   e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=667eea&color=fff`;
                                 }}
                               />
-                              {/* Unread badge - kırmızı nokta */}
+                              {/* Unread indicator (no numeric count shown) */}
                               {unreadCount > 0 && (
-                                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5 border-2 border-white dark:border-gray-800">
-                                  {unreadCount > 99 ? '99+' : unreadCount}
-                                </div>
+                                <div className="absolute -top-0.5 -right-0.5 bg-red-500 rounded-full w-3 h-3 border-2 border-white dark:border-gray-800" />
                               )}
                           </div>
                             <div className="flex-1 min-w-0">
