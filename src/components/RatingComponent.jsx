@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { getApiBaseUrl } from '../utils/env';
 
 const RatingComponent = ({ experienceId, onRatingSubmit }) => {
   const [ratings, setRatings] = useState({
@@ -44,7 +45,7 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
 
     setSubmitting(true);
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       
       const response = await axios.post(
         `${apiBaseUrl}/Rating/experience/${experienceId}`,

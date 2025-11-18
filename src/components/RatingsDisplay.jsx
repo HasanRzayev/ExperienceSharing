@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { getApiBaseUrl } from '../utils/env';
 
 const RatingsDisplay = ({ experienceId }) => {
   const [ratingsData, setRatingsData] = useState(null);
@@ -13,14 +14,28 @@ const RatingsDisplay = ({ experienceId }) => {
 
   const fetchRatings = async () => {
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       const response = await axios.get(
         `${apiBaseUrl}/Rating/experience/${experienceId}`,
         { headers: token ? { Authorization: `Bearer ${token}` } : {} }
       );
-      setRatingsData(response.data);
+      // Normalize response data structure
+      const data = response.data;
+      setRatingsData({
+        ratings: data.ratings || data.Ratings || [],
+        averages: data.averages || data.Averages || {
+          overall: 0,
+          location: 0,
+          value: 0,
+          service: 0,
+          cleanliness: 0,
+          accuracy: 0
+        },
+        totalCount: data.totalCount || data.TotalCount || 0
+      });
     } catch (error) {
       console.error('Error fetching ratings:', error);
+      setRatingsData(null);
     } finally {
       setLoading(false);
     }
@@ -33,7 +48,7 @@ const RatingsDisplay = ({ experienceId }) => {
     }
 
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       await axios.post(
         `${apiBaseUrl}/Rating/${ratingId}/helpful`,
         {},
@@ -110,51 +125,61 @@ const RatingsDisplay = ({ experienceId }) => {
       <div className="space-y-4">
         <h3 className="text-xl font-bold text-gray-800 dark:text-white">Rəylər</h3>
         
-        {ratings.map((rating) => (
-          <div key={rating.id} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <img
-                  src={rating.user?.profileImage || 'https://via.placeholder.com/40'}
-                  alt={rating.user?.userName}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-                <div>
-                  <p className="font-semibold text-gray-800 dark:text-white">
-                    {rating.user?.userName}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {new Date(rating.createdAt).toLocaleDateString('az-AZ')}
-                  </p>
+        {ratings.map((rating) => {
+          const ratingId = rating.id || rating.Id;
+          const overallRating = rating.overallRating || rating.OverallRating || 0;
+          const review = rating.review || rating.Review;
+          const helpfulCount = rating.helpfulCount || rating.HelpfulCount || 0;
+          const createdAt = rating.createdAt || rating.CreatedAt;
+          const userName = rating.user?.userName || rating.user?.UserName || "Unknown";
+          const profileImage = rating.user?.profileImage || rating.user?.ProfileImage || 'https://via.placeholder.com/40';
+
+          return (
+            <div key={ratingId} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={profileImage}
+                    alt={userName}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="font-semibold text-gray-800 dark:text-white">
+                      {userName}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {createdAt ? new Date(createdAt).toLocaleDateString('az-AZ') : ''}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-1">
+                  <span className="text-yellow-400 text-lg">⭐</span>
+                  <span className="font-bold text-gray-800 dark:text-white">
+                    {overallRating}
+                  </span>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-1">
-                <span className="text-yellow-400 text-lg">⭐</span>
-                <span className="font-bold text-gray-800 dark:text-white">
-                  {rating.overallRating}
-                </span>
-              </div>
+
+              {review && (
+                <p className="text-gray-700 dark:text-gray-300 mb-3">
+                  {review}
+                </p>
+              )}
+
+              {/* Helpful Button */}
+              <button
+                onClick={() => handleHelpful(ratingId)}
+                className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                </svg>
+                <span>Faydalı ({helpfulCount})</span>
+              </button>
             </div>
-
-            {rating.review && (
-              <p className="text-gray-700 dark:text-gray-300 mb-3">
-                {rating.review}
-              </p>
-            )}
-
-            {/* Helpful Button */}
-            <button
-              onClick={() => handleHelpful(rating.id)}
-              className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-              </svg>
-              <span>Faydalı ({rating.helpfulCount})</span>
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

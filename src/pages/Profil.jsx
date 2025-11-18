@@ -428,29 +428,31 @@ const ProfilePage = () => {
               ) : likedExperiences.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {likedExperiences.map((experience, index) => {
-                    const cardId = experience.id || `liked-${index}`;
+                    const cardId = experience.id || experience.Id || `liked-${index}`;
+                    const imageUrls = experience.imageUrls || experience.ImageUrls || [];
+                    const imageUrl = imageUrls.length > 0 
+                      ? (imageUrls[0]?.url || imageUrls[0]?.Url || "")
+                      : "";
                     
                     return (
                       <div key={`${cardId}-${index}`} className="animate-fadeInUp" style={{animationDelay: `${index * 0.1}s`}}>
                         <CustomCard
                           id={cardId}
-                          imageUrls={experience.images?.length > 0 ? experience.images[0]?.imageUrl : ""}
-                          date={experience.date}
-                          title={experience.title}
-                          description={experience.description}
-                          location={experience.location}
-                          rating={experience.rating}
+                          imageUrls={imageUrl}
+                          date={experience.date || experience.Date}
+                          title={experience.title || experience.Title}
+                          description={experience.description || experience.Description}
+                          location={experience.location || experience.Location}
+                          rating={experience.rating || experience.Rating}
                           user={{
-                            id: experience.user?.id,
-                            firstName: experience.user?.firstName,
-                            lastName: experience.user?.lastName,
-                            userName: experience.user?.userName,
-                            profileImage: experience.user?.profileImage
+                            id: experience.user?.id || experience.user?.Id,
+                            firstName: experience.user?.firstName || experience.user?.FirstName,
+                            lastName: experience.user?.lastName || experience.user?.LastName,
+                            userName: experience.user?.userName || experience.user?.UserName,
+                            profileImage: experience.user?.profileImage || experience.user?.ProfileImage
                           }}
-                          likesCount={experience.likesCount}
-                          commentsCount={experience.commentsCount}
-                          videoUrl={experience.videoUrl}
-                          videoThumbnail={experience.videoThumbnail}
+                          likesCount={experience.likes || experience.Likes || 0}
+                          commentsCount={experience.comments?.length || experience.Comments?.length || 0}
                         />
                       </div>
                     );
