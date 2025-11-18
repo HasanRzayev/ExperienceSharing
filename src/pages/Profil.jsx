@@ -4,6 +4,7 @@ import Cookies from "js-cookie";
 import CustomCard from "./Card";
 import { useNavigate } from "react-router-dom";
 import AnalyticsTab from "../components/AnalyticsTab";
+import { getApiBaseUrl } from "../utils/env";
 
 const ProfilePage = () => {
   const [userData, setUserData] = useState(null);
@@ -16,19 +17,23 @@ const ProfilePage = () => {
   const token = Cookies.get("token");
   const navigate = useNavigate();
 
+  const apiBaseUrl = getApiBaseUrl();
+
   useEffect(() => {
     const fetchUserData = async () => {
       if (token) {
         try {
           const response = await axios.get(
-            `${process.env.REACT_APP_API_BASE_URL}/Auth/GetProfile`,
+            `${apiBaseUrl}/Auth/GetProfile`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
+          console.log("Profil.jsx - User data response:", response.data);
           setUserData(response.data);
         } catch (error) {
           console.error("Kullanıcı verileri alınırken bir hata oluştu!", error);
+          console.error("Error response:", error.response?.data);
         }
       }
     };
@@ -37,17 +42,17 @@ const ProfilePage = () => {
       if (token) {
         try {
           const followingRes = await axios.get(
-            `${process.env.REACT_APP_API_BASE_URL}/followers/following`,
+            `${apiBaseUrl}/followers/following`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
 
           const followersRes = await axios.get(
-            `${process.env.REACT_APP_API_BASE_URL}/followers/followers`,
+            `${apiBaseUrl}/followers/followers`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
 
-          setFollowingCount(followingRes.data.length);
-          setFollowersCount(followersRes.data.length);
+          setFollowingCount(followingRes.data?.length || 0);
+          setFollowersCount(followersRes.data?.length || 0);
         } catch (error) {
           console.error("Takip verileri alınırken bir hata oluştu!", error);
         }
@@ -56,7 +61,7 @@ const ProfilePage = () => {
 
     fetchUserData();
     fetchFollowData();
-  }, [token, refreshKey]);
+  }, [token, refreshKey, apiBaseUrl]);
 
   // Function to fetch liked experiences
   const fetchLikedExperiences = async () => {
@@ -82,7 +87,7 @@ const ProfilePage = () => {
     console.log("🔄 Fetching liked experiences for user:", userId);
     setLoadingLiked(true);
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       const url = `${apiBaseUrl}/Like/user/${userId}/liked-experiences?page=1&pageSize=50`;
       console.log("📡 API URL:", url);
       
@@ -107,7 +112,7 @@ const ProfilePage = () => {
   // Delete Experience funksiyası
   const handleDeleteExperience = async (experienceId) => {
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       await axios.delete(`${apiBaseUrl}/Experiences/${experienceId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -151,8 +156,13 @@ const ProfilePage = () => {
   console.log("🔍 Profile Page - token:", !!token);
   console.log("🔍 Profile Page - activeTab:", activeTab);
 
-  const { firstName, lastName, email, country, profileImage, userExperiences } =
-    userData;
+  // Normalize field names (handle both camelCase and PascalCase)
+  const firstName = userData.firstName || userData.FirstName || 'User';
+  const lastName = userData.lastName || userData.LastName || '';
+  const email = userData.email || userData.Email || '';
+  const country = userData.country || userData.Country || 'Unknown';
+  const profileImage = userData.profileImage || userData.ProfileImage || 'https://via.placeholder.com/150';
+  const userExperiences = userData.userExperiences || userData.UserExperiences || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 py-12">

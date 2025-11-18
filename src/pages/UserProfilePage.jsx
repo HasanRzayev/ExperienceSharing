@@ -1,37 +1,69 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom'; // useNavigate ekleyin
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import FollowButton from '../components/FollowButton';
 import CustomCard from './Card';
+import { getApiBaseUrl } from '../utils/env';
 
 const UserProfilePage = () => {
   const [userData, setUserData] = useState(null);
   const [userExperiences, setUserExperiences] = useState([]);
-  const { userId } = useParams(); // Kullanıcı ID'sini URL'den alın
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { userId } = useParams();
   const token = Cookies.get('token');
-  const navigate = useNavigate(); // useNavigate ekleyin
+  const navigate = useNavigate();
+  const apiBaseUrl = getApiBaseUrl();
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (token) {
-        try {
-          const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/Auth/GetUserProfile/${userId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          console.log("UserProfilePage - Full response data:", response.data);
+      if (!userId) {
+        setError('User ID is missing');
+        setLoading(false);
+        return;
+      }
+
+      if (!token) {
+        setError('Authentication required');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        console.log(`Fetching user profile for userId: ${userId}`);
+        const response = await axios.get(`${apiBaseUrl}/Auth/GetUserProfile/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("UserProfilePage - Full response data:", response.data);
+        
+        if (response.data) {
           setUserData(response.data);
-          setUserExperiences(response.data.userExperiences || []);
-        } catch (error) {
-          console.error('Error fetching user data:', error);
+          // Backend-dən gələn məlumatları normalize et
+          const experiences = response.data.userExperiences || response.data.UserExperiences || [];
+          setUserExperiences(experiences);
+        } else {
+          setError('User data not found');
         }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        setError(error.response?.data?.message || error.message || 'Failed to load user profile');
+        if (error.response?.status === 404) {
+          setError('User not found');
+        } else if (error.response?.status === 401) {
+          setError('Authentication required');
+        }
+      } finally {
+        setLoading(false);
       }
     };
   
     fetchUserData();
-  }, [token, userId]);
+  }, [token, userId, apiBaseUrl]);
 
   const handleMessageClick = () => {
     navigate('/chatpage', {
@@ -39,11 +71,51 @@ const UserProfilePage = () => {
     });
   };
 
-  if (!userData) {
-    return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    );
   }
 
-  const { firstName, lastName, email, country, profileImage, userExperiences: userExperiencesFromData } = userData;
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center bg-white p-8 rounded-lg shadow-md max-w-md">
+          <div className="text-6xl mb-4">😕</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Error</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">No user data available</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Normalize field names (handle both camelCase and PascalCase)
+  const firstName = userData.firstName || userData.FirstName || 'User';
+  const lastName = userData.lastName || userData.LastName || '';
+  const email = userData.email || userData.Email || '';
+  const country = userData.country || userData.Country || 'Unknown';
+  const profileImage = userData.profileImage || userData.ProfileImage || 'https://via.placeholder.com/150';
 
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col items-center p-8">
@@ -70,6 +142,10 @@ const UserProfilePage = () => {
    {/* Statistikalar */}
 <div className="mt-6 flex justify-around border-t pt-4 text-center text-gray-600 dark:text-gray-300">
   <div>
+    <span className="block text-lg font-semibold">{userExperiences.length}</span>
+    Experiences
+  </div>
+  <div>
     <span className="block text-lg font-semibold">0</span>
     Followers
   </div>
@@ -85,37 +161,40 @@ const UserProfilePage = () => {
 <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
   {userExperiences.length > 0 ? (
     userExperiences.map((post, index) => {
-      console.log("UserProfilePage.js - Post data:", post);
-      console.log("UserProfilePage.js - Post ID:", post.id);
-      console.log("UserProfilePage.js - Post userId:", post.userId);
-      console.log("UserProfilePage.js - Post user:", post.user);
-      console.log("UserProfilePage.js - User firstName:", post.user?.firstName);
-      console.log("UserProfilePage.js - User lastName:", post.user?.lastName);
-      console.log("UserProfilePage.js - User userName:", post.user?.userName);
-      console.log("UserProfilePage.js - All post keys:", Object.keys(post));
-      
-      // Müvəqqəti həll: userId istifadə et
-      const cardId = post.id || post.userId || `temp-${index}`;
-      console.log("UserProfilePage.js - Using cardId:", cardId);
+      // Normalize post data (handle both camelCase and PascalCase)
+      const postId = post.id || post.Id || post.userId || `temp-${index}`;
+      const imageUrls = post.imageUrls || post.ImageUrls || [];
+      const imageUrl = imageUrls.length > 0 
+        ? (imageUrls[0]?.url || imageUrls[0]?.Url || imageUrls[0])
+        : "";
       
       return (
         <CustomCard
-          key={`${cardId}-${index}`}
-          id={cardId}
-          imageUrls={post.imageUrls?.length > 0 ? post.imageUrls[0]?.url : ""}
-          date={post.date}
-          title={post.title}
-          description={post.description}
-          location={post.location}
-          rating={post.rating}
-          user={userData}
-          videoUrl={post.videoUrl}
-          videoThumbnail={post.videoThumbnail}
+          key={`${postId}-${index}`}
+          id={postId}
+          imageUrls={imageUrl}
+          date={post.date || post.Date}
+          title={post.title || post.Title || 'Untitled'}
+          description={post.description || post.Description || ''}
+          location={post.location || post.Location || ''}
+          rating={post.rating || post.Rating || 0}
+          user={{
+            id: userData.id || userData.Id,
+            firstName: firstName,
+            lastName: lastName,
+            userName: userData.userName || userData.UserName || '',
+            profileImage: profileImage
+          }}
+          videoUrl={post.videoUrl || post.VideoUrl}
+          videoThumbnail={post.videoThumbnail || post.VideoThumbnail}
         />
       );
     })
   ) : (
-    <p className="text-gray-500 dark:text-gray-400 text-center">Loading...</p>
+    <div className="col-span-full text-center py-12">
+      <div className="text-6xl mb-4">📝</div>
+      <p className="text-gray-500 dark:text-gray-400 text-lg">No experiences yet</p>
+    </div>
   )}
 </div>
 
