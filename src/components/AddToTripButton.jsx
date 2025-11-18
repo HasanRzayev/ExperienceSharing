@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { getApiBaseUrl } from '../utils/env';
 
 const AddToTripButton = ({ experienceId, onClose, renderAsMenuItem = false }) => {
   const [showModal, setShowModal] = useState(false);
@@ -15,7 +16,7 @@ const AddToTripButton = ({ experienceId, onClose, renderAsMenuItem = false }) =>
     
     try {
       setLoading(true);
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       const response = await axios.get(`${apiBaseUrl}/Trip/my-trips`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -29,7 +30,7 @@ const AddToTripButton = ({ experienceId, onClose, renderAsMenuItem = false }) =>
 
   const handleAddToTrip = async (tripId) => {
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       await axios.post(
         `${apiBaseUrl}/Trip/${tripId}/experiences/${experienceId}`,
         { orderIndex: 0, notes: '' },

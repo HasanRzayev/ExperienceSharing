@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
+import { getApiBaseUrl } from '../utils/env';
 
 const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
   const [isSaved, setIsSaved] = useState(false);
@@ -24,7 +25,7 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
     console.log('🔍 SaveButton - Checking saved status with token:', token ? token.substring(0, 30) + '...' : 'null');
 
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       const response = await axios.get(
         `${apiBaseUrl}/SavedExperience/check/${experienceId}`,
         { 
@@ -74,7 +75,7 @@ const SaveButton = ({ experienceId, renderAsMenuItem = false }) => {
 
     setLoading(true);
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       
       if (isSaved) {
         // Unsave
