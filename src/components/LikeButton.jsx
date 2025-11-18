@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { getApiBaseUrl } from '../utils/env';
 import '../CSS/LikeButton.css';
 
 const LikeButton = ({ experienceId, onClose, renderAsMenuItem = false }) => {
@@ -12,8 +13,9 @@ const LikeButton = ({ experienceId, onClose, renderAsMenuItem = false }) => {
       if (!token || !experienceId) return;
 
       try {
+        const apiBaseUrl = getApiBaseUrl();
         const response = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/Like/${experienceId}/status`,
+          `${apiBaseUrl}/Like/${experienceId}/status`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setLiked(response.data.isLiked);
@@ -32,8 +34,9 @@ const LikeButton = ({ experienceId, onClose, renderAsMenuItem = false }) => {
     }
 
     try {
+      const apiBaseUrl = getApiBaseUrl();
       await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/Like/${experienceId}`,
+        `${apiBaseUrl}/Like/${experienceId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

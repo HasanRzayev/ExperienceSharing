@@ -13,6 +13,8 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('my-experiences'); // New state for tab management
   const [likedExperiences, setLikedExperiences] = useState([]);
   const [loadingLiked, setLoadingLiked] = useState(false);
+  const [savedExperiences, setSavedExperiences] = useState([]);
+  const [loadingSaved, setLoadingSaved] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const token = Cookies.get("token");
   const navigate = useNavigate();
@@ -62,6 +64,42 @@ const ProfilePage = () => {
     fetchUserData();
     fetchFollowData();
   }, [token, refreshKey, apiBaseUrl]);
+
+  // Function to fetch saved experiences
+  const fetchSavedExperiences = async () => {
+    if (!token) {
+      console.log("❌ Cannot fetch saved experiences - missing token");
+      return;
+    }
+    
+    console.log("🔄 Fetching saved experiences");
+    setLoadingSaved(true);
+    try {
+      const apiBaseUrl = getApiBaseUrl();
+      const url = `${apiBaseUrl}/SavedExperience/my-saved?page=1&pageSize=50`;
+      console.log("📡 API URL:", url);
+      
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      console.log("✅ Saved experiences response:", response.data);
+      console.log("📊 Experiences:", response.data.experiences);
+      console.log("📈 Total count:", response.data.totalCount);
+      
+      if (response.data && response.data.experiences) {
+        setSavedExperiences(response.data.experiences);
+      } else {
+        setSavedExperiences([]);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching saved experiences:", error);
+      console.error("Error response:", error.response?.data);
+      setSavedExperiences([]);
+    } finally {
+      setLoadingSaved(false);
+    }
+  };
 
   // Function to fetch liked experiences
   const fetchLikedExperiences = async () => {
@@ -269,6 +307,15 @@ const ProfilePage = () => {
                 </div>
                 <div className="text-gray-600 font-medium">Liked</div>
               </div>
+              <div 
+                onClick={() => setActiveTab('saved-experiences')} 
+                className="cursor-pointer text-center group"
+              >
+                <div className="text-3xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors">
+                  {savedExperiences.length}
+                </div>
+                <div className="text-gray-600 font-medium">Saved</div>
+              </div>
             </div>
           </div>
         </div>
@@ -305,6 +352,22 @@ const ProfilePage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
                 Liked Experiences
+              </button>
+              <button
+                onClick={() => {
+                  console.log("🔄 Switching to saved-experiences tab");
+                  setActiveTab('saved-experiences');
+                }}
+                className={`px-6 py-3 rounded-md font-medium transition-all duration-200 ${
+                  activeTab === 'saved-experiences'
+                    ? 'bg-white text-purple-600 shadow-md'
+                    : 'text-gray-600 hover:text-purple-600 hover:bg-white/50'
+                }`}
+              >
+                <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                Saved Experiences
               </button>
               <button
                 onClick={() => setActiveTab('analytics')}
@@ -473,6 +536,57 @@ const ProfilePage = () => {
                       Explore Experiences
                     </button>
                   </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {activeTab === 'saved-experiences' && (
+            <>
+              {loadingSaved ? (
+                <div className="text-center py-20">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                  <p className="mt-4 text-gray-600">Loading your saved experiences...</p>
+                </div>
+              ) : savedExperiences.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {savedExperiences.map((experience, index) => {
+                    const cardId = experience.id || experience.Id || `saved-${index}`;
+                    const imageUrl = experience.imageUrls?.length > 0 
+                      ? experience.imageUrls[0]?.url || experience.imageUrls[0]?.Url 
+                      : "";
+                    
+                    return (
+                      <div key={`${cardId}-${index}`} className="animate-fadeInUp" style={{animationDelay: `${index * 0.1}s`}}>
+                        <CustomCard
+                          id={cardId}
+                          imageUrls={imageUrl}
+                          date={experience.date || experience.Date}
+                          title={experience.title || experience.Title}
+                          description={experience.description || experience.Description}
+                          location={experience.location || experience.Location}
+                          rating={experience.rating || experience.Rating}
+                          user={{
+                            id: experience.user?.id || experience.user?.Id,
+                            firstName: experience.user?.firstName || experience.user?.FirstName,
+                            lastName: experience.user?.lastName || experience.user?.LastName,
+                            userName: experience.user?.userName || experience.user?.UserName,
+                            profileImage: experience.user?.profileImage || experience.user?.ProfileImage
+                          }}
+                          likesCount={experience.likes || experience.Likes || 0}
+                          commentsCount={experience.comments?.length || experience.Comments?.length || 0}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <div className="text-6xl mb-4">📌</div>
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">No Saved Experiences</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    Start saving experiences you want to revisit later!
+                  </p>
                 </div>
               )}
             </>
