@@ -181,6 +181,9 @@ const ProfilePage = () => {
     if (activeTab === 'liked-experiences' && userId) {
       fetchLikedExperiences();
     }
+    if (activeTab === 'saved-experiences') {
+      fetchSavedExperiences();
+    }
   }, [activeTab, userData]);
 
   if (!userData) {
