@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { getApiBaseUrl } from "../utils/env";
 import "../CSS/FollowButton.css";
 
 // Helper to dynamically import Swal
@@ -18,8 +19,9 @@ const FollowButton = ({ userId }) => {
       if (!token || !userId) return;
 
       try {
+        const apiBaseUrl = getApiBaseUrl();
         const response = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/Followers/${userId}/status`,
+          `${apiBaseUrl}/followers/${userId}/status`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setStatus(response.data.status);
@@ -53,7 +55,8 @@ const FollowButton = ({ userId }) => {
         });
 
         if (result.isConfirmed) {
-          await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/Followers/${userId}`, {
+          const apiBaseUrl = getApiBaseUrl();
+          await axios.delete(`${apiBaseUrl}/followers/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -70,8 +73,9 @@ const FollowButton = ({ userId }) => {
         });
 
         if (result.isConfirmed) {
+          const apiBaseUrl = getApiBaseUrl();
           await axios.post(
-            `${process.env.REACT_APP_API_BASE_URL}/Followers/cancel-follow-request`,
+            `${apiBaseUrl}/followers/cancel-follow-request`,
             {
               followedId: userId,
             },
@@ -87,8 +91,9 @@ const FollowButton = ({ userId }) => {
           Swal.fire("Follow request canceled!", "Your follow request has been successfully canceled.", "success");
         }
       } else {
+        const apiBaseUrl = getApiBaseUrl();
         await axios.post(
-          `${process.env.REACT_APP_API_BASE_URL}/Followers/${userId}/request`,
+          `${apiBaseUrl}/followers/${userId}/request`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
