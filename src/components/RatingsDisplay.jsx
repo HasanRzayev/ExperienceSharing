@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { getApiBaseUrl } from '../utils/env';
@@ -6,7 +6,24 @@ import { getApiBaseUrl } from '../utils/env';
 const RatingsDisplay = ({ experienceId, refreshTrigger }) => {
   const [ratingsData, setRatingsData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
   const token = Cookies.get('token');
+
+  const currentUserId = useMemo(() => {
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return (
+        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
+        payload.userId ||
+        payload.id ||
+        payload.sub ||
+        null
+      );
+    } catch (error) {
+      return null;
+    }
+  }, [token]);
 
   useEffect(() => {
     if (!experienceId) {
@@ -65,6 +82,36 @@ const RatingsDisplay = ({ experienceId, refreshTrigger }) => {
       fetchRatings(); // Refresh
     } catch (error) {
       console.error('Error marking helpful:', error);
+    }
+  };
+
+  const handleDelete = async (ratingId) => {
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    if (!window.confirm('Bu reytinqi silmək istədiyinizə əminsiniz?')) {
+      return;
+    }
+
+    try {
+      setDeletingId(ratingId);
+      const apiBaseUrl = getApiBaseUrl();
+      await axios.delete(`${apiBaseUrl}/Rating/${ratingId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      await fetchRatings();
+      alert('Reytinq silindi.');
+    } catch (error) {
+      console.error('Error deleting rating:', error);
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        'Reytinq silinərkən xəta baş verdi.';
+      alert(message);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -141,6 +188,8 @@ const RatingsDisplay = ({ experienceId, refreshTrigger }) => {
           const createdAt = rating.createdAt || rating.CreatedAt;
           const userName = rating.user?.userName || rating.user?.UserName || "Unknown";
           const profileImage = rating.user?.profileImage || rating.user?.ProfileImage || 'https://via.placeholder.com/40';
+          const ownerId = rating.user?.id || rating.user?.Id || rating.userId || rating.UserId;
+          const canDelete = currentUserId && ownerId && currentUserId.toString() === ownerId.toString();
 
           return (
             <div key={ratingId} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
@@ -175,16 +224,27 @@ const RatingsDisplay = ({ experienceId, refreshTrigger }) => {
                 </p>
               )}
 
-              {/* Helpful Button */}
-              <button
-                onClick={() => handleHelpful(ratingId)}
-                className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-                </svg>
-                <span>Faydalı ({helpfulCount})</span>
-              </button>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => handleHelpful(ratingId)}
+                  className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                  </svg>
+                  <span>Faydalı ({helpfulCount})</span>
+                </button>
+
+                {canDelete && (
+                  <button
+                    onClick={() => handleDelete(ratingId)}
+                    disabled={deletingId === ratingId}
+                    className="text-sm text-red-500 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {deletingId === ratingId ? 'Silinir...' : 'Sil'}
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}
