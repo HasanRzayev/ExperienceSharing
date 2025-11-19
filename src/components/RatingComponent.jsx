@@ -38,6 +38,11 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
       return;
     }
 
+    if (!experienceId) {
+      alert('❌ Experience identifier is missing.');
+      return;
+    }
+
     if (ratings.overall === 0) {
       alert('⭐ Please provide an overall rating');
       return;

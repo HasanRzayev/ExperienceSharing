@@ -9,10 +9,18 @@ const RatingsDisplay = ({ experienceId }) => {
   const token = Cookies.get('token');
 
   useEffect(() => {
+    if (!experienceId) {
+      setRatingsData(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     fetchRatings();
   }, [experienceId]);
 
   const fetchRatings = async () => {
+    if (!experienceId) return;
     try {
       const apiBaseUrl = getApiBaseUrl();
       const response = await axios.get(
