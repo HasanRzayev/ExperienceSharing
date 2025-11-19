@@ -33,6 +33,7 @@ const CardAbout = () => {
   const [replyText, setReplyText] = useState('');
   const [mentionedUserIds, setMentionedUserIds] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
+  const [ratingRefreshKey, setRatingRefreshKey] = useState(0);
   const token = Cookies.get("token");
   const navigate = useNavigate();
 
@@ -597,9 +598,14 @@ const CardAbout = () => {
               )}
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <RatingComponent experienceId={post.id} onRatingSubmit={() => {}} />
+                <RatingComponent 
+                  experienceId={post.id} 
+                  onRatingSubmit={() => {
+                    setRatingRefreshKey(prev => prev + 1);
+                  }} 
+                />
                 <div className="bg-white rounded-2xl shadow-lg p-6">
-                  <RatingsDisplay experienceId={post.id} />
+                  <RatingsDisplay refreshTrigger={ratingRefreshKey} experienceId={post.id} />
                 </div>
               </div>
             </div>

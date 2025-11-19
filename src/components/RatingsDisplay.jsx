@@ -3,7 +3,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import { getApiBaseUrl } from '../utils/env';
 
-const RatingsDisplay = ({ experienceId }) => {
+const RatingsDisplay = ({ experienceId, refreshTrigger }) => {
   const [ratingsData, setRatingsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const token = Cookies.get('token');
@@ -17,7 +17,7 @@ const RatingsDisplay = ({ experienceId }) => {
 
     setLoading(true);
     fetchRatings();
-  }, [experienceId]);
+  }, [experienceId, refreshTrigger]);
 
   const fetchRatings = async () => {
     if (!experienceId) return;
