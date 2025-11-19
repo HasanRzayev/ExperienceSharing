@@ -92,8 +92,29 @@ const RatingComponent = ({ experienceId, onRatingSubmit }) => {
         alert('❌ An error occurred. Please try again.');
       }
     } catch (error) {
-      // Network error or other server error (500+)
-      alert('❌ An error occurred. Please check your connection and try again.');
+      const responseData = error?.response?.data;
+      let serverMessage = '';
+
+      if (typeof responseData === 'string') {
+        serverMessage = responseData;
+      } else if (responseData) {
+        serverMessage =
+          responseData.message ||
+          responseData.error ||
+          JSON.stringify(responseData);
+      }
+
+      if (!serverMessage) {
+        serverMessage = error?.message || 'An unexpected error occurred. Please try again.';
+      }
+
+      console.error('Error submitting rating:', {
+        status: error?.response?.status,
+        data: responseData,
+        error
+      });
+
+      alert(`❌ ${serverMessage}`);
     } finally {
       setSubmitting(false);
     }
