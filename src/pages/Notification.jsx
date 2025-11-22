@@ -34,13 +34,24 @@ export default function FollowRequestsPage() {
   const handleFollowResponse = async (requestId, isAccepted) => {
     try {
       // Follow request-i tapırıq
-      const request = followRequests.find(req => req.id === requestId);
-      console.log("Found request:", request);
+      const request = followRequests.find(req => req.id === requestId || req.Id === requestId);
+      if (!request) {
+        console.error("Request not found:", requestId);
+        alert("Follow request not found. Please refresh the page.");
+        return;
+      }
       
-      // Backend pattern-ə əsasən followerId istifadə edirik
-      console.log("Trying with followerId:", request.followerId);
-      await axios.post(
-        `${apiBaseUrl}/Followers/${request.followerId}/respond`,
+      // Backend pattern-ə əsasən followerId istifadə edirik (case-sensitive)
+      const followerId = request.FollowerId || request.followerId;
+      if (!followerId) {
+        console.error("FollowerId not found in request:", request);
+        alert("Invalid follow request data. Please refresh the page.");
+        return;
+      }
+      
+      console.log("Trying with followerId:", followerId);
+      const response = await axios.post(
+        `${apiBaseUrl}/Followers/${followerId}/respond`,
         { 
           isAccepted: isAccepted 
         },
@@ -48,11 +59,13 @@ export default function FollowRequestsPage() {
       );
 
       // Follow request qəbul olunduğu və ya rədd edildiyi halda siyahıdan silirik
-      setFollowRequests((prev) => prev.filter((req) => req.id !== requestId));
-      console.log("Success! Follow request handled.");
+      setFollowRequests((prev) => prev.filter((req) => (req.id !== requestId && req.Id !== requestId)));
+      console.log("Success! Follow request handled.", response.data);
       
     } catch (error) {
-      console.error("Error responding to follow request", error.response?.data);
+      console.error("Error responding to follow request", error);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to respond to follow request";
+      alert(`Error: ${errorMessage}`);
     }
   };
 
@@ -92,46 +105,50 @@ export default function FollowRequestsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {followRequests.map((request) => (
-                <div
-                  key={request.id}
-                  className="p-6 border border-gray-200 rounded-2xl bg-white hover:shadow-lg transition-shadow"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">
-                        {request.followerUsername?.charAt(0)?.toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-gray-800 text-lg">
-                        <strong className="text-gray-900">{request.followerUsername}</strong> wants to follow you
-                      </p>
-                      <p className="text-gray-500 text-sm">Request sent recently</p>
-                    </div>
-                    <div className="flex space-x-3">
-                      <Button
-                        className="btn-primary px-6 py-2"
-                        onClick={() => handleFollowResponse(request.id, true)}
-                      >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        Accept
-                      </Button>
-                      <Button
-                        className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-                        onClick={() => handleFollowResponse(request.id, false)}
-                      >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        Reject
-                      </Button>
+              {followRequests.map((request) => {
+                const requestId = request.id || request.Id;
+                const followerUsername = request.FollowerUsername || request.followerUsername || request.FollowerUsername || "Unknown";
+                return (
+                  <div
+                    key={requestId}
+                    className="p-6 border border-gray-200 rounded-2xl bg-white hover:shadow-lg transition-shadow"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-lg">
+                          {followerUsername?.charAt(0)?.toUpperCase() || "?"}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-gray-800 text-lg">
+                          <strong className="text-gray-900">{followerUsername}</strong> wants to follow you
+                        </p>
+                        <p className="text-gray-500 text-sm">Request sent recently</p>
+                      </div>
+                      <div className="flex space-x-3">
+                        <Button
+                          className="btn-primary px-6 py-2"
+                          onClick={() => handleFollowResponse(requestId, true)}
+                        >
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Accept
+                        </Button>
+                        <Button
+                          className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                          onClick={() => handleFollowResponse(requestId, false)}
+                        >
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          Reject
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
