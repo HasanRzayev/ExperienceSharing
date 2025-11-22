@@ -2208,7 +2208,6 @@ const ChatPageV2 = () => {
       console.error('Error response:', error.response);
       console.error('Error response data:', error.response?.data);
       console.error('Error response status:', error.response?.status);
-      console.error('Full error object:', JSON.stringify(error, null, 2));
       
       let errorMessage = 'Failed to create group';
       let errorDetails = '';
@@ -2225,12 +2224,13 @@ const ChatPageV2 = () => {
             errorDetails = data.details;
           }
           if (data.stage) {
-            errorDetails += ` (Stage: ${data.stage})`;
+            errorDetails += `\nStage: ${data.stage}`;
           }
           if (data.hint) {
             errorDetails += `\n\nHint: ${data.hint}`;
           }
           if (data.innerException) {
+            errorDetails += `\n\nTechnical details: ${data.innerException}`;
             console.error('Inner exception:', data.innerException);
           }
         }
@@ -2242,7 +2242,16 @@ const ChatPageV2 = () => {
         ? `${errorMessage}\n\n${errorDetails}`
         : errorMessage;
       
+      // Show error in alert
       alert(`Failed to create group:\n\n${fullMessage}`);
+      
+      // Also log full error for debugging
+      console.error('Full error details:', {
+        message: errorMessage,
+        details: errorDetails,
+        response: error.response?.data,
+        status: error.response?.status
+      });
     }
   };
 
