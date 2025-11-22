@@ -1550,6 +1550,9 @@ const ChatPageV2 = () => {
     }
   };
 
+  // Track last error time to prevent repeated error logs
+  const groupMessagesErrorRef = useRef({ lastErrorTime: 0, lastErrorGroupId: null });
+  
   const fetchGroupMessages = async (groupId) => {
     if (!groupId || groupId === 'undefined' || groupId === 'null') {
       console.error('Invalid groupId provided to fetchGroupMessages:', groupId);
@@ -1573,20 +1576,41 @@ const ChatPageV2 = () => {
       const list = Array.isArray(response.data) ? response.data.map(normalizeMessageRecord) : [];
       console.log('Normalized messages list:', list);
       setMessages(list);
+      // Reset error tracking on success
+      groupMessagesErrorRef.current = { lastErrorTime: 0, lastErrorGroupId: null };
     } catch (error) {
-      console.error('Error fetching group messages:', error);
-      console.error('GroupId used:', numericGroupId);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      if (error.response?.status === 401) {
-        alert('You are not authorized to view messages in this group.');
-      } else if (error.response?.status === 404) {
-        alert('Group not found.');
-      } else {
-        alert(`Error fetching messages: ${error.response?.data?.message || error.message}`);
+      const now = Date.now();
+      const lastError = groupMessagesErrorRef.current;
+      const timeSinceLastError = now - lastError.lastErrorTime;
+      const isSameGroup = lastError.lastErrorGroupId === numericGroupId;
+      
+      // Only log error if it's a new error or it's been more than 10 seconds since last error
+      if (!isSameGroup || timeSinceLastError > 10000) {
+        if (error.response?.status === 401) {
+          console.warn('Unauthorized to view messages in this group:', numericGroupId);
+        } else if (error.response?.status === 404) {
+          console.warn('Group not found:', numericGroupId);
+        } else if (error.response?.status === 500) {
+          console.error('Server error fetching group messages:', {
+            groupId: numericGroupId,
+            error: error.response?.data?.error || error.message,
+            details: error.response?.data?.details
+          });
+        } else {
+          console.error('Error fetching group messages:', {
+            groupId: numericGroupId,
+            status: error.response?.status,
+            message: error.response?.data?.message || error.message
+          });
+        }
+        // Update error tracking
+        groupMessagesErrorRef.current = {
+          lastErrorTime: now,
+          lastErrorGroupId: numericGroupId
+        };
       }
+      // Set empty messages array to prevent UI errors
       setMessages([]);
-      console.error('SelectedChat:', selectedChat);
     }
   };
 
