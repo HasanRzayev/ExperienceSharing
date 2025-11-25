@@ -249,11 +249,8 @@ const normalizeMessageRecord = (messageLike) => {
 
 // Upload file to Cloudinary
 export async function uploadFile(file) {
-  console.log("Checking file type:", file);
-
   // If file is a URL and is a GIF, return it directly
   if (typeof file === "string" && file.startsWith("http")) {
-      console.log("GIF detected, sending directly to API:", file);
       return file;
   }
 
@@ -1308,8 +1305,6 @@ const ChatPageV2 = () => {
       const response = await axios.get(`${apiBaseUrl}/GroupChat/my-groups`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('Groups data from API:', response.data);
-      console.log('First group example:', response.data?.[0]);
       
       // Normalize group data - ensure id property exists and remove duplicates
       const groupsMap = new Map();
@@ -1324,7 +1319,6 @@ const ChatPageV2 = () => {
       });
       
       const normalizedGroups = Array.from(groupsMap.values());
-      console.log('Normalized groups:', normalizedGroups);
       
       setGroups(normalizedGroups);
     } catch (error) {
@@ -1704,7 +1698,6 @@ const ChatPageV2 = () => {
   };
 
   const handleSelectGroup = (group) => {
-    console.log('Selected group:', group);
     const groupId = getGroupId(group);
     if (!groupId) {
       console.error('Group ID is undefined when selecting group:', group);
@@ -1736,14 +1729,8 @@ const ChatPageV2 = () => {
         .catch((e) => console.warn('JoinGroupChat failed', e));
     }
     
-    // If group already has members data, use it. Otherwise fetch separately
-    if (group.members && Array.isArray(group.members)) {
-      console.log('Using members from group object:', group.members);
-      setGroupMembers(group.members);
-    } else {
-      console.log('Fetching members separately for group:', numericGroupId);
-      fetchGroupMembers(numericGroupId);
-    }
+    // Always fetch members to ensure we have the latest data
+    fetchGroupMembers(numericGroupId);
   };
 
   useEffect(() => {
@@ -1780,12 +1767,26 @@ const ChatPageV2 = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log('=== GROUP MEMBERS DEBUG ===');
-      console.log('Group details from API:', response.data);
-      console.log('Members in group:', response.data?.Members || response.data?.members);
-      console.log('Members count:', response.data?.memberCount ?? response.data?.MemberCount ?? (response.data?.Members || response.data?.members || [])?.length ?? 0);
+      console.log('Full response:', response);
+      console.log('Response data:', response.data);
+      console.log('Response data keys:', Object.keys(response.data || {}));
+      console.log('Members property (members):', response.data?.members);
+      console.log('Members property (Members):', response.data?.Members);
       
-      const members = response.data?.members || response.data?.Members || [];
+      // Parse members from response - handle both Members and members properties
+      let members = [];
+      if (response.data?.members && Array.isArray(response.data.members)) {
+        members = response.data.members;
+        console.log('Using members (lowercase), count:', members.length);
+      } else if (response.data?.Members && Array.isArray(response.data.Members)) {
+        members = response.data.Members;
+        console.log('Using Members (uppercase), count:', members.length);
+      } else {
+        console.warn('No members array found in response');
+      }
+      
       const memberCount = response.data?.memberCount ?? response.data?.MemberCount ?? members.length;
+      console.log('Calculated memberCount:', memberCount);
       if (members && members.length > 0) {
         console.log('First member full object:', members[0]);
         console.log('First member keys:', Object.keys(members[0]));
@@ -1800,15 +1801,19 @@ const ChatPageV2 = () => {
         }
       }
       console.log('=== END DEBUG ===');
+      console.log('Setting groupMembers:', members);
+      console.log('Setting memberCount:', memberCount);
       
       setGroupMembers(members);
       setSelectedChat(prev => {
         if (!prev) return prev;
-        return {
+        const updated = {
           ...prev,
-          members,
-          memberCount
+          members: members,
+          memberCount: memberCount
         };
+        console.log('Updated selectedChat:', updated);
+        return updated;
       });
     } catch (error) {
       console.error('Error fetching group members:', error);
@@ -2883,10 +2888,12 @@ const ChatPageV2 = () => {
                                     onClick={() => setShowMembersModal(true)}
                                     className="text-xs text-purple-600 dark:text-purple-400 hover:underline cursor-pointer text-left"
                                   >
-                                    {(groupMembers.length > 0
-                                      ? groupMembers.length
-                                      : (selectedChat.members?.length || selectedChat.memberCount || 0)
-                                    )} members • View all
+                                    {(() => {
+                                      const count = groupMembers.length > 0 
+                                        ? groupMembers.length 
+                                        : (selectedChat?.members?.length || selectedChat?.memberCount || 0);
+                                      return `${count} members • View all`;
+                                    })()}
                                   </button>
                                 </div>
                               </>
