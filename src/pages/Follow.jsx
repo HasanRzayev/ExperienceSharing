@@ -19,7 +19,7 @@ const FollowersPage = () => {
     }
 
     axios
-      .get(`${apiBaseUrl}/followers/followers`, {
+      .get(`${apiBaseUrl}/Followers/followers`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
