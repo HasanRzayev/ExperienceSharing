@@ -1368,7 +1368,43 @@ const ChatPageV2 = () => {
       
       const normalizedGroups = Array.from(groupsMap.values());
       
-      setGroups(normalizedGroups);
+      // Fetch member counts for all groups in parallel
+      const groupsWithMemberCounts = await Promise.all(
+        normalizedGroups.map(async (group) => {
+          const groupId = group.id;
+          if (!groupId) return group;
+          
+          try {
+            const numericGroupId = typeof groupId === 'string' ? parseInt(groupId, 10) : groupId;
+            if (isNaN(numericGroupId)) return group;
+            
+            const memberResponse = await axios.get(`${apiBaseUrl}/GroupChat/${numericGroupId}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            let members = [];
+            if (memberResponse.data?.members && Array.isArray(memberResponse.data.members)) {
+              members = memberResponse.data.members;
+            } else if (memberResponse.data?.Members && Array.isArray(memberResponse.data.Members)) {
+              members = memberResponse.data.Members;
+            }
+            
+            const memberCount = memberResponse.data?.memberCount ?? memberResponse.data?.MemberCount ?? members.length;
+            
+            return {
+              ...group,
+              memberCount: memberCount,
+              members: members
+            };
+          } catch (error) {
+            console.error(`Error fetching member count for group ${groupId}:`, error);
+            // Return group with existing memberCount if fetch fails
+            return group;
+          }
+        })
+      );
+      
+      setGroups(groupsWithMemberCounts);
     } catch (error) {
       console.error('Error fetching groups:', error);
     }
