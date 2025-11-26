@@ -78,29 +78,45 @@ export const useAuth = () => {
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [authInitialized, setAuthInitialized] = useState(false);
 
   useEffect(() => {
-    const token = Cookies.get("token");
-    const userDataCookie = Cookies.get("userData");
-    setIsLoggedIn(!!token);
-    
-    // If userData exists in cookie (for admin), use it directly
-    if (userDataCookie) {
-      try {
-        const parsedUserData = JSON.parse(userDataCookie);
-        setUserData(parsedUserData);
-        console.log('Loaded userData from cookie:', parsedUserData);
-      } catch (error) {
-        console.error('Error parsing userData cookie:', error);
-        // If parsing fails, fetch from API
-        if (token) {
-          fetchUserData();
+    let isMounted = true;
+
+    const initializeAuth = async () => {
+      const token = Cookies.get("token");
+      const userDataCookie = Cookies.get("userData");
+
+      setIsLoggedIn(!!token);
+
+      if (userDataCookie) {
+        try {
+          const parsedUserData = JSON.parse(userDataCookie);
+          if (isMounted) {
+            setUserData(parsedUserData);
+            console.log('Loaded userData from cookie:', parsedUserData);
+            setAuthInitialized(true);
+          }
+          return;
+        } catch (error) {
+          console.error('Error parsing userData cookie:', error);
         }
       }
-    } else if (token) {
-      // If no userData cookie but token exists, fetch user data from API
-      fetchUserData();
-    }
+
+      if (token) {
+        await fetchUserData();
+      }
+
+      if (isMounted) {
+        setAuthInitialized(true);
+      }
+    };
+
+    initializeAuth();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const fetchUserData = async () => {
@@ -124,6 +140,7 @@ export default function App() {
 
   const handleLogin = (userData = null) => {
     setIsLoggedIn(true);
+    setAuthInitialized(true);
     if (userData) {
       setUserData(userData);
     } else {
@@ -162,7 +179,7 @@ export default function App() {
             {/* Admin Routes - No Navbar/Footer */}
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin/*" element={
-              <AdminRoute isLoggedIn={isLoggedIn} userData={userData}>
+              <AdminRoute isLoggedIn={isLoggedIn} userData={userData} authReady={authInitialized}>
                 <Routes>
                   <Route path="/" element={<AdminDashboard />} />
                   <Route path="/experiences" element={<AdminExperiences />} />
@@ -190,20 +207,20 @@ export default function App() {
                   <Route path="/signup" element={isLoggedIn ? <Navigate to="/" /> : <SignUp />} />
                   <Route path="/forgot-password" element={isLoggedIn ? <Navigate to="/" /> : <ForgotPassword />} />
                   <Route path="/reset-password" element={isLoggedIn ? <Navigate to="/" /> : <ResetPassword />} />
-                  <Route path="/chatpage" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ChatPage /></ProtectedRoute>} />
-                  <Route path="/Profil" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ProfilePage /></ProtectedRoute>} />
-                  <Route path="/trip-planner" element={<ProtectedRoute isLoggedIn={isLoggedIn}><TripPlanner /></ProtectedRoute>} />
-                  <Route path="/trip/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn}><TripDetail /></ProtectedRoute>} />
+                  <Route path="/chatpage" element={<ProtectedRoute isLoggedIn={isLoggedIn} authReady={authInitialized}><ChatPage /></ProtectedRoute>} />
+                  <Route path="/Profil" element={<ProtectedRoute isLoggedIn={isLoggedIn} authReady={authInitialized}><ProfilePage /></ProtectedRoute>} />
+                  <Route path="/trip-planner" element={<ProtectedRoute isLoggedIn={isLoggedIn} authReady={authInitialized}><TripPlanner /></ProtectedRoute>} />
+                  <Route path="/trip/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn} authReady={authInitialized}><TripDetail /></ProtectedRoute>} />
                   <Route path="/events" element={<Events />} />
                   <Route path="/event/:id" element={<EventDetail />} />
-                  <Route path="/collections" element={<ProtectedRoute isLoggedIn={isLoggedIn}><TripPlanner /></ProtectedRoute>} />
-                  <Route path="/Notification" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Notification /></ProtectedRoute>} />
-                  <Route path="/Settings" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Settings /></ProtectedRoute>} />
-                  <Route path="/Follow" element={<ProtectedRoute isLoggedIn={isLoggedIn}><FollowersPage /></ProtectedRoute>} />
-                  <Route path="/Following" element={<ProtectedRoute isLoggedIn={isLoggedIn}><FollowingPage /></ProtectedRoute>} />
+                  <Route path="/collections" element={<ProtectedRoute isLoggedIn={isLoggedIn} authReady={authInitialized}><TripPlanner /></ProtectedRoute>} />
+                  <Route path="/Notification" element={<ProtectedRoute isLoggedIn={isLoggedIn} authReady={authInitialized}><Notification /></ProtectedRoute>} />
+                  <Route path="/Settings" element={<ProtectedRoute isLoggedIn={isLoggedIn} authReady={authInitialized}><Settings /></ProtectedRoute>} />
+                  <Route path="/Follow" element={<ProtectedRoute isLoggedIn={isLoggedIn} authReady={authInitialized}><FollowersPage /></ProtectedRoute>} />
+                  <Route path="/Following" element={<ProtectedRoute isLoggedIn={isLoggedIn} authReady={authInitialized}><FollowingPage /></ProtectedRoute>} />
                   <Route path="/profile/:userId" element={<UserProfilePage />} />
-                  <Route path="/NewExperience" element={<ProtectedRoute isLoggedIn={isLoggedIn}><NewExperience /></ProtectedRoute>} />
-                  <Route path="/edit-experience/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn}><NewExperience /></ProtectedRoute>} />
+                  <Route path="/NewExperience" element={<ProtectedRoute isLoggedIn={isLoggedIn} authReady={authInitialized}><NewExperience /></ProtectedRoute>} />
+                  <Route path="/edit-experience/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn} authReady={authInitialized}><NewExperience /></ProtectedRoute>} />
                   
                   {/* Footer Pages */}
                   <Route path="/about" element={<AboutUs />} />
@@ -234,11 +251,21 @@ export default function App() {
   );
 }
 
-function ProtectedRoute({ isLoggedIn, children }) {
-  return isLoggedIn ? children : <Navigate to="/login" replace />;
+function ProtectedRoute({ isLoggedIn, authReady, children }) {
+  const hasToken = !!Cookies.get("token");
+
+  if (!authReady) {
+    return <LoadingSpinner />;
+  }
+
+  return (isLoggedIn || hasToken) ? children : <Navigate to="/login" replace />;
 }
 
-function AdminRoute({ isLoggedIn, userData, children }) {
+function AdminRoute({ isLoggedIn, userData, authReady, children }) {
+  if (!authReady) {
+    return <LoadingSpinner />;
+  }
+
   if (!isLoggedIn) {
     return <Navigate to="/admin-login" replace />;
   }
