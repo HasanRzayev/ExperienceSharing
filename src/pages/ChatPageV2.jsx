@@ -24,6 +24,53 @@ const getUserId = (userLike) =>
 const getGroupId = (groupLike) =>
   groupLike?.id ?? groupLike?.Id ?? groupLike?.groupId ?? groupLike?.GroupId ?? groupLike?.ID ?? null;
 
+const toNumberOrNull = (value) => {
+  if (value === undefined || value === null) return null;
+  if (typeof value === 'number' && !Number.isNaN(value)) return value;
+  const parsed = Number(String(value).trim());
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
+const getArrayLength = (value) => (Array.isArray(value) ? value.length : null);
+
+const getGroupMemberCount = (groupLike) => {
+  if (!groupLike || typeof groupLike !== 'object') return 0;
+
+  const countFields = [
+    groupLike.memberCount,
+    groupLike.MemberCount,
+    groupLike.membersCount,
+    groupLike.MembersCount,
+    groupLike.totalMembers,
+    groupLike.TotalMembers,
+    groupLike.participantCount,
+    groupLike.ParticipantCount,
+    groupLike.participantsCount,
+    groupLike.ParticipantsCount,
+  ];
+
+  for (const field of countFields) {
+    const parsed = toNumberOrNull(field);
+    if (parsed !== null) return parsed;
+  }
+
+  const memberArrays = [
+    groupLike.members,
+    groupLike.Members,
+    groupLike.groupMembers,
+    groupLike.GroupMembers,
+    groupLike.participants,
+    groupLike.Participants,
+  ];
+
+  for (const arr of memberArrays) {
+    const length = getArrayLength(arr);
+    if (length !== null) return length;
+  }
+
+  return 0;
+};
+
 const getSenderId = (messageLike) =>
   messageLike?.senderId ??
   messageLike?.SenderId ??
@@ -1313,7 +1360,8 @@ const ChatPageV2 = () => {
         if (groupId && !groupsMap.has(groupId)) {
           groupsMap.set(groupId, {
             ...group,
-            id: groupId
+            id: groupId,
+            memberCount: getGroupMemberCount(group)
           });
         }
       });
@@ -1716,7 +1764,7 @@ const ChatPageV2 = () => {
     // Set selectedChat with memberCount if available
     setSelectedChat({
       ...group,
-      memberCount: group.memberCount ?? group.MemberCount ?? group.members?.length ?? 0
+      memberCount: getGroupMemberCount(group)
     });
     setChatType('group');
     fetchGroupMessages(numericGroupId);
@@ -1814,6 +1862,20 @@ const ChatPageV2 = () => {
         };
         console.log('Updated selectedChat:', updated);
         return updated;
+      });
+      setGroups(prev => {
+        if (!Array.isArray(prev) || prev.length === 0) return prev;
+        return prev.map(existingGroup => {
+          const existingId = getGroupId(existingGroup);
+          if (!existingId) return existingGroup;
+          const idsMatch = String(existingId) === String(numericGroupId);
+          if (!idsMatch) return existingGroup;
+          return {
+            ...existingGroup,
+            members,
+            memberCount
+          };
+        });
       });
     } catch (error) {
       console.error('Error fetching group members:', error);
@@ -2788,6 +2850,13 @@ const ChatPageV2 = () => {
                       if (!groupImage || groupImage.includes('via.placeholder')) {
                         groupImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(group.name || group.Name || 'Group')}&background=random`;
                       }
+                      const isSelectedGroup =
+                        chatType === 'group' && getGroupId(selectedChat) === getGroupId(group);
+                      const derivedMemberCount = getGroupMemberCount(group);
+                      const displayedMemberCount =
+                        isSelectedGroup && groupMembers.length > 0
+                          ? groupMembers.length
+                          : derivedMemberCount;
                       
                       return (
                       <div
@@ -2811,12 +2880,7 @@ const ChatPageV2 = () => {
                               {group.name || 'Unnamed Group'}
                             </h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                              {(chatType === 'group' &&
-                                getGroupId(selectedChat) === getGroupId(group) &&
-                                groupMembers.length > 0)
-                                ? groupMembers.length
-                                : (group.members?.length || group.memberCount || 0)
-                              } members
+                              {displayedMemberCount} members
                             </p>
                           </div>
                         </div>
@@ -2889,9 +2953,10 @@ const ChatPageV2 = () => {
                                     className="text-xs text-purple-600 dark:text-purple-400 hover:underline cursor-pointer text-left"
                                   >
                                     {(() => {
+                                      const fallbackCount = getGroupMemberCount(selectedChat);
                                       const count = groupMembers.length > 0 
                                         ? groupMembers.length 
-                                        : (selectedChat?.members?.length || selectedChat?.memberCount || 0);
+                                        : fallbackCount;
                                       return `${count} members • View all`;
                                     })()}
                                   </button>
