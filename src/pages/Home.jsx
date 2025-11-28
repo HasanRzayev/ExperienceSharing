@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Cookies from "js-cookie";
-import { FaUsers, FaHeart, FaComment, FaShare, FaPaperPlane, FaSmile, FaMapMarkerAlt, FaCheck, FaWhatsapp, FaInstagram, FaTiktok, FaCopy, FaPlus } from "react-icons/fa";
+import { FaUsers, FaHeart, FaComment, FaShare, FaPaperPlane, FaMapMarkerAlt, FaCheck, FaWhatsapp, FaInstagram, FaTiktok, FaCopy, FaPlus } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import LikeButton from "../components/LikeButton";
 import AddToTripButton from "../components/AddToTripButton";
@@ -8,8 +8,6 @@ import SaveButton from "../components/SaveButton";
 import AIRecommendations from "../components/AIRecommendations";
 import StatusUploadModal from "../components/StatusUploadModal";
 import StatusViewer from "../components/StatusViewer";
-import MentionInput from "../components/MentionInput";
-import EmojiPicker from 'emoji-picker-react';
 import axios from "axios";
 
 function Home() {
@@ -19,12 +17,6 @@ function Home() {
   const [hasMore, setHasMore] = useState(true);
   const loadingRef = useRef(null);
   const navigate = useNavigate();
-  
-  // Comment states
-  const [expandedComments, setExpandedComments] = useState({});
-  const [commentTexts, setCommentTexts] = useState({});
-  const [showEmojiPicker, setShowEmojiPicker] = useState({});
-  const [submittingComment, setSubmittingComment] = useState({});
   
   // Share modal state
   const [showShareModal, setShowShareModal] = useState(null);
@@ -91,45 +83,6 @@ function Home() {
       }
     }
   }, [apiBaseUrl]);
-
-  const toggleComments = (postId) => {
-    setExpandedComments(prev => ({
-      ...prev,
-      [postId]: !prev[postId]
-    }));
-  };
-
-  const handleSubmitComment = async (postId, e) => {
-    e?.preventDefault();
-    const commentText = commentTexts[postId];
-    if (!commentText?.trim()) return;
-
-    setSubmittingComment(prev => ({ ...prev, [postId]: true }));
-    
-    try {
-      const token = Cookies.get("token");
-      const response = await fetch(`${apiBaseUrl}/Experiences/${postId}/comments`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ content: commentText.trim() })
-      });
-
-      if (response.ok) {
-        setCommentTexts(prev => ({ ...prev, [postId]: '' }));
-        setShowEmojiPicker(prev => ({ ...prev, [postId]: false }));
-        // Refresh posts to get updated comment count
-        fetchPosts(1);
-        setPage(1);
-      }
-    } catch (error) {
-      console.error('Error submitting comment:', error);
-    } finally {
-      setSubmittingComment(prev => ({ ...prev, [postId]: false }));
-    }
-  };
 
   const handleShare = (post) => {
     setShowShareModal(post);
@@ -598,12 +551,8 @@ function Home() {
 
                     {/* Comment Button */}
                     <button
-                      onClick={() => toggleComments(post.id)}
-                      className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg font-semibold transition-all text-xs sm:text-base ${
-                        expandedComments[post.id]
-                          ? 'bg-blue-100 text-orange-600'
-                          : 'bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-orange-600'
-                      }`}
+                      onClick={() => navigate(`/card/${post.id}#comments`)}
+                      className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg font-semibold transition-all text-xs sm:text-base bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-orange-600"
                     >
                       <FaComment className="text-sm sm:text-base" />
                       <span>{post.commentsCount || 0}</span>
@@ -618,39 +567,6 @@ function Home() {
                       <span className="hidden sm:inline">Share</span>
                     </button>
                   </div>
-
-                  {/* Comment Section */}
-                  {expandedComments[post.id] && (
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      {/* Comment Input with @Mention */}
-                      <form onSubmit={(e) => handleSubmitComment(post.id, e)} className="mb-4">
-                        <MentionInput
-                          value={commentTexts[post.id] || ''}
-                          onChange={(value) => setCommentTexts(prev => ({ ...prev, [post.id]: value }))}
-                          placeholder="Write a comment... (@mention users)"
-                          onSubmit={(e) => handleSubmitComment(post.id, e)}
-                          className="mb-2"
-                        />
-                        <div className="flex justify-end">
-                          <button
-                            type="submit"
-                            disabled={!commentTexts[post.id]?.trim() || submittingComment[post.id]}
-                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
-                          >
-                            {submittingComment[post.id] ? 'Posting...' : 'Post Comment'}
-                          </button>
-                        </div>
-                      </form>
-
-                      {/* View All Comments Link */}
-                      <button
-                        onClick={() => navigate(`/card/${post.id}`)}
-                        className="text-indigo-600 hover:text-indigo-700 font-semibold text-sm hover:underline"
-                      >
-                        View all {post.commentsCount || 0} comments
-                      </button>
-                    </div>
-                  )}
 
                   {/* View Details Button */}
                   <button 

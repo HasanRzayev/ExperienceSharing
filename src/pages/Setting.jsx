@@ -3,22 +3,12 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { FaMobile, FaDesktop, FaTablet, FaQrcode, FaUnlink, FaShieldAlt } from "react-icons/fa";
-import QRCodeGenerator from "../components/QRCodeGenerator";
-import QRCodeScanner from "../components/QRCodeScanner";
-import deviceLinkService from "../services/DeviceLinkService";
 import { getApiBaseUrl, getCloudinaryBaseEndpoint } from "../utils/env";
 
 const UserProfile = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [activeTab, setActiveTab] = useState('profile'); // New state for tabs
-  const [linkedDevices, setLinkedDevices] = useState([]);
-  const [showQRCode, setShowQRCode] = useState(false);
-  const [showQRScanner, setShowQRScanner] = useState(false);
-  const [qrCodeData, setQrCodeData] = useState(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -32,42 +22,7 @@ const UserProfile = () => {
 
   useEffect(() => {
     fetchUserProfile();
-    if (activeTab === 'devices') {
-      fetchLinkedDevices();
-    }
-
-    // Initialize SignalR connection
-    deviceLinkService.initialize();
-
-    // Set up SignalR event handlers
-    const handleDeviceLinkConfirmed = (data) => {
-      console.log('Device link confirmed:', data);
-      alert('Device linked successfully!');
-      fetchLinkedDevices(); // Refresh devices list
-    };
-
-    const handleDeviceLinkError = (error) => {
-      console.error('Device link error:', error);
-      alert('Device link failed: ' + error);
-    };
-
-    const handleSessionExpired = () => {
-      console.log('Session expired');
-      alert('QR code session has expired. Please generate a new one.');
-      setShowQRCode(false);
-    };
-
-    deviceLinkService.on('deviceLinkConfirmed', handleDeviceLinkConfirmed);
-    deviceLinkService.on('deviceLinkError', handleDeviceLinkError);
-    deviceLinkService.on('sessionExpired', handleSessionExpired);
-
-    // Cleanup on unmount
-    return () => {
-      deviceLinkService.off('deviceLinkConfirmed', handleDeviceLinkConfirmed);
-      deviceLinkService.off('deviceLinkError', handleDeviceLinkError);
-      deviceLinkService.off('sessionExpired', handleSessionExpired);
-    };
-  }, [activeTab]);
+  }, []);
 
   const fetchUserProfile = async () => {
     try {
@@ -114,16 +69,15 @@ const UserProfile = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setSelectedFile(file);
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "ml_default"); // Cloudinary upload preset
+    const uploadFormData = new FormData();
+    uploadFormData.append("file", file);
+    uploadFormData.append("upload_preset", "ml_default"); // Cloudinary upload preset
 
     try {
       if (!cloudinaryBaseEndpoint) {
         throw new Error("Cloudinary endpoint is not configured");
       }
-      const response = await axios.post(`${cloudinaryBaseEndpoint}image/upload`, formData);
+      const response = await axios.post(`${cloudinaryBaseEndpoint}image/upload`, uploadFormData);
       const imageUrl = response.data.secure_url;
 
       setFormData((prev) => ({
@@ -137,100 +91,6 @@ const UserProfile = () => {
     }
   };
 
-  // Device management functions
-  const fetchLinkedDevices = async () => {
-    try {
-      const token = Cookies.get("token");
-      if (!token) throw new Error("No token found");
-
-      const response = await axios.get(`${apiBaseUrl}/Device/linked-devices`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setLinkedDevices(response.data.devices || []);
-    } catch (error) {
-      console.error("Error fetching linked devices:", error);
-    }
-  };
-
-  const generateQRCode = async () => {
-    try {
-      const token = Cookies.get("token");
-      if (!token) throw new Error("No token found");
-
-      const deviceInfo = {
-        deviceName: navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop Device',
-        deviceType: navigator.userAgent.includes('Mobile') ? 'mobile' : 'desktop',
-        deviceInfo: navigator.userAgent
-      };
-
-      const response = await axios.post(`${apiBaseUrl}/Device/generate-qr`, deviceInfo, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setQrCodeData(response.data);
-      setShowQRCode(true);
-
-      // Join SignalR session
-      if (deviceLinkService.isConnected) {
-        await deviceLinkService.joinSession(response.data.sessionId);
-      }
-    } catch (error) {
-      console.error("Error generating QR code:", error);
-      alert("Failed to generate QR code");
-    }
-  };
-
-  const unlinkDevice = async (deviceId) => {
-    if (!window.confirm("Are you sure you want to unlink this device?")) return;
-
-    try {
-      const token = Cookies.get("token");
-      if (!token) throw new Error("No token found");
-
-      await axios.delete(`${apiBaseUrl}/Device/unlink/${deviceId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      await fetchLinkedDevices();
-      alert("Device unlinked successfully");
-    } catch (error) {
-      console.error("Error unlinking device:", error);
-      alert("Failed to unlink device");
-    }
-  };
-
-  const toggleDeviceTrust = async (deviceId, isTrusted) => {
-    try {
-      const token = Cookies.get("token");
-      if (!token) throw new Error("No token found");
-
-      await axios.put(`${apiBaseUrl}/Device/trust/${deviceId}`,
-        { isTrusted: !isTrusted }, 
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      await fetchLinkedDevices();
-    } catch (error) {
-      console.error("Error updating device trust:", error);
-      alert("Failed to update device trust");
-    }
-  };
-
-  const getDeviceIcon = (deviceType) => {
-    switch (deviceType) {
-      case 'mobile':
-        return <FaMobile className="w-5 h-5" />;
-      case 'desktop':
-        return <FaDesktop className="w-5 h-5" />;
-      case 'tablet':
-        return <FaTablet className="w-5 h-5" />;
-      default:
-        return <FaDesktop className="w-5 h-5" />;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 py-12">
       <div className="max-w-4xl mx-auto px-6">
@@ -241,35 +101,8 @@ const UserProfile = () => {
           </p>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-white rounded-xl p-1 shadow-lg">
-            <button
-              onClick={() => setActiveTab('profile')}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                activeTab === 'profile'
-                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              Profile
-            </button>
-            <button
-              onClick={() => setActiveTab('devices')}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                activeTab === 'devices'
-                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              <FaQrcode className="inline w-4 h-4 mr-2" />
-              Linked Devices
-            </button>
-          </div>
-        </div>
-
         <div className="card-modern p-8">
-          {activeTab === 'profile' && user && (
+          {user && (
             <>
               {/* Profile Image Section */}
               <div className="text-center mb-8">
@@ -399,108 +232,6 @@ const UserProfile = () => {
                 </div>
               )}
             </>
-          )}
-
-          {activeTab === 'devices' && (
-            <div className="space-y-6">
-              {/* Generate QR Code Section */}
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6">
-                <div className="text-center">
-                  <h3 className="text-2xl font-bold text-gray-800 mb-4">Link New Device</h3>
-                  <p className="text-gray-600 mb-6">
-                    Generate a QR code to link a new device to your account
-                  </p>
-                  <div className="flex space-x-4 justify-center">
-                    <button
-                      onClick={generateQRCode}
-                      className="btn-primary px-8 py-3 text-lg"
-                    >
-                      <FaQrcode className="w-5 h-5 mr-2" />
-                      Generate QR Code
-                    </button>
-                    <button
-                      onClick={() => setShowQRScanner(true)}
-                      className="btn-secondary px-8 py-3 text-lg"
-                    >
-                      <FaQrcode className="w-5 h-5 mr-2" />
-                      Scan QR Code
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* QR Code Modal */}
-              {showQRCode && qrCodeData && (
-                <QRCodeGenerator
-                  qrData={qrCodeData}
-                  onClose={() => setShowQRCode(false)}
-                />
-              )}
-
-              {/* QR Scanner Modal */}
-              {showQRScanner && (
-                <QRCodeScanner
-                  onClose={() => setShowQRScanner(false)}
-                  onDeviceLinked={(deviceData) => {
-                    console.log('Device linked:', deviceData);
-                    fetchLinkedDevices(); // Refresh the devices list
-                  }}
-                />
-              )}
-
-              {/* Linked Devices List */}
-              <div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-6">Linked Devices</h3>
-                {linkedDevices.length === 0 ? (
-                  <div className="text-center py-12">
-                    <FaQrcode className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-semibold text-gray-600 mb-2">No devices linked</h4>
-                    <p className="text-gray-500">Generate a QR code to link your first device</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {linkedDevices.map((device) => (
-                      <div key={device.id} className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center text-white">
-                              {getDeviceIcon(device.deviceType)}
-                            </div>
-                            <div>
-                              <h4 className="font-semibold text-gray-800">{device.deviceName}</h4>
-                              <p className="text-sm text-gray-500">{device.deviceType}</p>
-                              <p className="text-xs text-gray-400">
-                                Last seen: {new Date(device.lastSeenAt).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => toggleDeviceTrust(device.deviceId, device.isTrusted)}
-                              className={`p-2 rounded-lg transition-colors ${
-                                device.isTrusted
-                                  ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                              }`}
-                              title={device.isTrusted ? 'Trusted device' : 'Mark as trusted'}
-                            >
-                              <FaShieldAlt className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => unlinkDevice(device.deviceId)}
-                              className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
-                              title="Unlink device"
-                            >
-                              <FaUnlink className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
           )}
         </div>
       </div>
