@@ -6,7 +6,6 @@ import { FaUsers, FaUser, FaPlus, FaSearch, FaPaperPlane, FaTimes, FaEllipsisV, 
 import { HiOutlinePhotograph, HiOutlineVideoCamera, HiOutlineVolumeUp } from "react-icons/hi";
 import EmojiPicker from "emoji-picker-react";
 import { HubConnectionBuilder } from '@microsoft/signalr';
-import { ensureMicRecorder } from '../utils/ensureMicRecorder';
 import { getApiBaseUrl, getCloudinaryBaseEndpoint, getSignalRHubUrl } from '../utils/env';
 
 const CLOUDINARY_BASE_ENDPOINT = getCloudinaryBaseEndpoint();
@@ -426,8 +425,9 @@ const ChatPageV2 = () => {
   
   // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
-  const [blobURL, setBlobURL] = useState("");
-  const [recorder, setRecorder] = useState(null);
+  const mediaRecorderRef = useRef(null);
+  const mediaStreamRef = useRef(null);
+  const recordedChunksRef = useRef([]);
   
   // Emoji picker state
   const [showPicker, setShowPicker] = useState(false);
@@ -517,19 +517,16 @@ const ChatPageV2 = () => {
     }
     
     let isMounted = true;
-    ensureMicRecorder()
-      .then((MicRecorderCtor) => {
-        if (!isMounted) return;
-        const newRecorder = new MicRecorderCtor({ bitRate: 128 });
-        setRecorder(newRecorder);
-      })
-      .catch((error) => {
-        console.error('Failed to load mic recorder:', error);
-      });
 
     navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(() => console.log("Microphone permission granted"))
-      .catch(() => console.log("Microphone access denied"));
+      .then((stream) => {
+        // stop immediately; we just needed permission
+        stream.getTracks().forEach((track) => track.stop());
+        if (isMounted) {
+          console.log("Microphone permission granted");
+        }
+      })
+      .catch((error) => console.warn("Microphone access denied:", error));
     
     fetchUsers();
     fetchGroups();
@@ -2499,61 +2496,70 @@ const ChatPageV2 = () => {
   };
 
   // Voice Recording Functions
-  const startRecording = () => {
-    if (!recorder) {
-      alert('Recorder is still loading. Please wait a second and try again.');
-      return;
-    }
+  const startRecording = async () => {
+    if (isRecording) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaStreamRef.current = stream;
+      recordedChunksRef.current = [];
+      mediaRecorderRef.current = mediaRecorder;
 
-    recorder.start()
-      .then(() => setIsRecording(true))
-      .catch((e) => console.error("Failed to start recording:", e));
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Failed to start recording:", error);
+      alert("Mikrofona erişim sağlanamadı. Lütfen tarayıcı izinlerini kontrol edin.");
+    }
   };
 
   const stopRecording = () => {
-    if (!recorder) {
-      console.error("Recorder object is undefined.");
+    const recorderInstance = mediaRecorderRef.current;
+    if (!recorderInstance) {
+      alert("Aktif bir kayıt bulunamadı.");
       return;
     }
 
-    const stoppedRecorder = recorder.stop();
-
-    if (!stoppedRecorder?.getMp3) {
-      console.error("Recorder did not return a getMp3 function.");
-      setIsRecording(false);
+    if (recorderInstance.state === "inactive") {
       return;
     }
 
-    stoppedRecorder
-      .getMp3()
-      .then(([buffer, blob]) => {
-        if (!blob) {
-          console.error("Blob not created.");
-          return;
-        }
+    recorderInstance.onstop = () => {
+      const blob = new Blob(recordedChunksRef.current, { type: "audio/webm" });
+      recordedChunksRef.current = [];
 
-        const blobURL = URL.createObjectURL(blob);
-        setBlobURL(blobURL);
+      if (!blob || blob.size === 0) {
+        console.warn("Empty audio blob created.");
         setIsRecording(false);
-        
-        // Create Blob as File with name and type
-        const audioFile = new File([blob], "recorded-audio.wav", { type: "audio/wav" });
-        
-        // Set file for sending
-        setFile(audioFile);
-        
-        // Auto-generate preview for audio
-        setFilePreview({
-          url: blobURL,
-          name: "recorded-audio.wav",
-          type: "audio/wav",
-          size: blob.size
-        });
-      })
-      .catch((e) => {
-        console.error("Failed to stop recording:", e);
-        setIsRecording(false);
+        return;
+      }
+
+      const previewUrl = URL.createObjectURL(blob);
+      const fileName = `voice-${Date.now()}.webm`;
+      const audioFile = new File([blob], fileName, { type: blob.type || "audio/webm" });
+
+      setFile(audioFile);
+      setFilePreview({
+        url: previewUrl,
+        name: fileName,
+        type: blob.type || "audio/webm",
+        size: blob.size,
       });
+      setIsRecording(false);
+    };
+
+    recorderInstance.stop();
+    mediaRecorderRef.current = null;
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+    }
   };
 
   // Emoji Handler

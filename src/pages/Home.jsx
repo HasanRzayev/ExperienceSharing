@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Cookies from "js-cookie";
-import { FaUsers, FaHeart, FaComment, FaShare, FaPaperPlane, FaMapMarkerAlt, FaCheck, FaWhatsapp, FaInstagram, FaTiktok, FaCopy, FaPlus } from "react-icons/fa";
+import { FaUsers, FaHeart, FaShare, FaPaperPlane, FaMapMarkerAlt, FaCheck, FaWhatsapp, FaInstagram, FaTiktok, FaCopy, FaPlus } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import LikeButton from "../components/LikeButton";
 import AddToTripButton from "../components/AddToTripButton";
@@ -548,15 +548,6 @@ function Home() {
                     <div className="flex-1">
                       <LikeButton experienceId={post.id} initialLikes={post.likes} />
                     </div>
-
-                    {/* Comment Button */}
-                    <button
-                      onClick={() => navigate(`/card/${post.id}#comments`)}
-                      className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg font-semibold transition-all text-xs sm:text-base bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-orange-600"
-                    >
-                      <FaComment className="text-sm sm:text-base" />
-                      <span>{post.commentsCount || 0}</span>
-                    </button>
 
                     {/* Share Button */}
                     <button
