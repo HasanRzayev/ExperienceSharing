@@ -34,6 +34,27 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const { userData: currentUserData } = useAuth();
 
+  const fallbackImage = "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80";
+
+  const resolvedImageUrl = (() => {
+    if (!imageUrls) return null;
+    if (typeof imageUrls === 'string') return imageUrls;
+    if (Array.isArray(imageUrls)) {
+      const first = imageUrls[0];
+      if (!first) return null;
+      if (typeof first === 'string') return first;
+      return first?.url || first?.Url || null;
+    }
+    if (typeof imageUrls === 'object') {
+      return imageUrls?.url || imageUrls?.Url || null;
+    }
+    return null;
+  })();
+
+  const hasVideo = Boolean(videoUrl);
+  const hasRealImage = Boolean(resolvedImageUrl);
+  const imageSrc = resolvedImageUrl || fallbackImage;
+
   const handleAboutClick = () => {
     if (!id) {
       return;
@@ -88,7 +109,34 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
     >
       {/* Media Container */}
       <div className="relative h-64 overflow-hidden rounded-t-2xl">
-        {videoUrl ? (
+        {hasVideo && hasRealImage ? (
+          <div className="flex h-full">
+            <div className="w-1/2 h-full relative overflow-hidden">
+              <video
+                className={`w-full h-full object-cover transition-all duration-700 ${isHovered ? 'scale-110 opacity-80' : 'opacity-100'}`}
+                src={videoUrl}
+                poster={videoThumbnail}
+                controls={false}
+                muted
+                playsInline
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                <svg className="w-12 h-12 text-white opacity-80" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </div>
+            </div>
+            <div className="w-1/2 h-full overflow-hidden">
+              <img 
+                className={`w-full h-full object-cover transition-all duration-700 ${isHovered ? 'scale-110 opacity-80' : 'opacity-100'}`} 
+                src={imageSrc} 
+                alt={title}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          </div>
+        ) : hasVideo ? (
           <div className="relative w-full h-full">
             <video
               className={`w-full h-full object-cover transition-all duration-700 ${isHovered ? 'scale-110 opacity-80' : 'opacity-100'}`}
@@ -107,7 +155,7 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
         ) : (
           <img 
             className={`w-full h-full object-cover transition-all duration-700 ${isHovered ? 'scale-110 opacity-80' : 'opacity-100'}`} 
-            src={imageUrls || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"} 
+            src={imageSrc} 
             alt={title}
             loading="lazy"
             decoding="async"

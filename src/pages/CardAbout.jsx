@@ -453,6 +453,16 @@ const CardAbout = () => {
     );
   }
 
+  const videoSource = post.videoUrl || post.VideoUrl || null;
+  const mediaImages = Array.isArray(post.imageUrls) ? post.imageUrls : [];
+  const hasVideo = Boolean(videoSource);
+  const hasImages = mediaImages.length > 0;
+  const getImageSrc = (image) => {
+    if (!image) return '';
+    if (typeof image === 'string') return image;
+    return image.url || image.Url || '';
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -497,35 +507,55 @@ const CardAbout = () => {
         </div>
       </div>
 
-      {/* Media Karuseli */}
-          <div className="relative h-64 sm:h-80 xl:h-96 2xl:h-[32rem] bg-gray-900">
-            {(post.videoUrl || post.VideoUrl) && (
-              <div className="flex items-center justify-center w-full h-full bg-gray-900">
+      {/* Media Bölümü */}
+          <div className="relative bg-gray-900 rounded-2xl overflow-hidden">
+            {hasVideo && hasImages ? (
+              <div className="md:grid md:grid-cols-2">
+                <div className="flex items-center justify-center bg-black p-4">
+                  <video
+                    className="w-full h-full max-h-[28rem] object-contain rounded-xl"
+                    src={videoSource}
+                    poster={post.videoThumbnail || post.VideoThumbnail}
+                    controls
+                  />
+                </div>
+                <div className="h-full">
+                  <Carousel className="h-64 sm:h-80 xl:h-96 2xl:h-[32rem] rounded-none">
+                    {mediaImages.map((image, index) => (
+                      <div key={index} className="flex items-center justify-center w-full h-full bg-gray-900">
+                        <img
+                          className="max-w-full max-h-full object-contain"
+                          src={getImageSrc(image)}
+                          alt={`Slide ${index}`}
+                        />
+                      </div>
+                    ))}
+                  </Carousel>
+                </div>
+              </div>
+            ) : hasVideo ? (
+              <div className="flex items-center justify-center w-full h-64 sm:h-80 xl:h-96 2xl:h-[32rem] bg-gray-900">
                 <video
                   className="max-w-full max-h-full object-contain"
-                  src={post.videoUrl || post.VideoUrl}
+                  src={videoSource}
                   poster={post.videoThumbnail || post.VideoThumbnail}
                   controls
                 />
               </div>
-            )}
-            
-            {!(post.videoUrl || post.VideoUrl) && post.imageUrls && Array.isArray(post.imageUrls) && post.imageUrls.length > 0 && (
-              <Carousel className="rounded-none">
-                {post.imageUrls.map((image, index) => (
+            ) : hasImages ? (
+              <Carousel className="h-64 sm:h-80 xl:h-96 2xl:h-[32rem] rounded-none">
+                {mediaImages.map((image, index) => (
                   <div key={index} className="flex items-center justify-center w-full h-full bg-gray-900">
                     <img
                       className="max-w-full max-h-full object-contain"
-                      src={image.url}
+                      src={getImageSrc(image)}
                       alt={`Slide ${index}`}
                     />
                   </div>
                 ))}
               </Carousel>
-            )}
-            
-            {!(post.videoUrl || post.VideoUrl) && (!post.imageUrls || !Array.isArray(post.imageUrls) || post.imageUrls.length === 0) && (
-              <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+            ) : (
+              <div className="w-full h-64 sm:h-80 xl:h-96 2xl:h-[32rem] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                 <div className="text-center">
                   <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
