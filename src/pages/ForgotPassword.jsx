@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { getApiBaseUrl } from '../utils/env';
 
 function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -23,7 +24,7 @@ function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       const response = await axios.post(`${apiBaseUrl}/Auth/forgot-password`, {
         email: email.trim()
       });
