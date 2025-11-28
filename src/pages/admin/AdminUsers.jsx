@@ -104,9 +104,10 @@ function AdminUsers() {
   const handleSave = async () => {
     try {
       const token = Cookies.get('token');
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const url = editingUser 
-        ? `${process.env.REACT_APP_API_BASE_URL}/Admin/users/${editingUser.id}`
-        : `${process.env.REACT_APP_API_BASE_URL}/Admin/users`;
+        ? `${apiBaseUrl}/Admin/users/${editingUser.id}`
+        : `${apiBaseUrl}/Admin/users`;
       
       const method = editingUser ? 'PUT' : 'POST';
 
@@ -132,7 +133,8 @@ function AdminUsers() {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
         const token = Cookies.get('token');
-        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/Admin/users/${id}`, {
+        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+        const response = await fetch(`${apiBaseUrl}/Admin/users/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,

@@ -98,9 +98,10 @@ function AdminComments() {
   const handleSave = async () => {
     try {
       const token = Cookies.get('token');
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const url = editingComment 
-        ? `${process.env.REACT_APP_API_BASE_URL}/Admin/comments/${editingComment.id}`
-        : `${process.env.REACT_APP_API_BASE_URL}/Admin/comments`;
+        ? `${apiBaseUrl}/Admin/comments/${editingComment.id}`
+        : `${apiBaseUrl}/Admin/comments`;
       
       const method = editingComment ? 'PUT' : 'POST';
 
@@ -126,7 +127,8 @@ function AdminComments() {
     if (window.confirm('Are you sure you want to delete this comment?')) {
       try {
         const token = Cookies.get('token');
-        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/Admin/comments/${id}`, {
+        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+        const response = await fetch(`${apiBaseUrl}/Admin/comments/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,

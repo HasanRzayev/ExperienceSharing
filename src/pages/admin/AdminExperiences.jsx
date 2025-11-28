@@ -138,9 +138,10 @@ function AdminExperiences() {
   const handleSave = async () => {
     try {
       const token = Cookies.get('token');
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const url = editingExperience 
-        ? `${process.env.REACT_APP_API_BASE_URL}/Admin/experiences/${editingExperience.id}`
-        : `${process.env.REACT_APP_API_BASE_URL}/Admin/experiences`;
+        ? `${apiBaseUrl}/Admin/experiences/${editingExperience.id}`
+        : `${apiBaseUrl}/Admin/experiences`;
       
       const method = editingExperience ? 'PUT' : 'POST';
 
@@ -166,7 +167,8 @@ function AdminExperiences() {
     if (window.confirm('Are you sure you want to delete this experience?')) {
       try {
         const token = Cookies.get('token');
-        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/Admin/experiences/${id}`, {
+        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+        const response = await fetch(`${apiBaseUrl}/Admin/experiences/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,

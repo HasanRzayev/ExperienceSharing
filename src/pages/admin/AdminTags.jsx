@@ -95,9 +95,10 @@ function AdminTags() {
   const handleSave = async () => {
     try {
       const token = Cookies.get('token');
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
       const url = editingTag 
-        ? `${process.env.REACT_APP_API_BASE_URL}/Admin/tags/${editingTag.id}`
-        : `${process.env.REACT_APP_API_BASE_URL}/Admin/tags`;
+        ? `${apiBaseUrl}/Admin/tags/${editingTag.id}`
+        : `${apiBaseUrl}/Admin/tags`;
       
       const method = editingTag ? 'PUT' : 'POST';
 
@@ -123,7 +124,8 @@ function AdminTags() {
     if (window.confirm('Are you sure you want to delete this tag?')) {
       try {
         const token = Cookies.get('token');
-        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/Admin/tags/${id}`, {
+        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+        const response = await fetch(`${apiBaseUrl}/Admin/tags/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
