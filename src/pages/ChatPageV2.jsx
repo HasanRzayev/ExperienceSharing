@@ -10,6 +10,8 @@ import { ensureMicRecorder } from '../utils/ensureMicRecorder';
 import { getApiBaseUrl, getCloudinaryBaseEndpoint, getSignalRHubUrl } from '../utils/env';
 
 const CLOUDINARY_BASE_ENDPOINT = getCloudinaryBaseEndpoint();
+const GIPHY_BASE_URL =
+  process.env.REACT_APP_GIPHY_API_URL?.trim() || 'https://api.giphy.com/v1/gifs';
 
 const normalizeId = (value) => {
   if (value === undefined || value === null) return null;
@@ -324,16 +326,13 @@ export async function uploadFile(file) {
 
   if (fileType === "image") {
       cloudinaryEndpoint += "image/upload";
-      if (fileExtension === "gif") {
-          formData.append("resource_type", "image"); // GIFs are also stored as images
-      }
-  } else if (fileType === "video") {
+      formData.append("resource_type", "image");
+  } else if (fileType === "video" || fileType === "audio") {
       cloudinaryEndpoint += "video/upload";
-  } else if (fileType === "audio") {
-      cloudinaryEndpoint += "raw/upload"; // Audio files stored as "raw" in Cloudinary
+      formData.append("resource_type", "video");
   } else {
-      console.error("Unsupported file type:", fileType);
-      return null;
+      cloudinaryEndpoint += "raw/upload";
+      formData.append("resource_type", "raw");
   }
 
   try {
@@ -2399,7 +2398,7 @@ const ChatPageV2 = () => {
   const fetchTrendingGifs = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_GIPHY_API_URL}/trending`,
+        `${GIPHY_BASE_URL}/trending`,
         {
           params: {
             api_key: "DjEE0CmAPnIkmKlM7sjBN1bGBwQQE21V",
@@ -2418,7 +2417,7 @@ const ChatPageV2 = () => {
   const searchGifs = async (query) => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_GIPHY_API_URL}/search`,
+        `${GIPHY_BASE_URL}/search`,
         {
           params: {
             api_key: "DjEE0CmAPnIkmKlM7sjBN1bGBwQQE21V",
@@ -2495,7 +2494,10 @@ const ChatPageV2 = () => {
 
   // Voice Recording Functions
   const startRecording = () => {
-    if (!recorder) return;
+    if (!recorder) {
+      alert('Recorder is still loading. Please wait a second and try again.');
+      return;
+    }
 
     recorder.start()
       .then(() => setIsRecording(true))
@@ -2508,9 +2510,16 @@ const ChatPageV2 = () => {
       return;
     }
 
-    recorder.stop();
+    const stoppedRecorder = recorder.stop();
 
-    recorder.getMp3()
+    if (!stoppedRecorder?.getMp3) {
+      console.error("Recorder did not return a getMp3 function.");
+      setIsRecording(false);
+      return;
+    }
+
+    stoppedRecorder
+      .getMp3()
       .then(([buffer, blob]) => {
         if (!blob) {
           console.error("Blob not created.");
@@ -2535,7 +2544,10 @@ const ChatPageV2 = () => {
           size: blob.size
         });
       })
-      .catch((e) => console.error("Failed to stop recording:", e));
+      .catch((e) => {
+        console.error("Failed to stop recording:", e);
+        setIsRecording(false);
+      });
   };
 
   // Emoji Handler
