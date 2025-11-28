@@ -182,30 +182,6 @@ function Login({ onLogin }) {
                   </p>
                 </div>
 
-                {/* QR Login Option */}
-                <div className="mt-6 text-center">
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-300" />
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-white text-gray-500">Or</span>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4">
-                    <button 
-                      onClick={() => navigate('/qr-login')}
-                      className="w-full inline-flex justify-center items-center py-3 px-4 border border-orange-300 rounded-md shadow-sm bg-orange-50 text-sm font-medium text-orange-700 hover:bg-orange-100 transition-smooth"
-                    >
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Login with QR Code
-                    </button>
-                  </div>
-                </div>
-
                 {/* Social Login */}
                 <div className="mt-8">
                   <div className="relative">

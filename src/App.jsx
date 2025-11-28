@@ -13,7 +13,6 @@ const FooterComponent = lazy(() => import("./components/Footer"));
 const CardAbout = lazy(() => import('./pages/CardAbout'));
 const Login = lazy(() => import("./pages/Login"));
 const SignUp = lazy(() => import("./pages/SignUp"));
-const QRLogin = lazy(() => import("./pages/QRLogin"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const ProfilePage = lazy(() => import("./pages/Profil"));
@@ -203,7 +202,6 @@ export default function App() {
                   <Route path="/about/:id" element={<CardAbout />} />
                   <Route path="/card/:id" element={<CardAbout />} />
                   <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
-                  <Route path="/qr-login" element={<QRLogin />} />
                   <Route path="/signup" element={isLoggedIn ? <Navigate to="/" /> : <SignUp />} />
                   <Route path="/forgot-password" element={isLoggedIn ? <Navigate to="/" /> : <ForgotPassword />} />
                   <Route path="/reset-password" element={isLoggedIn ? <Navigate to="/" /> : <ResetPassword />} />
