@@ -155,7 +155,7 @@ const normalizeUserRecord = (userLike) => {
   };
 };
 
-const normalizeMessageRecord = (messageLike) => {
+  const normalizeMessageRecord = (messageLike) => {
   if (!messageLike || typeof messageLike !== 'object') return messageLike;
 
   const rawId =
@@ -188,8 +188,18 @@ const normalizeMessageRecord = (messageLike) => {
   };
 
   const content = normalizeString(messageLike.content ?? messageLike.Content) ?? '';
-  const mediaUrl = normalizeString(messageLike.mediaUrl ?? messageLike.MediaUrl);
-  const mediaType = normalizeString(messageLike.mediaType ?? messageLike.MediaType);
+  const mediaUrl = normalizeString(
+    messageLike.mediaUrl ??
+    messageLike.MediaUrl ??
+    messageLike.MediaURL ??
+    messageLike.mediaURL
+  );
+  const mediaType = normalizeString(
+    messageLike.mediaType ??
+    messageLike.MediaType ??
+    messageLike.messageType ??
+    messageLike.MessageType
+  );
 
   const isDeliveredRaw =
     messageLike.isDelivered ??
