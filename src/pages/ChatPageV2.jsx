@@ -181,9 +181,15 @@ const normalizeMessageRecord = (messageLike) => {
     messageLike.CreatedAt ??
     null;
 
-  const content = messageLike.content ?? messageLike.Content ?? '';
-  const mediaUrl = messageLike.mediaUrl ?? messageLike.MediaUrl ?? null;
-  const mediaType = messageLike.mediaType ?? messageLike.MediaType ?? null;
+  const normalizeString = (value) => {
+    if (value === undefined || value === null) return null;
+    const str = String(value).trim();
+    return str.length > 0 ? str : null;
+  };
+
+  const content = normalizeString(messageLike.content ?? messageLike.Content) ?? '';
+  const mediaUrl = normalizeString(messageLike.mediaUrl ?? messageLike.MediaUrl);
+  const mediaType = normalizeString(messageLike.mediaType ?? messageLike.MediaType);
 
   const isDeliveredRaw =
     messageLike.isDelivered ??
@@ -1980,13 +1986,14 @@ const ChatPageV2 = () => {
       console.log("Uploaded file link:", fileUrl);
 
       // Determine media type
-      if (file?.name) {
+      mediaType =
+        getMediaTypeFromMime(file?.type) ||
+        getMediaTypeFromMime(filePreview?.type) ||
+        null;
+
+      if (!mediaType && file?.name) {
         const fileExtension = file.name.includes('.') ? file.name.split('.').pop() : '';
         mediaType = getMediaTypeFromExtension(fileExtension);
-      }
-
-      if (!mediaType) {
-        mediaType = getMediaTypeFromMime(file?.type) || getMediaTypeFromMime(filePreview?.type);
       }
 
       if (!mediaType && file?.name?.includes('.')) {
