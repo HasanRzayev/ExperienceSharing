@@ -123,18 +123,6 @@ function AdminExperiences() {
     setShowModal(true);
   };
 
-  const handleAdd = () => {
-    setEditingExperience(null);
-    setFormData({
-      title: '',
-      description: '',
-      location: '',
-      date: '',
-      rating: 5,
-      tags: []
-    });
-    setShowModal(true);
-  };
 
   const handleSave = async () => {
     try {
