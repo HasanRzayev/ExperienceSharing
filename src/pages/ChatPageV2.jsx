@@ -326,13 +326,12 @@ export async function uploadFile(file) {
 
   if (fileType === "image") {
       cloudinaryEndpoint += "image/upload";
-      formData.append("resource_type", "image");
-  } else if (fileType === "video" || fileType === "audio") {
+  } else if (fileType === "video") {
       cloudinaryEndpoint += "video/upload";
-      formData.append("resource_type", "video");
+  } else if (fileType === "audio") {
+      cloudinaryEndpoint += "raw/upload";
   } else {
       cloudinaryEndpoint += "raw/upload";
-      formData.append("resource_type", "raw");
   }
 
   try {
@@ -1966,6 +1965,13 @@ const ChatPageV2 = () => {
         } else {
           mediaType = "document";
         }
+      }
+
+      if (!mediaType && file?.type) {
+        const [mimeGroup] = file.type.split('/');
+        if (mimeGroup === 'image') mediaType = 'image';
+        else if (mimeGroup === 'video') mediaType = 'video';
+        else if (mimeGroup === 'audio') mediaType = 'audio';
       }
 
       // If fileUrl is GIF link
