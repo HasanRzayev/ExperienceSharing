@@ -2677,7 +2677,7 @@ const ChatPageV2 = () => {
     try {
       if (chatType === 'user') {
         await axios.delete(
-          `${apiBaseUrl}/Messages/conversation/${selectedChat.id}`,
+          `${apiBaseUrl}/Messages/delete/${selectedChat.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else if (chatType === 'group') {
@@ -3176,29 +3176,7 @@ const ChatPageV2 = () => {
                                   className="w-full px-4 py-3 text-left hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-3"
                                 >
                                   <FaTrash className="text-red-600" />
-                                  <span className="text-red-600 dark:text-red-400">Delete Chat</span>
-                                </button>
-                                
-                                <button
-                                  onClick={() => {
-                                    handleBlockUser();
-                                    setShowChatOptions(false);
-                                  }}
-                                  className="w-full px-4 py-3 text-left hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-3"
-                                >
-                                  <FaBan className="text-red-600" />
-                                  <span className="text-red-600 dark:text-red-400 font-medium">Block User</span>
-                                </button>
-                                
-                                <button
-                                  onClick={() => {
-                                    handleUnblockUser();
-                                    setShowChatOptions(false);
-                                  }}
-                                  className="w-full px-4 py-3 text-left hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors flex items-center gap-3"
-                                >
-                                  <FaCheck className="text-green-600" />
-                                  <span className="text-green-600 dark:text-green-400 font-medium">Unblock User</span>
+                                  <span className="text-red-600 dark:text-red-400 font-medium">Delete Chat</span>
                                 </button>
                               </div>
                             )}
