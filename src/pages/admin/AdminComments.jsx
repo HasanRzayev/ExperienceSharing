@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../App';
 import Cookies from 'js-cookie';
+import { getApiBaseUrl } from '../../utils/env';
 
 function AdminComments() {
   const [comments, setComments] = useState([]);
@@ -35,7 +36,7 @@ function AdminComments() {
       setLoading(true);
       
       const token = Cookies.get('token');
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       const response = await fetch(
         `${apiBaseUrl}/Admin/comments?page=${currentPage}&pageSize=${pageSize}&search=${encodeURIComponent(searchTerm)}`,
         {
@@ -98,7 +99,7 @@ function AdminComments() {
   const handleSave = async () => {
     try {
       const token = Cookies.get('token');
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       const url = editingComment 
         ? `${apiBaseUrl}/Admin/comments/${editingComment.id}`
         : `${apiBaseUrl}/Admin/comments`;
@@ -127,7 +128,7 @@ function AdminComments() {
     if (window.confirm('Are you sure you want to delete this comment?')) {
       try {
         const token = Cookies.get('token');
-        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+        const apiBaseUrl = getApiBaseUrl();
         const response = await fetch(`${apiBaseUrl}/Admin/comments/${id}`, {
           method: 'DELETE',
           headers: {

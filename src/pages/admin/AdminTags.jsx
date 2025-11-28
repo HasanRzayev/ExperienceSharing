@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../App';
 import Cookies from 'js-cookie';
+import { getApiBaseUrl } from '../../utils/env';
 
 function AdminTags() {
   const [tags, setTags] = useState([]);
@@ -34,7 +35,7 @@ function AdminTags() {
       setLoading(true);
       
       const token = Cookies.get('token');
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       const response = await fetch(
         `${apiBaseUrl}/Admin/tags?page=1&pageSize=1000&search=${encodeURIComponent(searchTerm)}`,
         {
@@ -95,7 +96,7 @@ function AdminTags() {
   const handleSave = async () => {
     try {
       const token = Cookies.get('token');
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       const url = editingTag 
         ? `${apiBaseUrl}/Admin/tags/${editingTag.id}`
         : `${apiBaseUrl}/Admin/tags`;
@@ -124,7 +125,7 @@ function AdminTags() {
     if (window.confirm('Are you sure you want to delete this tag?')) {
       try {
         const token = Cookies.get('token');
-        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+        const apiBaseUrl = getApiBaseUrl();
         const response = await fetch(`${apiBaseUrl}/Admin/tags/${id}`, {
           method: 'DELETE',
           headers: {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../App';
 import Cookies from 'js-cookie';
+import { getApiBaseUrl } from '../../utils/env';
 
 function AdminUsers() {
   const [users, setUsers] = useState([]);
@@ -37,7 +38,7 @@ function AdminUsers() {
       setLoading(true);
       
       const token = Cookies.get('token');
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       const response = await fetch(
         `${apiBaseUrl}/Admin/users?page=1&pageSize=1000&search=${encodeURIComponent(searchTerm)}`,
         {
@@ -104,7 +105,7 @@ function AdminUsers() {
   const handleSave = async () => {
     try {
       const token = Cookies.get('token');
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       const url = editingUser 
         ? `${apiBaseUrl}/Admin/users/${editingUser.id}`
         : `${apiBaseUrl}/Admin/users`;
@@ -133,7 +134,7 @@ function AdminUsers() {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
         const token = Cookies.get('token');
-        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+        const apiBaseUrl = getApiBaseUrl();
         const response = await fetch(`${apiBaseUrl}/Admin/users/${id}`, {
           method: 'DELETE',
           headers: {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../App';
 import Cookies from 'js-cookie';
+import { getApiBaseUrl } from '../../utils/env';
 
 function AdminLikes() {
   const [likes, setLikes] = useState([]);
@@ -28,7 +29,7 @@ function AdminLikes() {
       setLoading(true);
       
       const token = Cookies.get('token');
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      const apiBaseUrl = getApiBaseUrl();
       const response = await fetch(
         `${apiBaseUrl}/Admin/likes?page=1&pageSize=1000&search=${encodeURIComponent(searchTerm)}`,
         {
@@ -79,7 +80,7 @@ function AdminLikes() {
     if (window.confirm('Are you sure you want to delete this like?')) {
       try {
         const token = Cookies.get('token');
-        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+        const apiBaseUrl = getApiBaseUrl();
         const response = await fetch(`${apiBaseUrl}/Admin/likes/${id}`, {
           method: 'DELETE',
           headers: {
