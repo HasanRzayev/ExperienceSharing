@@ -39,7 +39,13 @@ const CardAbout = () => {
 
   const handleUserNameClick = () => {
     if (post.user?.id) {
-      navigate(`/profile/${post.user.id}`);
+      const currentUserId = getCurrentUserId();
+      const isOwnProfile = currentUserId && post.user.id.toString() === currentUserId.toString();
+      if (isOwnProfile) {
+        navigate('/profil');
+      } else {
+        navigate(`/profile/${post.user.id}`);
+      }
     }
   };
 
@@ -495,7 +501,11 @@ const CardAbout = () => {
               {/* Like, Follow və Share düymələri */}
               <div className="flex items-center gap-3">
           <LikeButton experienceId={post.id} />
-          <FollowButton userId={post.user?.id} />
+          {(() => {
+            const currentUserId = getCurrentUserId();
+            const isOwnFeed = currentUserId && post.user?.id && post.user.id.toString() === currentUserId.toString();
+            return !isOwnFeed ? <FollowButton userId={post.user?.id} /> : null;
+          })()}
                 <button
                   onClick={() => setShowShareModal(true)}
                   className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-3 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"

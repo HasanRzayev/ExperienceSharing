@@ -420,12 +420,18 @@ function Home() {
                     src={post.user?.profileImage || "https://via.placeholder.com/40"}
                     alt={post.user?.userName}
                     className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-indigo-100 cursor-pointer hover:border-indigo-400 transition-colors"
-                    onClick={() => navigate(`/profile/${post.user?.id}`)}
+                    onClick={() => {
+                      const isOwnProfile = currentUser?.id && post.user?.id && currentUser.id.toString() === post.user.id.toString();
+                      navigate(isOwnProfile ? '/profil' : `/profile/${post.user?.id}`);
+                    }}
                   />
                   <div className="flex-1 min-w-0">
                     <h3 
                       className="font-bold text-sm sm:text-base text-gray-800 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer transition-colors truncate"
-                      onClick={() => navigate(`/profile/${post.user?.id}`)}
+                      onClick={() => {
+                        const isOwnProfile = currentUser?.id && post.user?.id && currentUser.id.toString() === post.user.id.toString();
+                        navigate(isOwnProfile ? '/profil' : `/profile/${post.user?.id}`);
+                      }}
                     >
                       {post.user?.userName}
                     </h3>
