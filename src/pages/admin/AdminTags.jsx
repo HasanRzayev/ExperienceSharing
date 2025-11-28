@@ -96,8 +96,8 @@ function AdminTags() {
     try {
       const token = Cookies.get('token');
       const url = editingTag 
-        ? `${process.env.REACT_APP_API_BASE_URL}/admin/tags/${editingTag.id}`
-        : `${process.env.REACT_APP_API_BASE_URL}/admin/tags`;
+        ? `${process.env.REACT_APP_API_BASE_URL}/Admin/tags/${editingTag.id}`
+        : `${process.env.REACT_APP_API_BASE_URL}/Admin/tags`;
       
       const method = editingTag ? 'PUT' : 'POST';
 
@@ -123,7 +123,7 @@ function AdminTags() {
     if (window.confirm('Are you sure you want to delete this tag?')) {
       try {
         const token = Cookies.get('token');
-        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/admin/tags/${id}`, {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/Admin/tags/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,

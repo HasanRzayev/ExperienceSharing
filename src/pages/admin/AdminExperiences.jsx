@@ -139,8 +139,8 @@ function AdminExperiences() {
     try {
       const token = Cookies.get('token');
       const url = editingExperience 
-        ? `${process.env.REACT_APP_API_BASE_URL}/admin/experiences/${editingExperience.id}`
-        : `${process.env.REACT_APP_API_BASE_URL}/admin/experiences`;
+        ? `${process.env.REACT_APP_API_BASE_URL}/Admin/experiences/${editingExperience.id}`
+        : `${process.env.REACT_APP_API_BASE_URL}/Admin/experiences`;
       
       const method = editingExperience ? 'PUT' : 'POST';
 
@@ -166,7 +166,7 @@ function AdminExperiences() {
     if (window.confirm('Are you sure you want to delete this experience?')) {
       try {
         const token = Cookies.get('token');
-        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/admin/experiences/${id}`, {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/Admin/experiences/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,

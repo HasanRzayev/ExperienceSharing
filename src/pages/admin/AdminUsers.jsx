@@ -105,8 +105,8 @@ function AdminUsers() {
     try {
       const token = Cookies.get('token');
       const url = editingUser 
-        ? `${process.env.REACT_APP_API_BASE_URL}/admin/users/${editingUser.id}`
-        : `${process.env.REACT_APP_API_BASE_URL}/admin/users`;
+        ? `${process.env.REACT_APP_API_BASE_URL}/Admin/users/${editingUser.id}`
+        : `${process.env.REACT_APP_API_BASE_URL}/Admin/users`;
       
       const method = editingUser ? 'PUT' : 'POST';
 
@@ -132,7 +132,7 @@ function AdminUsers() {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
         const token = Cookies.get('token');
-        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/admin/users/${id}`, {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/Admin/users/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,

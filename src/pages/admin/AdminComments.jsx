@@ -99,8 +99,8 @@ function AdminComments() {
     try {
       const token = Cookies.get('token');
       const url = editingComment 
-        ? `${process.env.REACT_APP_API_BASE_URL}/admin/comments/${editingComment.id}`
-        : `${process.env.REACT_APP_API_BASE_URL}/admin/comments`;
+        ? `${process.env.REACT_APP_API_BASE_URL}/Admin/comments/${editingComment.id}`
+        : `${process.env.REACT_APP_API_BASE_URL}/Admin/comments`;
       
       const method = editingComment ? 'PUT' : 'POST';
 
@@ -126,7 +126,7 @@ function AdminComments() {
     if (window.confirm('Are you sure you want to delete this comment?')) {
       try {
         const token = Cookies.get('token');
-        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/admin/comments/${id}`, {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/Admin/comments/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
