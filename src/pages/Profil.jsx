@@ -457,7 +457,7 @@ const ProfilePage = () => {
                           isOwner={true}
                           onDelete={handleDeleteExperience}
                           onEdit={handleEditExperience}
-                          videoUrl={post.videoUrl}
+                          videoUrl={post.videoUrl || post.VideoUrl}
                           videoThumbnail={post.videoThumbnail}
                         />
                       </div>
@@ -519,6 +519,7 @@ const ProfilePage = () => {
                           }}
                           likesCount={experience.likes || experience.Likes || 0}
                           commentsCount={experience.comments?.length || experience.Comments?.length || 0}
+                          videoUrl={experience.videoUrl || experience.VideoUrl}
                         />
                       </div>
                     );
@@ -578,6 +579,7 @@ const ProfilePage = () => {
                           }}
                           likesCount={experience.likes || experience.Likes || 0}
                           commentsCount={experience.comments?.length || experience.Comments?.length || 0}
+                          videoUrl={experience.videoUrl || experience.VideoUrl}
                         />
                       </div>
                     );

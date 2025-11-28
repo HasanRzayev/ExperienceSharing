@@ -499,18 +499,18 @@ const CardAbout = () => {
 
       {/* Media Karuseli */}
           <div className="relative h-64 sm:h-80 xl:h-96 2xl:h-[32rem] bg-gray-900">
-            {post.videoUrl && (
+            {(post.videoUrl || post.VideoUrl) && (
               <div className="flex items-center justify-center w-full h-full bg-gray-900">
                 <video
                   className="max-w-full max-h-full object-contain"
-                  src={post.videoUrl}
-                  poster={post.videoThumbnail}
+                  src={post.videoUrl || post.VideoUrl}
+                  poster={post.videoThumbnail || post.VideoThumbnail}
                   controls
                 />
               </div>
             )}
             
-            {!post.videoUrl && post.imageUrls && Array.isArray(post.imageUrls) && post.imageUrls.length > 0 && (
+            {!(post.videoUrl || post.VideoUrl) && post.imageUrls && Array.isArray(post.imageUrls) && post.imageUrls.length > 0 && (
               <Carousel className="rounded-none">
                 {post.imageUrls.map((image, index) => (
                   <div key={index} className="flex items-center justify-center w-full h-full bg-gray-900">
@@ -524,7 +524,7 @@ const CardAbout = () => {
               </Carousel>
             )}
             
-            {!post.videoUrl && (!post.imageUrls || !Array.isArray(post.imageUrls) || post.imageUrls.length === 0) && (
+            {!(post.videoUrl || post.VideoUrl) && (!post.imageUrls || !Array.isArray(post.imageUrls) || post.imageUrls.length === 0) && (
               <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                 <div className="text-center">
                   <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

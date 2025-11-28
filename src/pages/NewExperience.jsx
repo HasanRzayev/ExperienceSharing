@@ -120,7 +120,7 @@ const NewExperience = () => {
           
           setTags(parsedTags);
           setExistingImages(data.imageUrls || []);
-          setExistingVideo(data.videoUrl || null);
+          setExistingVideo(data.videoUrl || data.VideoUrl || null);
         } catch (error) {
           console.error('Error fetching experience:', error);
           swal({
