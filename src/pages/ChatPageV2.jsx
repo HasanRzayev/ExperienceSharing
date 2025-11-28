@@ -491,6 +491,35 @@ const ChatPageV2 = () => {
   }, [deliveredIds]);
 
   // Fetch current user
+  const getMediaTypeFromExtension = (extension) => {
+    if (!extension) return null;
+    const ext = extension.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'heic', 'heif', 'avif', 'svg'].includes(ext)) return 'image';
+    if (['mp4', 'mov', 'mkv', 'webm', 'avi', 'm4v'].includes(ext)) return 'video';
+    if (['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'webm'].includes(ext)) return 'audio';
+    return null;
+  };
+
+  const getMediaTypeFromMime = (mime) => {
+    if (!mime) return null;
+    const normalized = mime.toLowerCase().split(';')[0];
+    if (normalized.startsWith('image/')) return 'image';
+    if (normalized.startsWith('video/')) return 'video';
+    if (normalized.startsWith('audio/')) return 'audio';
+    return null;
+  };
+
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
   const fetchCurrentUser = async () => {
     try {
       const response = await axios.get(`${apiBaseUrl}/Users/me`, {
@@ -1952,28 +1981,25 @@ const ChatPageV2 = () => {
 
       // Determine media type
       if (file?.name) {
-        const fileExtension = file.name.split('.').pop().toLowerCase();
-        if (["jpg", "jpeg", "png", "webp", "gif"].includes(fileExtension)) {
-          mediaType = "image";
-        } else if (["mp4", "avi", "mov", "mkv"].includes(fileExtension)) {
-          mediaType = "video";
-        } else if (["mp3", "wav", "ogg", "flac"].includes(fileExtension)) {
-          mediaType = "audio";
-        } else {
-          mediaType = "document";
-        }
+        const fileExtension = file.name.includes('.') ? file.name.split('.').pop() : '';
+        mediaType = getMediaTypeFromExtension(fileExtension);
       }
 
-      if (!mediaType && file?.type) {
-        const [mimeGroup] = file.type.split('/');
-        if (mimeGroup === 'image') mediaType = 'image';
-        else if (mimeGroup === 'video') mediaType = 'video';
-        else if (mimeGroup === 'audio') mediaType = 'audio';
+      if (!mediaType) {
+        mediaType = getMediaTypeFromMime(file?.type) || getMediaTypeFromMime(filePreview?.type);
       }
 
-      // If fileUrl is GIF link
-      if (fileUrl && fileUrl.includes("gif")) {
-        mediaType = "image";
+      if (!mediaType && file?.name?.includes('.')) {
+        const extension = file.name.split('.').pop();
+        mediaType = getMediaTypeFromExtension(extension);
+      }
+
+      if (!mediaType && fileUrl && fileUrl.toLowerCase().includes('.gif')) {
+        mediaType = 'image';
+      }
+
+      if (!mediaType) {
+        mediaType = 'document';
       }
     }
 
