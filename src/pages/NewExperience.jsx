@@ -447,7 +447,7 @@ const NewExperience = () => {
                     </p>
                     <p className="text-sm text-gray-500">PNG, JPG, GIF up to 10MB each</p>
                   </div>
-                  <FileInput id="dropzone-file" className="hidden" onChange={handleImageChange} multiple disabled={isLoading} />
+                  <FileInput id="dropzone-file" className="hidden" onChange={handleImageChange} multiple accept="image/*" disabled={isLoading} />
                 </Label>
               </div>
 
