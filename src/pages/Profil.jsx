@@ -5,6 +5,7 @@ import CustomCard from "./Card";
 import { useNavigate } from "react-router-dom";
 import AnalyticsTab from "../components/AnalyticsTab";
 import { getApiBaseUrl } from "../utils/env";
+import { getProfileImage } from "../utils/profileImage";
 
 const ProfilePage = () => {
   const [userData, setUserData] = useState(null);
@@ -202,7 +203,8 @@ const ProfilePage = () => {
   const lastName = userData.lastName || userData.LastName || '';
   const email = userData.email || userData.Email || '';
   const country = userData.country || userData.Country || 'Unknown';
-  const profileImage = userData.profileImage || userData.ProfileImage || 'https://via.placeholder.com/150';
+  const userName = userData.userName || userData.UserName || `${firstName} ${lastName}`.trim() || 'User';
+  const profileImage = getProfileImage(userData.profileImage || userData.ProfileImage, userName);
   const userExperiences = userData.userExperiences || userData.UserExperiences || [];
 
   return (
@@ -230,9 +232,10 @@ const ProfilePage = () => {
             <div className="flex flex-col md:flex-row items-center md:items-end space-y-6 md:space-y-0 md:space-x-8">
               <div className="relative">
                 <img
-                  className="w-40 h-40 object-cover rounded-full border-8 border-white shadow-2xl"
-                  src={profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"}
+                  className="w-40 h-40 object-cover rounded-full border-8 border-white shadow-2xl bg-gradient-to-br from-purple-400 to-blue-500"
+                  src={profileImage}
                   alt="Profile"
+                  onError={(e) => { e.target.src = getProfileImage(null, userName); }}
                 />
               </div>
 

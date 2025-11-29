@@ -305,9 +305,12 @@ const EventDetail = () => {
               {/* Organizer Info */}
               <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 md:col-span-2">
                 <img
-                  src={event.createdBy?.profileImage || "https://via.placeholder.com/48"}
+                  src={event.createdBy?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(event.createdBy?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`}
                   alt={event.createdBy?.userName}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-purple-200"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-purple-200 bg-gradient-to-br from-purple-400 to-blue-500"
+                  onError={(e) => {
+                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(event.createdBy?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`;
+                  }}
                 />
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-500">Organized by</p>
@@ -421,9 +424,12 @@ const EventDetail = () => {
                           onClick={() => navigate(`/profile/${attendee.userId}`)}
                         >
                           <img
-                            src={attendee.user?.profileImage || "https://via.placeholder.com/40"}
+                            src={attendee.user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(attendee.user?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`}
                             alt={attendee.user?.userName}
-                            className="w-10 h-10 rounded-full object-cover"
+                            className="w-10 h-10 rounded-full object-cover bg-gradient-to-br from-purple-400 to-blue-500"
+                            onError={(e) => {
+                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(attendee.user?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`;
+                            }}
                           />
                           <div className="flex-1">
                             <p className="font-semibold text-gray-800 dark:text-white">
@@ -461,9 +467,12 @@ const EventDetail = () => {
                           onClick={() => navigate(`/profile/${attendee.userId}`)}
                         >
                           <img
-                            src={attendee.user?.profileImage || "https://via.placeholder.com/40"}
+                            src={attendee.user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(attendee.user?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`}
                             alt={attendee.user?.userName}
-                            className="w-10 h-10 rounded-full object-cover"
+                            className="w-10 h-10 rounded-full object-cover bg-gradient-to-br from-purple-400 to-blue-500"
+                            onError={(e) => {
+                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(attendee.user?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`;
+                            }}
                           />
                           <div>
                             <p className="font-semibold text-gray-800 dark:text-white">

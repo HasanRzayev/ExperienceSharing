@@ -287,11 +287,14 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <img
-              src={user?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"}
+              src={user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`}
               alt={user?.userName || "User"}
-              className="w-8 h-8 rounded-full object-cover border-2 border-white shadow-md"
+              className="w-8 h-8 rounded-full object-cover border-2 border-white shadow-md bg-gradient-to-br from-purple-400 to-blue-500"
               loading="lazy"
               decoding="async"
+              onError={(e) => {
+                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`;
+              }}
             />
             <div>
               <p className="text-sm font-medium text-gray-800 cursor-pointer hover:text-purple-600 transition-colors" onClick={handleUserNameClick}>

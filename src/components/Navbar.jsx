@@ -188,9 +188,12 @@ const NavbarComponent = () => {
                     className="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                   >
                     <img
-                      src={userData?.profileImage || "https://flowbite.com/docs/images/people/profile-picture-5.jpg"}
+                      src={userData?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.fullName || userData?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`}
                 alt="User settings"
-                      className="h-8 w-8 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-orange-500 transition-all"
+                      className="h-8 w-8 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-orange-500 transition-all bg-gradient-to-br from-purple-400 to-blue-500"
+                      onError={(e) => {
+                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.fullName || userData?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`;
+                      }}
               />
             </button>
             

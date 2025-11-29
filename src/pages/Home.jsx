@@ -417,9 +417,12 @@ function Home() {
                 {/* User Header */}
                 <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-b border-gray-100 dark:border-gray-700">
                   <img
-                    src={post.user?.profileImage || "https://via.placeholder.com/40"}
+                    src={post.user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.user?.userName || post.user?.firstName || 'User')}&background=667eea&color=fff&size=128&bold=true`}
                     alt={post.user?.userName}
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-indigo-100 cursor-pointer hover:border-indigo-400 transition-colors"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-indigo-100 cursor-pointer hover:border-indigo-400 transition-colors bg-gradient-to-br from-purple-400 to-blue-500"
+                    onError={(e) => {
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(post.user?.userName || post.user?.firstName || 'User')}&background=667eea&color=fff&size=128&bold=true`;
+                    }}
                     onClick={() => {
                       const isOwnProfile = currentUser?.id && post.user?.id && currentUser.id.toString() === post.user.id.toString();
                       navigate(isOwnProfile ? '/profil' : `/profile/${post.user?.id}`);

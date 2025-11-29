@@ -54,7 +54,7 @@ const FollowingPage = () => {
           following.map((user) => {
             const userId = user.id || user.Id || user.userId || user.UserId;
             const userName = user.userName || user.UserName || user.username || user.Username || "Unknown";
-            const profileImage = user.profileImage || user.ProfileImage || "/default-avatar.png";
+            const profileImage = user.profileImage || user.ProfileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=667eea&color=fff&size=128&bold=true`;
             const firstName = user.firstName || user.FirstName || "";
             const lastName = user.lastName || user.LastName || "";
             const displayName = firstName && lastName ? `${firstName} ${lastName}` : userName;
@@ -69,7 +69,10 @@ const FollowingPage = () => {
                   <img
                     src={profileImage}
                     alt={userName}
-                    className="w-12 h-12 rounded-full border-2 border-gray-200 dark:border-gray-600"
+                    className="w-12 h-12 rounded-full border-2 border-gray-200 dark:border-gray-600 bg-gradient-to-br from-purple-400 to-blue-500 object-cover"
+                    onError={(e) => {
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=667eea&color=fff&size=128&bold=true`;
+                    }}
                   />
                   <div className="ml-4">
                     <span className="font-medium text-lg text-gray-700 dark:text-white block">{displayName}</span>

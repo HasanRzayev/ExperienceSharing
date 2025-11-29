@@ -5,6 +5,7 @@ import Cookies from 'js-cookie';
 import FollowButton from '../components/FollowButton';
 import CustomCard from './Card';
 import { getApiBaseUrl } from '../utils/env';
+import { getProfileImage } from '../utils/profileImage';
 
 const UserProfilePage = () => {
   const [userData, setUserData] = useState(null);
@@ -136,15 +137,16 @@ const UserProfilePage = () => {
   const lastName = userData.lastName || userData.LastName || '';
   const email = userData.email || userData.Email || '';
   const country = userData.country || userData.Country || 'Unknown';
-  const profileImage = userData.profileImage || userData.ProfileImage || 'https://via.placeholder.com/150';
+  const userName = userData.userName || userData.UserName || `${firstName} ${lastName}`.trim() || 'User';
+  const profileImage = getProfileImage(userData.profileImage || userData.ProfileImage, userName);
 
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col items-center p-8">
       <div className="bg-white w-full max-w-4xl shadow-md rounded-lg overflow-hidden">
         <div className="relative bg-gray-300 h-48">
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="w-24 h-24 border-4 border-white rounded-full overflow-hidden">
-              <img src={profileImage || 'https://via.placeholder.com/150'} alt="Profile" className="w-full h-full object-cover" />
+            <div className="w-24 h-24 border-4 border-white rounded-full overflow-hidden bg-gradient-to-br from-purple-400 to-blue-500">
+              <img src={profileImage} alt="Profile" className="w-full h-full object-cover" onError={(e) => { e.target.src = getProfileImage(null, userName); }} />
             </div>
           </div>
         </div>

@@ -54,7 +54,7 @@ const FollowersPage = () => {
           followers.map((follower) => {
             const followerId = follower.id || follower.Id || follower.userId || follower.UserId;
             const userName = follower.userName || follower.UserName || follower.username || follower.Username || "Unknown";
-            const profileImage = follower.profileImage || follower.ProfileImage || "/default-avatar.png";
+            const profileImage = follower.profileImage || follower.ProfileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=667eea&color=fff&size=128&bold=true`;
             const firstName = follower.firstName || follower.FirstName || "";
             const lastName = follower.lastName || follower.LastName || "";
             const displayName = firstName && lastName ? `${firstName} ${lastName}` : userName;
@@ -69,7 +69,10 @@ const FollowersPage = () => {
                   <img
                     src={profileImage}
                     alt={userName}
-                    className="w-12 h-12 rounded-full border-2 border-gray-200 dark:border-gray-600"
+                    className="w-12 h-12 rounded-full border-2 border-gray-200 dark:border-gray-600 bg-gradient-to-br from-purple-400 to-blue-500 object-cover"
+                    onError={(e) => {
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=667eea&color=fff&size=128&bold=true`;
+                    }}
                   />
                   <div className="ml-4">
                     <span className="font-medium text-lg text-gray-700 dark:text-white block">{displayName}</span>
