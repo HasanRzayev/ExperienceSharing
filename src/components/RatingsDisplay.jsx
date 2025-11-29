@@ -66,24 +66,6 @@ const RatingsDisplay = ({ experienceId, refreshTrigger }) => {
     }
   };
 
-  const handleHelpful = async (ratingId) => {
-    if (!token) {
-      window.location.href = '/login';
-      return;
-    }
-
-    try {
-      const apiBaseUrl = getApiBaseUrl();
-      await axios.post(
-        `${apiBaseUrl}/Rating/${ratingId}/helpful`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      fetchRatings(); // Refresh
-    } catch (error) {
-      console.error('Error marking helpful:', error);
-    }
-  };
 
   const handleDelete = async (ratingId) => {
     if (!token) {
@@ -184,7 +166,6 @@ const RatingsDisplay = ({ experienceId, refreshTrigger }) => {
           const ratingId = rating.id || rating.Id;
           const overallRating = rating.overallRating || rating.OverallRating || 0;
           const review = rating.review || rating.Review;
-          const helpfulCount = rating.helpfulCount || rating.HelpfulCount || 0;
           const createdAt = rating.createdAt || rating.CreatedAt;
           const userName = rating.user?.userName || rating.user?.UserName || "Unknown";
           const profileImage = rating.user?.profileImage || rating.user?.ProfileImage || 'https://via.placeholder.com/40';
@@ -225,16 +206,6 @@ const RatingsDisplay = ({ experienceId, refreshTrigger }) => {
               )}
 
               <div className="flex items-center gap-4">
-                <button
-                  onClick={() => handleHelpful(ratingId)}
-                  className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-                  </svg>
-                  <span>Faydalı ({helpfulCount})</span>
-                </button>
-
                 {canDelete && (
                   <button
                     onClick={() => handleDelete(ratingId)}
