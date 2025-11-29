@@ -7,6 +7,17 @@ const TripDetail = () => {
   const { id } = useParams();
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editTrip, setEditTrip] = useState({
+    title: '',
+    description: '',
+    destination: '',
+    startDate: '',
+    endDate: '',
+    budget: 0,
+    currency: 'USD',
+    status: 'Planning'
+  });
   const token = Cookies.get('token');
   const navigate = useNavigate();
 
@@ -67,6 +78,50 @@ const TripDetail = () => {
     } catch (error) {
       console.error('Error removing experience:', error);
       alert('Failed to remove experience');
+    }
+  };
+
+  const handleEditClick = () => {
+    if (trip) {
+      setEditTrip({
+        title: trip.title || '',
+        description: trip.description || '',
+        destination: trip.destination || '',
+        startDate: trip.startDate ? new Date(trip.startDate).toISOString().split('T')[0] : '',
+        endDate: trip.endDate ? new Date(trip.endDate).toISOString().split('T')[0] : '',
+        budget: trip.budget || 0,
+        currency: trip.currency || 'USD',
+        status: trip.status || 'Planning'
+      });
+      setShowEditModal(true);
+    }
+  };
+
+  const handleUpdateTrip = async (e) => {
+    e.preventDefault();
+    try {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      
+      // Format dates to ISO string
+      const tripData = {
+        ...editTrip,
+        startDate: new Date(editTrip.startDate).toISOString(),
+        endDate: new Date(editTrip.endDate).toISOString()
+      };
+      
+      await axios.put(`${apiBaseUrl}/Trip/${id}`, tripData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      setShowEditModal(false);
+      fetchTrip(); // Refresh trip data
+      alert('Trip updated successfully!');
+    } catch (error) {
+      console.error('Error updating trip:', error);
+      alert('Failed to update trip: ' + (error.response?.data?.message || 'Please check all fields'));
     }
   };
 
@@ -167,7 +222,7 @@ const TripDetail = () => {
             {/* Actions */}
             <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
               <button
-                onClick={() => navigate(`/trip-planner`)}
+                onClick={handleEditClick}
                 className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
               >
                 Edit Trip
@@ -247,6 +302,159 @@ const TripDetail = () => {
           )}
         </div>
       </div>
+
+      {/* Edit Trip Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Edit Trip</h2>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleUpdateTrip} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Trip Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editTrip.title}
+                  onChange={(e) => setEditTrip({ ...editTrip, title: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="e.g., Summer Europe Trip 2024"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={editTrip.description}
+                  onChange={(e) => setEditTrip({ ...editTrip, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="Describe your trip..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Destination *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editTrip.destination}
+                  onChange={(e) => setEditTrip({ ...editTrip, destination: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="e.g., Paris, France"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Start Date *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={editTrip.startDate}
+                    onChange={(e) => setEditTrip({ ...editTrip, startDate: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    End Date *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={editTrip.endDate}
+                    onChange={(e) => setEditTrip({ ...editTrip, endDate: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Budget
+                  </label>
+                  <input
+                    type="number"
+                    value={editTrip.budget}
+                    onChange={(e) => setEditTrip({ ...editTrip, budget: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Currency
+                  </label>
+                  <select
+                    value={editTrip.currency}
+                    onChange={(e) => setEditTrip({ ...editTrip, currency: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="AZN">AZN (₼)</option>
+                    <option value="TRY">TRY (₺)</option>
+                    <option value="GBP">GBP (£)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Status
+                </label>
+                <select
+                  value={editTrip.status}
+                  onChange={(e) => setEditTrip({ ...editTrip, status: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="Planning">Planning</option>
+                  <option value="Ongoing">Ongoing</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
+                >
+                  Update Trip
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
