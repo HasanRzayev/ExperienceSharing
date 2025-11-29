@@ -65,12 +65,6 @@ const UserProfilePage = () => {
     fetchUserData();
   }, [token, userId, apiBaseUrl]);
 
-  const handleMessageClick = () => {
-    navigate('/chatpage', {
-      state: { targetUserId: userId },
-    });
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -134,8 +128,6 @@ const UserProfilePage = () => {
             <p className="text-gray-500">{email}</p>
           </div>
           <div className="flex justify-center gap-4 mt-4">
-            <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Settings</button>
-            <button className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600" onClick={handleMessageClick}>MESSAGE</button>
             <FollowButton userId={userId} />
           </div>
         </div>
