@@ -69,12 +69,12 @@ const UserProfilePage = () => {
 
       try {
         const followersRes = await axios.get(
-          `${apiBaseUrl}/Follow/user/${userId}/followers`,
+          `${apiBaseUrl}/Followers/user/${userId}/followers`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
         const followingRes = await axios.get(
-          `${apiBaseUrl}/Follow/user/${userId}/following`,
+          `${apiBaseUrl}/Followers/user/${userId}/following`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
