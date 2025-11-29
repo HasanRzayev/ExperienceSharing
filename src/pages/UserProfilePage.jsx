@@ -11,6 +11,8 @@ const UserProfilePage = () => {
   const [userExperiences, setUserExperiences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
   const { userId } = useParams();
   const token = Cookies.get('token');
   const navigate = useNavigate();
@@ -61,8 +63,33 @@ const UserProfilePage = () => {
         setLoading(false);
       }
     };
+
+    const fetchFollowData = async () => {
+      if (!userId || !token) return;
+
+      try {
+        const followersRes = await axios.get(
+          `${apiBaseUrl}/Follow/user/${userId}/followers`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const followingRes = await axios.get(
+          `${apiBaseUrl}/Follow/user/${userId}/following`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        setFollowersCount(Array.isArray(followersRes.data) ? followersRes.data.length : 0);
+        setFollowingCount(Array.isArray(followingRes.data) ? followingRes.data.length : 0);
+      } catch (error) {
+        console.error('Error fetching follow data:', error);
+        // Hata olsa bile sayıları 0 olarak bırak
+        setFollowersCount(0);
+        setFollowingCount(0);
+      }
+    };
   
     fetchUserData();
+    fetchFollowData();
   }, [token, userId, apiBaseUrl]);
 
   if (loading) {
@@ -138,11 +165,11 @@ const UserProfilePage = () => {
     Experiences
   </div>
   <div>
-    <span className="block text-lg font-semibold">0</span>
+    <span className="block text-lg font-semibold">{followersCount}</span>
     Followers
   </div>
   <div>
-    <span className="block text-lg font-semibold">0</span>
+    <span className="block text-lg font-semibold">{followingCount}</span>
     Following
   </div>
 </div>
