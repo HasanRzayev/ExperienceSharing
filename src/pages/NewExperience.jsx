@@ -447,7 +447,15 @@ const NewExperience = () => {
                     </p>
                     <p className="text-sm text-gray-500">PNG, JPG, GIF up to 10MB each</p>
                   </div>
-                  <FileInput id="dropzone-file" className="hidden" onChange={handleImageChange} multiple accept="image/*" disabled={isLoading} />
+                  <input 
+                    id="dropzone-file" 
+                    type="file" 
+                    className="hidden" 
+                    onChange={handleImageChange} 
+                    multiple 
+                    accept="image/*" 
+                    disabled={isLoading} 
+                  />
                 </Label>
               </div>
 
@@ -552,7 +560,7 @@ const NewExperience = () => {
                       </p>
                       <p className="text-xs text-gray-500">MP4, MOV up to 100MB</p>
                     </div>
-                    <FileInput 
+                    <input 
                       id="video-upload" 
                       type="file"
                       accept="video/*"
