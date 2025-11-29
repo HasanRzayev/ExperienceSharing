@@ -11,6 +11,15 @@ const EventDetail = () => {
   const [myRSVP, setMyRSVP] = useState(null);
   const [showAttendeesModal, setShowAttendeesModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [editEvent, setEditEvent] = useState({
+    title: '',
+    description: '',
+    location: '',
+    eventDate: '',
+    maxAttendees: 0,
+    price: 0,
+    currency: 'USD'
+  });
   const token = Cookies.get('token');
   const navigate = useNavigate();
 
@@ -97,6 +106,60 @@ const EventDetail = () => {
     } catch (error) {
       console.error('Error deleting event:', error);
       alert('Failed to delete event');
+    }
+  };
+
+  const handleEditClick = () => {
+    if (event) {
+      // Format date for datetime-local input (YYYY-MM-DDTHH:mm)
+      let formattedDate = '';
+      if (event.eventDate) {
+        const date = new Date(event.eventDate);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+      }
+      
+      setEditEvent({
+        title: event.title || '',
+        description: event.description || '',
+        location: event.location || '',
+        eventDate: formattedDate,
+        maxAttendees: event.maxAttendees || 0,
+        price: event.price || 0,
+        currency: event.currency || 'USD'
+      });
+      setShowEditModal(true);
+    }
+  };
+
+  const handleUpdateEvent = async (e) => {
+    e.preventDefault();
+    try {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://experiencesharingbackend.runasp.net/api';
+      
+      // Format date to ISO string
+      const eventData = {
+        ...editEvent,
+        eventDate: new Date(editEvent.eventDate).toISOString()
+      };
+      
+      await axios.put(`${apiBaseUrl}/Event/${id}`, eventData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      setShowEditModal(false);
+      fetchEvent(); // Refresh event data
+      alert('Event updated successfully!');
+    } catch (error) {
+      console.error('Error updating event:', error);
+      alert('Failed to update event: ' + (error.response?.data?.message || 'Please check all fields'));
     }
   };
 
@@ -288,7 +351,7 @@ const EventDetail = () => {
                   {isOrganizer() && (
                     <>
                       <button
-                        onClick={() => setShowEditModal(true)}
+                        onClick={handleEditClick}
                         className="px-6 py-4 border-2 border-blue-500 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-xl font-bold transition-colors"
                         title="Edit Event"
                       >
@@ -427,6 +490,146 @@ const EventDetail = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* Edit Event Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Edit Event</h2>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleUpdateEvent} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Event Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editEvent.title}
+                  onChange={(e) => setEditEvent({ ...editEvent, title: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="e.g., Summer Music Festival 2024"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={editEvent.description}
+                  onChange={(e) => setEditEvent({ ...editEvent, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="Describe your event..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Location *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editEvent.location}
+                  onChange={(e) => setEditEvent({ ...editEvent, location: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="e.g., Central Park, New York"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Date & Time *
+                </label>
+                <input
+                  type="datetime-local"
+                  required
+                  value={editEvent.eventDate}
+                  onChange={(e) => setEditEvent({ ...editEvent, eventDate: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Max Attendees
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editEvent.maxAttendees}
+                    onChange={(e) => setEditEvent({ ...editEvent, maxAttendees: parseInt(e.target.value) || 0 })}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Currency
+                  </label>
+                  <select
+                    value={editEvent.currency}
+                    onChange={(e) => setEditEvent({ ...editEvent, currency: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="AZN">AZN (₼)</option>
+                    <option value="TRY">TRY (₺)</option>
+                    <option value="GBP">GBP (£)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Price
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={editEvent.price}
+                  onChange={(e) => setEditEvent({ ...editEvent, price: parseFloat(e.target.value) || 0 })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="0"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
+                >
+                  Update Event
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
