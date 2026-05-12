@@ -171,6 +171,13 @@ const normalizeUserRecord = (userLike) => {
   const receiverIdRaw = getReceiverId(messageLike);
   const senderIdNormalized = normalizeId(senderIdRaw);
   const receiverIdNormalized = normalizeId(receiverIdRaw);
+  const groupIdRaw =
+    messageLike.groupId ??
+    messageLike.GroupId ??
+    messageLike.groupChatId ??
+    messageLike.GroupChatId ??
+    null;
+  const groupIdNormalized = normalizeId(groupIdRaw);
 
   const timestamp =
     messageLike.timestamp ??
@@ -289,6 +296,10 @@ const normalizeUserRecord = (userLike) => {
     SenderId: senderIdNormalized,
     receiverId: receiverIdNormalized,
     ReceiverId: receiverIdNormalized,
+    groupId: groupIdNormalized,
+    GroupId: groupIdNormalized,
+    groupChatId: groupIdNormalized,
+    GroupChatId: groupIdNormalized,
     timestamp,
     Timestamp: timestamp,
     content,
@@ -1044,9 +1055,10 @@ const ChatPageV2 = () => {
         console.log('[ChatPageV2] ReceiveGroupMessage', messageData);
         const normalizedIncoming = normalizeMessageRecord(messageData || {});
         
-        // Only add message if we're currently viewing this group
-        if (chatType === 'group' && selectedChat) {
-          const currentGroupId = getGroupId(selectedChat);
+        const activeChat = selectedChatRef.current;
+
+        if (chatType === 'group' && activeChat) {
+          const currentGroupId = getGroupId(activeChat);
           const messageGroupId = normalizedIncoming?.groupId ?? normalizedIncoming?.GroupId;
           
           // Convert to numbers for comparison
@@ -1086,7 +1098,31 @@ const ChatPageV2 = () => {
       isMounted = false;
       try { conn.stop(); } catch {}
     };
-  }, [token, chatType, selectedChat]);
+  }, [token, signalRUrl]);
+
+  useEffect(() => {
+    if (!connectionReady || !connection || connection.state !== 'Connected' || chatType !== 'group' || !selectedChat) {
+      return;
+    }
+
+    const groupId = getGroupId(selectedChat);
+    const numericGroupId = typeof groupId === 'string' ? parseInt(groupId, 10) : groupId;
+
+    if (!numericGroupId || Number.isNaN(numericGroupId)) {
+      return;
+    }
+
+    connection.invoke('JoinGroupChat', numericGroupId)
+      .then(() => console.log(`✅ Joined group ${numericGroupId}`))
+      .catch((e) => console.warn('JoinGroupChat failed', e));
+
+    return () => {
+      if (connection.state === 'Connected') {
+        connection.invoke('LeaveGroupChat', numericGroupId)
+          .catch((e) => console.warn('LeaveGroupChat failed', e));
+      }
+    };
+  }, [connection, connectionReady, chatType, selectedChat]);
 
   const fetchUsers = async () => {
     try {
@@ -1700,7 +1736,15 @@ const ChatPageV2 = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log('Group messages response:', response.data);
-      const list = Array.isArray(response.data) ? response.data.map(normalizeMessageRecord) : [];
+      const list = Array.isArray(response.data)
+        ? response.data
+            .map(normalizeMessageRecord)
+            .sort((a, b) => {
+              const timeA = new Date(a.sentAt ?? a.SentAt ?? a.timestamp ?? a.Timestamp ?? 0).getTime();
+              const timeB = new Date(b.sentAt ?? b.SentAt ?? b.timestamp ?? b.Timestamp ?? 0).getTime();
+              return timeA - timeB;
+            })
+        : [];
       console.log('Normalized messages list:', list);
       setMessages(list);
       // Reset error tracking on success
@@ -1847,7 +1891,7 @@ const ChatPageV2 = () => {
     
     // Join SignalR group for real-time updates
     if (connectionReady && connection && connection.state === 'Connected') {
-      console.log(`[ChatPageV2] Joining SignalR group: Group_${numericGroupId}`);
+      console.log(`[ChatPageV2] Joining SignalR group: GroupChat_${numericGroupId}`);
       connection.invoke('JoinGroupChat', numericGroupId)
         .then(() => console.log(`✅ Joined group ${numericGroupId}`))
         .catch((e) => console.warn('JoinGroupChat failed', e));
@@ -2124,11 +2168,29 @@ const ChatPageV2 = () => {
         console.log(`Sending message to group ${numericGroupId}:`, payload);
         
         try {
-          await axios.post(
+          const response = await axios.post(
             `${apiBaseUrl}/GroupChat/${numericGroupId}/messages`,
             payload,
             { headers: { Authorization: `Bearer ${token}` } }
           );
+          const savedMessage = normalizeMessageRecord(response.data || {});
+          if (savedMessage?.id || savedMessage?.Id) {
+            setMessages(prev => {
+              const savedId = normalizeId(savedMessage.id ?? savedMessage.Id);
+              const nextMessages = prev
+                .map(normalizeMessageRecord)
+                .filter((message) => {
+                  const existingId = normalizeId(message.id ?? message.Id);
+                  return !savedId || existingId !== savedId;
+                });
+
+              return [...nextMessages, savedMessage].sort((a, b) => {
+                const timeA = new Date(a.sentAt ?? a.SentAt ?? a.timestamp ?? a.Timestamp ?? 0).getTime();
+                const timeB = new Date(b.sentAt ?? b.SentAt ?? b.timestamp ?? b.Timestamp ?? 0).getTime();
+                return timeA - timeB;
+              });
+            });
+          }
         } catch (error) {
           console.error('Error sending group message:', error);
           console.error('Error response:', error.response?.data);
@@ -2142,23 +2204,6 @@ const ChatPageV2 = () => {
           }
           return;
         }
-        // Optimistic UI update for group as well
-        setMessages(prev => {
-          const normalizedPrev = prev.map(normalizeMessageRecord);
-          const optimistic = normalizeMessageRecord({
-            id: `temp-${Date.now()}`,
-            senderId: user?.id,
-            SenderId: user?.id,
-            sender: { id: user?.id, userName: user?.userName, profileImage: user?.profileImage },
-            content: newMessage.trim(),
-            mediaUrl: fileUrl,
-            mediaType: mediaType,
-            timestamp: new Date().toISOString(),
-            deliveryState: 'sending',
-            DeliveryState: 'sending'
-          });
-          return [...normalizedPrev, optimistic];
-        });
         fetchGroupMessages(groupId);
       }
       
@@ -2812,20 +2857,20 @@ const ChatPageV2 = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden" style={{ height: '85vh' }}>
-          <div className="flex h-full">
+    <div className="min-h-screen bg-slate-100 dark:bg-gray-950 py-4 lg:py-6">
+      <div className="max-w-7xl mx-auto px-3 lg:px-4">
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden" style={{ height: 'calc(100vh - 3rem)' }}>
+          <div className="flex h-full flex-col lg:flex-row">
             {/* Sidebar */}
-            <div className="w-1/3 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+            <div className="w-full lg:w-[360px] border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-800 flex flex-col min-h-0">
               {/* Header with Tabs */}
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-600 to-blue-600">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-slate-950 dark:bg-black">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-white">Messages</h2>
                   {activeTab === 'groups' && (
                     <button
                       onClick={() => setShowCreateGroupModal(true)}
-                      className="bg-white text-purple-600 p-2 rounded-full hover:bg-purple-50 transition-colors"
+                      className="bg-white text-slate-900 p-2 rounded-lg hover:bg-emerald-50 transition-colors"
                       title="Create Group"
                     >
                       <FaPlus />
@@ -2834,13 +2879,13 @@ const ChatPageV2 = () => {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 rounded-lg bg-white/10 p-1">
                   <button
                     onClick={() => setActiveTab('chats')}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                    className={`flex-1 px-4 py-2 rounded-md font-medium transition-colors ${
                       activeTab === 'chats'
-                        ? 'bg-white text-purple-600'
-                        : 'bg-white/20 text-white hover:bg-white/30'
+                        ? 'bg-white text-slate-950'
+                        : 'text-white hover:bg-white/10'
                     }`}
                   >
                     <FaUser className="inline mr-2" />
@@ -2848,10 +2893,10 @@ const ChatPageV2 = () => {
                   </button>
                   <button
                     onClick={() => setActiveTab('groups')}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                    className={`flex-1 px-4 py-2 rounded-md font-medium transition-colors ${
                       activeTab === 'groups'
-                        ? 'bg-white text-purple-600'
-                        : 'bg-white/20 text-white hover:bg-white/30'
+                        ? 'bg-white text-slate-950'
+                        : 'text-white hover:bg-white/10'
                     }`}
                   >
                     <FaUsers className="inline mr-2" />
@@ -2900,8 +2945,8 @@ const ChatPageV2 = () => {
                       <div
                         key={user.id}
                         onClick={() => handleSelectUser(user)}
-                        className={`p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                          selectedChat?.id === user.id && chatType === 'user' ? 'bg-purple-50 dark:bg-purple-900/20 border-l-4 border-l-purple-600' : ''
+                      className={`p-4 border-b border-gray-100 dark:border-gray-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors ${
+                          selectedChat?.id === user.id && chatType === 'user' ? 'bg-emerald-50 dark:bg-emerald-950/20 border-l-4 border-l-emerald-600' : ''
                         } ${unreadCount > 0 ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
                       >
                         <div className="flex items-center gap-3">
@@ -2965,8 +3010,8 @@ const ChatPageV2 = () => {
                       <div
                         key={getGroupId(group) || `group-${index}`}
                         onClick={() => handleSelectGroup(group)}
-                        className={`p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                          getGroupId(selectedChat) === getGroupId(group) && chatType === 'group' ? 'bg-purple-50 dark:bg-purple-900/20 border-l-4 border-l-purple-600' : ''
+                        className={`p-4 border-b border-gray-100 dark:border-gray-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors ${
+                          getGroupId(selectedChat) === getGroupId(group) && chatType === 'group' ? 'bg-emerald-50 dark:bg-emerald-950/20 border-l-4 border-l-emerald-600' : ''
                         }`}
                       >
                         <div className="flex items-center gap-3">
@@ -2999,7 +3044,7 @@ const ChatPageV2 = () => {
               {selectedChat ? (
                 <>
                   {/* Chat Header */}
-                  <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                  <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         {(() => {
@@ -3053,7 +3098,7 @@ const ChatPageV2 = () => {
                                   </h3>
                                   <button
                                     onClick={() => setShowMembersModal(true)}
-                                    className="text-xs text-purple-600 dark:text-purple-400 hover:underline cursor-pointer text-left"
+                                    className="text-xs text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer text-left"
                                   >
                                     {(() => {
                                       const fallbackCount = getGroupMemberCount(selectedChat);
@@ -3091,7 +3136,7 @@ const ChatPageV2 = () => {
                                   }}
                                   className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
                                 >
-                                  <FaInfoCircle className="text-purple-600" />
+                                  <FaInfoCircle className="text-emerald-600" />
                                   <span className="text-gray-700 dark:text-gray-200">Group bilgisi</span>
                                 </button>
                                 
@@ -3140,7 +3185,7 @@ const ChatPageV2 = () => {
                                   }}
                                   className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
                                 >
-                                  <FaInfoCircle className="text-purple-600" />
+                                  <FaInfoCircle className="text-emerald-600" />
                                   <span className="text-gray-700 dark:text-gray-200">Profile Info</span>
                                 </button>
                                 
@@ -3175,7 +3220,7 @@ const ChatPageV2 = () => {
                   </div>
 
                   {/* Messages */}
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-gray-950">
                     {messages.length === 0 ? (
                       <div className="flex items-center justify-center h-full text-gray-400">
                         <p>No messages yet. Start the conversation!</p>
@@ -3209,7 +3254,7 @@ const ChatPageV2 = () => {
                             key={index}
                             className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
                           >
-                            <div className="flex items-start gap-2 max-w-[70%]">
+                            <div className="flex items-start gap-2 max-w-[86%] sm:max-w-[70%]">
                               {!isOwnMessage && chatType === 'group' && (
                                 <img
                                   src={msg.sender?.profileImage || 'https://ui-avatars.com/api/?name=User'}
@@ -3224,10 +3269,10 @@ const ChatPageV2 = () => {
                                   </p>
                                 )}
                                 <div
-                                  className={`rounded-2xl px-4 py-3 shadow-md ${
+                                  className={`rounded-lg px-4 py-3 shadow-sm ${
                                     isOwnMessage
-                                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
-                                      : 'bg-white/90 dark:bg-gray-800/90 text-gray-800 dark:text-white border border-gray-200/60 dark:border-gray-700/60 backdrop-blur'
+                                      ? 'bg-emerald-600 text-white'
+                                      : 'bg-white dark:bg-gray-900 text-gray-800 dark:text-white border border-gray-200 dark:border-gray-800'
                                   } max-w-[520px]`}
                                   style={{ wordBreak: 'break-word' }}
                                 >
@@ -3364,13 +3409,13 @@ const ChatPageV2 = () => {
                   )}
 
                   {/* Message Input */}
-                  <form onSubmit={handleSendMessage} className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+                  <form onSubmit={handleSendMessage} className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
                     <div className="flex gap-2 items-center">
                       {/* Media Upload Dropdown */}
                       <div className="relative">
                         <button
                           type="button"
-                          className={`p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                          className={`p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-gray-800 transition-colors ${
                             file ? "bg-green-100 dark:bg-green-900" : ""
                           }`}
                           onClick={() => setDropdownOpen(!isDropdownOpen)}
@@ -3435,15 +3480,15 @@ const ChatPageV2 = () => {
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder={file ? `Type a message and send ${file.name}...` : "Type a message..."}
-                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                       />
 
                       {/* Emoji Picker Button */}
                       <button
                         type="button"
                         onClick={() => setShowPicker(!showPicker)}
-                        className={`p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                          showPicker ? "bg-purple-100 dark:bg-purple-900" : ""
+                        className={`p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-gray-800 transition-colors ${
+                          showPicker ? "bg-emerald-100 dark:bg-emerald-900" : ""
                         }`}
                         title="Add emoji"
                       >
@@ -3476,8 +3521,8 @@ const ChatPageV2 = () => {
                           setShowGifPicker(!showGifPicker);
                           if (!gifs.length) fetchTrendingGifs();
                         }}
-                        className={`p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                          showGifPicker ? "bg-purple-100 dark:bg-purple-900" : ""
+                        className={`p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-gray-800 transition-colors ${
+                          showGifPicker ? "bg-emerald-100 dark:bg-emerald-900" : ""
                         }`}
                         title="Send GIF"
                       >
@@ -3515,7 +3560,7 @@ const ChatPageV2 = () => {
                       <button
                         type="button"
                         onClick={isRecording ? stopRecording : startRecording}
-                        className={`p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                        className={`p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-gray-800 transition-colors ${
                           isRecording ? "bg-red-100 dark:bg-red-900 animate-pulse" : ""
                         }`}
                         title={isRecording ? "Stop recording" : "Record voice"}
@@ -3527,7 +3572,7 @@ const ChatPageV2 = () => {
                       <button
                         type="submit"
                         disabled={!newMessage.trim() && !file}
-                        className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-full font-medium hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="bg-slate-950 dark:bg-emerald-600 text-white px-5 py-3 rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         <FaPaperPlane />
                       </button>

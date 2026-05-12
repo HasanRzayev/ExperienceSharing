@@ -41,8 +41,20 @@ const normalizeUrlLikeValue = (value) => {
 };
 
 export const resolveEnvValue = (...keys) => {
+  const candidates = keys.flatMap((key) => {
+    const withoutReactPrefix = key.startsWith('REACT_APP_')
+      ? key.slice('REACT_APP_'.length)
+      : key;
+
+    return [
+      key,
+      `VITE_${key}`,
+      `VITE_${withoutReactPrefix}`,
+    ];
+  });
+
   if (typeof process !== 'undefined' && process.env) {
-    for (const key of keys) {
+    for (const key of candidates) {
       const value = process.env[key];
       const sanitized = sanitizeEnvString(value);
       if (sanitized !== undefined) {
@@ -52,7 +64,7 @@ export const resolveEnvValue = (...keys) => {
   }
 
   if (typeof import.meta !== 'undefined' && import.meta.env) {
-    for (const key of keys) {
+    for (const key of candidates) {
       const value = import.meta.env[key];
       const sanitized = sanitizeEnvString(value);
       if (sanitized !== undefined) {
