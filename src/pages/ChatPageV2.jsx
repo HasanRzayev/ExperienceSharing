@@ -2154,16 +2154,11 @@ const ChatPageV2 = () => {
           return;
         }
         
-        // Build payload - only include fields that have values
         const payload = {
-          content: newMessage.trim() || ""
+          content: newMessage.trim() || "",
+          mediaUrl: fileUrl || "",
+          mediaType: mediaType || ""
         };
-        
-        // Only add mediaUrl and mediaType if fileUrl exists
-        if (fileUrl) {
-          payload.mediaUrl = fileUrl;
-          payload.mediaType = mediaType || "";
-        }
         
         console.log(`Sending message to group ${numericGroupId}:`, payload);
         
