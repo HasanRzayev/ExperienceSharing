@@ -55,10 +55,10 @@ const DMCA = lazy(() => import('./pages/footer/DMCA'));
 
 // Loading component
 const LoadingSpinner = () => (
-  <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
-    <div className="text-center">
-      <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
-      <p className="text-gray-600 font-medium">Loading...</p>
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="glass rounded-3xl px-8 py-10 text-center shadow-soft">
+      <div className="w-14 h-14 border-[3px] border-orange-200/80 border-t-orange-600 rounded-full animate-spin mx-auto mb-4"></div>
+      <p className="text-slate-700 dark:text-slate-200 font-medium">Loading...</p>
     </div>
   </div>
 );

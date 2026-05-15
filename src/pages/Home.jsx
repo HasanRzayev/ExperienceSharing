@@ -347,7 +347,7 @@ function Home() {
         <div className="mb-4 sm:mb-8">
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <div className="flex items-center gap-2 sm:gap-3">
-              <FaUsers className="text-2xl sm:text-3xl text-indigo-600" />
+              <FaUsers className="text-2xl sm:text-3xl text-orange-600" />
               <h1 className="text-xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">Feed</h1>
             </div>
             <button
@@ -417,11 +417,11 @@ function Home() {
                 {/* User Header */}
                 <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-b border-gray-100 dark:border-gray-700">
                   <img
-                    src={post.user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.user?.userName || post.user?.firstName || 'User')}&background=667eea&color=fff&size=128&bold=true`}
+                    src={post.user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.user?.userName || post.user?.firstName || 'User')}&background=f97316&color=fff&size=128&bold=true`}
                     alt={post.user?.userName}
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-indigo-100 cursor-pointer hover:border-indigo-400 transition-colors bg-gradient-to-br from-purple-400 to-blue-500"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-orange-100 cursor-pointer hover:border-orange-400 transition-colors bg-gradient-to-br from-orange-400 to-amber-500"
                     onError={(e) => {
-                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(post.user?.userName || post.user?.firstName || 'User')}&background=667eea&color=fff&size=128&bold=true`;
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(post.user?.userName || post.user?.firstName || 'User')}&background=f97316&color=fff&size=128&bold=true`;
                     }}
                     onClick={() => {
                       const isOwnProfile = currentUser?.id && post.user?.id && currentUser.id.toString() === post.user.id.toString();
@@ -430,7 +430,7 @@ function Home() {
                   />
                   <div className="flex-1 min-w-0">
                     <h3 
-                      className="font-bold text-sm sm:text-base text-gray-800 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer transition-colors truncate"
+                      className="font-bold text-sm sm:text-base text-gray-800 dark:text-gray-100 hover:text-orange-600 dark:hover:text-indigo-400 cursor-pointer transition-colors truncate"
                       onClick={() => {
                         const isOwnProfile = currentUser?.id && post.user?.id && currentUser.id.toString() === post.user.id.toString();
                         navigate(isOwnProfile ? '/profil' : `/profile/${post.user?.id}`);
@@ -526,7 +526,7 @@ function Home() {
                 {/* Post Content */}
                 <div className="p-3 sm:p-4">
                   <h2 
-                    className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors line-clamp-2"
+                    className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 cursor-pointer hover:text-orange-600 dark:hover:text-indigo-400 transition-colors line-clamp-2"
                     onClick={() => navigate(`/card/${post.id}`)}
                   >
                     {post.title}
@@ -539,7 +539,7 @@ function Home() {
                   {post.tagsName?.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-4">
                       {post.tagsName.slice(0, 3).map((tag, idx) => (
-                        <span key={idx} className="px-2 sm:px-3 py-1 bg-indigo-50 text-indigo-600 text-xs sm:text-sm rounded-full font-medium hover:bg-indigo-100 transition-colors cursor-pointer">
+                        <span key={idx} className="px-2 sm:px-3 py-1 bg-indigo-50 text-orange-600 text-xs sm:text-sm rounded-full font-medium hover:bg-indigo-100 transition-colors cursor-pointer">
                           #{tag}
                         </span>
                       ))}
@@ -841,3 +841,6 @@ function Home() {
 }
 
 export default Home;
+
+
+

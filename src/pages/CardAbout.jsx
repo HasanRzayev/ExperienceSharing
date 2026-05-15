@@ -451,7 +451,7 @@ const CardAbout = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-600 mx-auto mb-4"></div>
           <p className="text-xl font-semibold text-gray-700">Loading experience...</p>
           <p className="text-gray-500 mt-2">Please wait while we fetch the details</p>
         </div>
@@ -475,7 +475,7 @@ const CardAbout = () => {
         {/* Ana Kart */}
         <div className="bg-white shadow-2xl rounded-3xl overflow-hidden">
           {/* Üst hissə: İstifadəçi məlumatları və düymələr */}
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6">
+          <div className="bg-gradient-to-r from-orange-600 to-amber-600 p-6">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         {/* İstifadəçi məlumatları */}
         <div className="flex items-center gap-4">
@@ -578,7 +578,7 @@ const CardAbout = () => {
 
           <div className="p-8">
             {/* Başlıq */}
-            <h1 className="text-3xl sm:text-4xl font-bold mb-6 text-center bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl sm:text-4xl font-bold mb-6 text-center bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
           {post.title}
         </h1>
 
@@ -685,7 +685,7 @@ const CardAbout = () => {
                     return (
                       <span
                         key={index}
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-medium shadow-md hover:shadow-lg transition-shadow"
+                        className="bg-gradient-to-r from-orange-500 to-rose-500 text-white px-4 py-2 rounded-full text-sm font-medium shadow-md hover:shadow-lg transition-shadow"
                       >
                         #{tagName}
                       </span>
@@ -748,7 +748,7 @@ const CardAbout = () => {
                 {/* Instagram */}
                 <button
                   onClick={() => handleShare('instagram')}
-                  className="flex flex-col items-center p-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
+                  className="flex flex-col items-center p-4 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
                 >
                   <FaInstagram className="text-3xl mb-2" />
                   <span className="font-semibold">Instagram</span>
@@ -766,7 +766,7 @@ const CardAbout = () => {
                 {/* Copy Link */}
                 <button
                   onClick={() => handleShare('copy')}
-                  className="flex flex-col items-center p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
+                  className="flex flex-col items-center p-4 bg-blue-500 hover:bg-emerald-600 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg"
                 >
                   {copied ? (
                     <FaCheck className="text-3xl mb-2" />
@@ -783,7 +783,7 @@ const CardAbout = () => {
               {navigator.share && (
                 <button
                   onClick={() => handleShare('native')}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-4 rounded-2xl font-semibold text-lg transition-all duration-200 hover:scale-105 shadow-lg mb-4"
+                  className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white py-4 rounded-2xl font-semibold text-lg transition-all duration-200 hover:scale-105 shadow-lg mb-4"
                 >
                   <FaShare className="inline mr-2" />
                   Share via Device
@@ -888,7 +888,7 @@ const CardAbout = () => {
                 <button
                   onClick={sendToFollowers}
                   disabled={selectedFollowers.length === 0 || sending}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center"
+                  className="flex-1 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center"
                 >
                   {sending ? (
                     <>
@@ -910,9 +910,9 @@ const CardAbout = () => {
         {/* Comments Section */}
         <div className="mt-16 bg-white rounded-3xl shadow-lg p-8">
           <div className="flex items-center gap-3 mb-8">
-            <FaComment className="text-2xl text-purple-600" />
+            <FaComment className="text-2xl text-orange-600" />
             <h2 className="text-2xl font-bold text-gray-800">Comments</h2>
-            <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+            <span className="bg-orange-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
               {comments.length}
             </span>
           </div>
@@ -926,7 +926,7 @@ const CardAbout = () => {
                     value={newComment}
                     onChange={setNewComment}
                     placeholder="Share your thoughts about this experience..."
-                    className="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-600"
+                    className="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-600"
                     onMention={handleMention}
                   />
                   <div className="flex justify-between items-center mt-2">
@@ -959,11 +959,11 @@ const CardAbout = () => {
           ) : (
             <div className="mb-8 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200">
               <div className="flex items-center gap-3">
-                <FaHeart className="text-purple-600" />
+                <FaHeart className="text-orange-600" />
                 <p className="text-gray-700">
                   <button
                     onClick={() => navigate('/login')}
-                    className="text-purple-600 hover:text-purple-700 font-medium underline"
+                    className="text-orange-600 hover:text-orange-700 font-medium underline"
                   >
                     Sign in
                   </button>
@@ -977,7 +977,7 @@ const CardAbout = () => {
           <div className="space-y-6">
             {loadingComments ? (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
                 <span className="ml-3 text-gray-600">Loading comments...</span>
               </div>
             ) : comments.length > 0 ? (
@@ -1029,7 +1029,7 @@ const CardAbout = () => {
                           <div className="flex items-center gap-4 text-sm">
                             <button
                               onClick={() => handleReaction(comment.id, true)}
-                              className="flex items-center gap-1 text-gray-600 hover:text-purple-600 transition-colors"
+                              className="flex items-center gap-1 text-gray-600 hover:text-orange-600 transition-colors"
                             >
                               <FaThumbsUp />
                               <span>{comment.likes || 0}</span>
@@ -1059,12 +1059,12 @@ const CardAbout = () => {
                               value={replyText}
                               onChange={(e) => setReplyText(e.target.value)}
                               placeholder="Write a reply..."
-                              className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             />
                             <button
                               onClick={() => handleReply(comment.id)}
                               disabled={!replyText.trim()}
-                              className="px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               Send
                             </button>
@@ -1109,7 +1109,7 @@ const CardAbout = () => {
                                     <div className="flex items-center gap-3 mt-2 text-xs">
                                       <button
                                         onClick={() => handleReaction(reply.id, true)}
-                                        className="flex items-center gap-1 text-gray-600 hover:text-purple-600"
+                                        className="flex items-center gap-1 text-gray-600 hover:text-orange-600"
                                       >
                                         <FaThumbsUp />
                                         <span>{reply.likes || 0}</span>
@@ -1150,3 +1150,6 @@ const CardAbout = () => {
 };
 
 export default CardAbout;
+
+
+

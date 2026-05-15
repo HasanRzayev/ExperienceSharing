@@ -88,13 +88,14 @@ function Explore() {
   ];
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-900 dark:text-gray-100">
-      <div className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+    <main className="min-h-screen text-slate-900 dark:text-slate-100">
+      <div className="sticky top-16 z-40 border-b border-slate-900/5 dark:border-white/10">
+        <div className="glass">
+          <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-4">
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-1">Explore</h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">Explore</h1>
+            <p className="text-slate-600 dark:text-slate-400 text-sm">
               {totalCount > 0 ? `${totalCount} experiences found` : 'Discover new experiences'}
             </p>
           </div>
@@ -102,14 +103,14 @@ function Explore() {
           {/* Search Bar */}
           <div className="relative mb-4">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <FaSearch className="text-gray-400" />
+              <FaSearch className="text-slate-400" />
             </div>
             <input
               type="text"
               placeholder="Search users, titles, locations, or tags..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+              className="input-modern w-full pl-12 pr-4 py-3 outline-none"
             />
           </div>
 
@@ -124,10 +125,10 @@ function Explore() {
                   key={filter.id}
                   onClick={() => setActiveFilter(filter.id)}
                   className={`
-                    flex items-center gap-2 px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition-all duration-300
+                    flex items-center gap-2 px-4 py-2 rounded-xl font-semibold whitespace-nowrap transition-all duration-300 ring-1
                     ${isActive 
-                      ? `bg-gradient-to-r ${filter.color} text-white shadow-lg scale-105` 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? `bg-gradient-to-r ${filter.color} text-white shadow-lg scale-[1.02] ring-white/20` 
+                      : 'bg-white/70 dark:bg-slate-900/60 text-slate-700 dark:text-slate-200 hover:bg-white ring-slate-200/70 dark:ring-white/10'
                     }
                   `}
                 >
@@ -137,16 +138,17 @@ function Explore() {
               );
             })}
           </div>
+          </div>
         </div>
       </div>
 
       {/* Posts Grid - Instagram Style */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {posts.map((post, index) => (
             <div 
               key={post.id} 
-              className="group animate-fadeInUp bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer"
+              className="group animate-fadeInUp card-modern rounded-2xl overflow-hidden hover:shadow-hover transition-all duration-300 cursor-pointer"
               style={{animationDelay: `${index * 0.03}s`}}
               onClick={() => window.location.href = `/card/${post.id}`}
             >
@@ -240,7 +242,7 @@ function Explore() {
                   <img
                     src={post.user?.profileImage || "https://via.placeholder.com/32"}
                     alt={post.user?.userName}
-                    className="w-8 h-8 rounded-full object-cover border-2 border-indigo-100"
+                    className="w-8 h-8 rounded-full object-cover border-2 border-orange-100"
                   />
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-gray-800 text-sm truncate">
@@ -275,7 +277,7 @@ function Explore() {
                     {post.tagsName.slice(0, 2).map((tag, idx) => (
                       <span 
                         key={idx} 
-                        className="px-2 py-1 bg-indigo-50 text-indigo-600 text-xs rounded-full"
+                        className="px-2 py-1 bg-indigo-50 text-orange-600 text-xs rounded-full"
                       >
                         #{tag}
                       </span>
@@ -394,4 +396,7 @@ function Explore() {
 }
 
 export default Explore;
+
+
+
 

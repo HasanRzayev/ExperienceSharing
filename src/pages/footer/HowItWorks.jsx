@@ -7,7 +7,7 @@ const HowItWorks = () => {
       icon: <FaUserPlus className="text-4xl" />,
       title: "1. Create Your Account",
       description: "Sign up in seconds using your email or Google account. It's completely free!",
-      color: "from-purple-500 to-blue-500"
+      color: "from-orange-500 to-amber-500"
     },
     {
       icon: <FaCamera className="text-4xl" />,
@@ -43,7 +43,7 @@ const HowItWorks = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
-      <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white py-16">
+      <div className="bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 text-white py-16">
         <div className="container mx-auto px-6">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-4xl font-bold mb-4">How It Works</h1>
@@ -79,7 +79,7 @@ const HowItWorks = () => {
             </p>
             <a
               href="/signup"
-              className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-10 py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl"
+              className="inline-block bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white px-10 py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl"
             >
               Get Started Free
             </a>
@@ -91,4 +91,7 @@ const HowItWorks = () => {
 };
 
 export default HowItWorks;
+
+
+
 

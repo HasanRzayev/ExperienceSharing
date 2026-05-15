@@ -92,14 +92,14 @@ const TripPlanner = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-slate-50 to-amber-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-slate-50 to-amber-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -112,7 +112,7 @@ const TripPlanner = () => {
             </div>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg flex items-center gap-2"
+              className="bg-gradient-to-r from-orange-600 to-amber-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-orange-700 hover:to-amber-700 transition-all shadow-lg flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -131,7 +131,7 @@ const TripPlanner = () => {
                 onClick={() => navigate(`/trip/${trip.id}`)}
                 className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden cursor-pointer hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="h-48 bg-gradient-to-br from-purple-400 to-blue-500 relative overflow-hidden">
+                <div className="h-48 bg-gradient-to-br from-orange-400 to-amber-500 relative overflow-hidden">
                   {trip.coverImage && (
                     <img src={trip.coverImage} alt={trip.title} className="w-full h-full object-cover" />
                   )}
@@ -167,7 +167,7 @@ const TripPlanner = () => {
                       </div>
                     )}
                     {trip.tripExperiences && trip.tripExperiences.length > 0 && (
-                      <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 font-semibold">
+                      <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 font-semibold">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
@@ -225,7 +225,7 @@ const TripPlanner = () => {
                     required
                     value={newTrip.title}
                     onChange={(e) => setNewTrip({ ...newTrip, title: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                     placeholder="e.g., Summer Europe Trip 2024"
                   />
                 </div>
@@ -238,7 +238,7 @@ const TripPlanner = () => {
                     value={newTrip.description}
                     onChange={(e) => setNewTrip({ ...newTrip, description: e.target.value })}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                     placeholder="Describe your trip..."
                   />
                 </div>
@@ -252,7 +252,7 @@ const TripPlanner = () => {
                     required
                     value={newTrip.destination}
                     onChange={(e) => setNewTrip({ ...newTrip, destination: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                     placeholder="e.g., Paris, France"
                   />
                 </div>
@@ -267,7 +267,7 @@ const TripPlanner = () => {
                       required
                       value={newTrip.startDate}
                       onChange={(e) => setNewTrip({ ...newTrip, startDate: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
                   <div>
@@ -279,7 +279,7 @@ const TripPlanner = () => {
                       required
                       value={newTrip.endDate}
                       onChange={(e) => setNewTrip({ ...newTrip, endDate: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
                 </div>
@@ -293,7 +293,7 @@ const TripPlanner = () => {
                       type="number"
                       value={newTrip.budget}
                       onChange={(e) => setNewTrip({ ...newTrip, budget: parseFloat(e.target.value) })}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                       placeholder="0"
                     />
                   </div>
@@ -304,7 +304,7 @@ const TripPlanner = () => {
                     <select
                       value={newTrip.currency}
                       onChange={(e) => setNewTrip({ ...newTrip, currency: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                     >
                       <option value="USD">USD ($)</option>
                       <option value="EUR">EUR (€)</option>
@@ -325,7 +325,7 @@ const TripPlanner = () => {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
+                    className="flex-1 bg-gradient-to-r from-orange-600 to-amber-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-orange-700 hover:to-amber-700 transition-all"
                   >
                     Create Trip
                   </button>
@@ -340,4 +340,7 @@ const TripPlanner = () => {
 };
 
 export default TripPlanner;
+
+
+
 

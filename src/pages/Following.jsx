@@ -37,7 +37,7 @@ const FollowingPage = () => {
     return (
       <div className="max-w-2xl mx-auto p-6">
         <div className="text-center py-20">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
           <p className="mt-4 text-gray-600">Loading following...</p>
         </div>
       </div>
@@ -54,7 +54,7 @@ const FollowingPage = () => {
           following.map((user) => {
             const userId = user.id || user.Id || user.userId || user.UserId;
             const userName = user.userName || user.UserName || user.username || user.Username || "Unknown";
-            const profileImage = user.profileImage || user.ProfileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=667eea&color=fff&size=128&bold=true`;
+            const profileImage = user.profileImage || user.ProfileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=f97316&color=fff&size=128&bold=true`;
             const firstName = user.firstName || user.FirstName || "";
             const lastName = user.lastName || user.LastName || "";
             const displayName = firstName && lastName ? `${firstName} ${lastName}` : userName;
@@ -69,9 +69,9 @@ const FollowingPage = () => {
                   <img
                     src={profileImage}
                     alt={userName}
-                    className="w-12 h-12 rounded-full border-2 border-gray-200 dark:border-gray-600 bg-gradient-to-br from-purple-400 to-blue-500 object-cover"
+                    className="w-12 h-12 rounded-full border-2 border-gray-200 dark:border-gray-600 bg-gradient-to-br from-orange-400 to-amber-500 object-cover"
                     onError={(e) => {
-                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=667eea&color=fff&size=128&bold=true`;
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=f97316&color=fff&size=128&bold=true`;
                     }}
                   />
                   <div className="ml-4">
@@ -92,3 +92,6 @@ const FollowingPage = () => {
 };
 
 export default FollowingPage;
+
+
+

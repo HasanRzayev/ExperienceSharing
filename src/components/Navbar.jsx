@@ -77,7 +77,7 @@ const NavbarComponent = () => {
   };
 
   return (
-    <nav className="glass shadow-soft border-0 sticky top-0 z-50">
+    <nav className="glass shadow-soft border-0 sticky top-0 z-50 supports-[backdrop-filter]:backdrop-blur-2xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -100,7 +100,7 @@ const NavbarComponent = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-6">
+            <div className="ml-10 flex items-center space-x-2 rounded-2xl bg-white/35 dark:bg-slate-900/35 p-1 ring-1 ring-orange-100/70 dark:ring-white/10">
               <button
                 onClick={() => navigate("/")}
                 className="text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
@@ -164,7 +164,7 @@ const NavbarComponent = () => {
               {/* Theme Toggle Button */}
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="p-2 rounded-xl bg-white/75 dark:bg-slate-800/80 hover:bg-orange-50 dark:hover:bg-orange-500/10 ring-1 ring-slate-200/70 dark:ring-white/10 transition-all"
                 aria-label="Toggle theme"
               >
                 {isDark ? (
@@ -185,21 +185,21 @@ const NavbarComponent = () => {
             <button
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={handleAvatarClick}
-                    className="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                    className="max-w-xs bg-white/80 dark:bg-slate-900/80 flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-sm"
                   >
                     <img
-                      src={userData?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.fullName || userData?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`}
+                      src={userData?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.fullName || userData?.userName || 'User')}&background=f97316&color=fff&size=128&bold=true`}
                 alt="User settings"
-                      className="h-8 w-8 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-orange-500 transition-all bg-gradient-to-br from-purple-400 to-blue-500"
+                      className="h-8 w-8 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-orange-500 transition-all bg-gradient-to-br from-orange-400 to-amber-500"
                       onError={(e) => {
-                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.fullName || userData?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`;
+                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.fullName || userData?.userName || 'User')}&background=f97316&color=fff&size=128&bold=true`;
                       }}
               />
             </button>
             
             {isOpen && (
-                    <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                      <div className="px-4 py-3 bg-gradient-to-r from-orange-50 to-red-50 border-b border-gray-200 rounded-t-xl">
+                    <div className="origin-top-right absolute right-0 mt-3 w-60 rounded-2xl shadow-2xl bg-white/95 dark:bg-slate-950/95 ring-1 ring-orange-100 dark:ring-white/10 backdrop-blur-xl focus:outline-none z-50 overflow-hidden">
+                      <div className="px-4 py-3 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/40 dark:to-slate-900 border-b border-orange-100 dark:border-white/10 rounded-t-2xl">
                   <p className="text-sm font-semibold text-gray-900">{userData?.fullName || "User"}</p>
                   <p className="text-xs text-gray-600 truncate">{userData?.email || "email@example.com"}</p>
                 </div>
@@ -276,13 +276,13 @@ const NavbarComponent = () => {
                 <div className="flex items-center space-x-3">
                   <button
               onClick={() => navigate("/login")} 
-                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm"
             >
               Login
                   </button>
                   <button
               onClick={() => navigate("/signup")}
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    className="bg-white/80 hover:bg-orange-50 text-slate-800 px-4 py-2 rounded-xl text-sm font-semibold transition-all ring-1 ring-orange-100"
             >
               Sign up
                   </button>
@@ -295,7 +295,7 @@ const NavbarComponent = () => {
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-orange-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-orange-500"
+              className="bg-white/80 dark:bg-slate-900/80 inline-flex items-center justify-center p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-orange-500"
             >
               <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                 {isMobileMenuOpen ? (
@@ -311,7 +311,7 @@ const NavbarComponent = () => {
 
       {/* Mobile menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200">
+        <div className="md:hidden bg-white/95 dark:bg-slate-950/95 border-t border-orange-100 dark:border-white/10 backdrop-blur-xl">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <button
               onClick={() => handleMenuClick("/")}
@@ -321,7 +321,7 @@ const NavbarComponent = () => {
             </button>
             <button
               onClick={() => handleMenuClick("/explore")}
-              className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-base font-medium w-full text-left flex items-center gap-2"
+              className="text-gray-700 hover:text-orange-600 px-3 py-2 rounded-md text-base font-medium w-full text-left flex items-center gap-2"
         >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -330,7 +330,7 @@ const NavbarComponent = () => {
             </button>
             <button
               onClick={() => handleMenuClick("/travel-guide")}
-              className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-base font-medium w-full text-left flex items-center gap-2"
+              className="text-gray-700 hover:text-orange-600 px-3 py-2 rounded-md text-base font-medium w-full text-left flex items-center gap-2"
         >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 013.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -339,7 +339,7 @@ const NavbarComponent = () => {
             </button>
             <button
               onClick={() => handleMenuClick("/events")}
-              className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-base font-medium w-full text-left flex items-center gap-2"
+              className="text-gray-700 hover:text-orange-600 px-3 py-2 rounded-md text-base font-medium w-full text-left flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -348,7 +348,7 @@ const NavbarComponent = () => {
             </button>
             <button
               onClick={() => handleMenuClick("/trip-planner")}
-              className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-base font-medium w-full text-left flex items-center gap-2"
+              className="text-gray-700 hover:text-orange-600 px-3 py-2 rounded-md text-base font-medium w-full text-left flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -371,7 +371,7 @@ const NavbarComponent = () => {
             {/* Theme Toggle for Mobile */}
             <button
               onClick={toggleTheme}
-              className="flex items-center gap-3 text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-base font-medium w-full text-left"
+              className="flex items-center gap-3 text-gray-700 hover:text-orange-600 px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
               {isDark ? (
                 <>
@@ -430,7 +430,7 @@ const NavbarComponent = () => {
               <div className="border-t border-gray-200 pt-3 mt-3 space-y-2">
                 <button
                   onClick={() => handleMenuClick("/login")}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full"
+                  className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full"
                 >
                   Login
                 </button>
@@ -450,3 +450,4 @@ const NavbarComponent = () => {
 };
 
 export default NavbarComponent;
+

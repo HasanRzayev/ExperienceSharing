@@ -2951,7 +2951,7 @@ const ChatPageV2 = () => {
                                 alt={displayName}
                                 className="w-12 h-12 rounded-full object-cover"
                                 onError={(e) => {
-                                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=667eea&color=fff`;
+                                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=f97316&color=fff`;
                                 }}
                               />
                               {/* Unread indicator (no numeric count shown) */}
@@ -2981,7 +2981,7 @@ const ChatPageV2 = () => {
                       <p>No groups yet</p>
                       <button
                         onClick={() => setShowCreateGroupModal(true)}
-                        className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                        className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
                       >
                         Create Group
                       </button>
@@ -3015,7 +3015,7 @@ const ChatPageV2 = () => {
                             alt={group.name || 'Group'}
                             className="w-12 h-12 rounded-full object-cover flex-shrink-0"
                             onError={(e) => {
-                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(group.name || 'G')}&background=667eea&color=fff`;
+                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(group.name || 'G')}&background=f97316&color=fff`;
                             }}
                           />
                           <div className="flex-1 min-w-0">
@@ -3055,7 +3055,7 @@ const ChatPageV2 = () => {
                                   alt={displayName}
                                   className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                                   onError={(e) => {
-                                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=667eea&color=fff`;
+                                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=f97316&color=fff`;
                                   }}
                                 />
                                 <div className="flex-1 min-w-0">
@@ -3084,7 +3084,7 @@ const ChatPageV2 = () => {
                                   alt={groupName}
                                   className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                                   onError={(e) => {
-                                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(groupName)}&background=667eea&color=fff`;
+                                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(groupName)}&background=f97316&color=fff`;
                                   }}
                                 />
                                 <div className="flex-1 min-w-0">
@@ -3378,7 +3378,7 @@ const ChatPageV2 = () => {
                               controls={false}
                             />
                           ) : filePreview.type.startsWith('audio/') ? (
-                            <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                            <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center">
                               <span className="text-white text-xl">🎵</span>
                             </div>
                           ) : (
@@ -3622,7 +3622,7 @@ const ChatPageV2 = () => {
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
                   placeholder="Enter group name..."
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                   required
                 />
               </div>
@@ -3636,7 +3636,7 @@ const ChatPageV2 = () => {
                   onChange={(e) => setGroupDescription(e.target.value)}
                   placeholder="What's this group about?"
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none dark:bg-gray-700 dark:text-white"
                 />
               </div>
 
@@ -3651,7 +3651,7 @@ const ChatPageV2 = () => {
                     value={searchUsers}
                     onChange={(e) => setSearchUsers(e.target.value)}
                     placeholder="Search users..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                   />
                 </div>
 
@@ -3666,7 +3666,7 @@ const ChatPageV2 = () => {
                         key={user.id}
                         onClick={() => toggleMemberSelection(user.id)}
                         className={`p-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0 ${
-                          selectedMembers.includes(user.id) ? 'bg-purple-50 dark:bg-purple-900/20' : ''
+                          selectedMembers.includes(user.id) ? 'bg-purple-50 dark:bg-orange-900/20' : ''
                         }`}
                       >
                         <img
@@ -3681,7 +3681,7 @@ const ChatPageV2 = () => {
                           <p className="text-sm text-gray-500 dark:text-gray-400">@{user.userName}</p>
                         </div>
                         {selectedMembers.includes(user.id) && (
-                          <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         )}
@@ -3707,7 +3707,7 @@ const ChatPageV2 = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all font-medium"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-lg hover:from-orange-700 hover:to-amber-700 transition-all font-medium"
                 >
                   Create Group
                 </button>
@@ -3769,7 +3769,7 @@ const ChatPageV2 = () => {
                           alt={displayName}
                           className="w-12 h-12 rounded-full object-cover border-2 border-purple-500 flex-shrink-0"
                           onError={(e) => {
-                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=667eea&color=fff`;
+                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=f97316&color=fff`;
                           }}
                         />
                         <div className="flex-1 min-w-0">
@@ -3782,7 +3782,7 @@ const ChatPageV2 = () => {
                           </p>
                         </div>
                         {isAdmin && (
-                          <span className="px-3 py-1 bg-purple-600 text-white text-xs font-semibold rounded-full flex-shrink-0">
+                          <span className="px-3 py-1 bg-orange-600 text-white text-xs font-semibold rounded-full flex-shrink-0">
                             Admin
                           </span>
                         )}
@@ -3809,4 +3809,7 @@ const ChatPageV2 = () => {
 };
 
 export default ChatPageV2;
+
+
+
 

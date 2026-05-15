@@ -198,7 +198,7 @@ export default function FollowRequestsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-slate-50 to-amber-100 py-12">
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold gradient-text mb-4">Notifications</h1>
@@ -209,7 +209,7 @@ export default function FollowRequestsPage() {
 
         <div className="card-modern p-8">
           <div className="flex items-center mb-8">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mr-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full flex items-center justify-center mr-4">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4 19h6v2H4a2 2 0 01-2-2V7a2 2 0 012-2h6v2H4v12z" />
               </svg>
@@ -244,7 +244,7 @@ export default function FollowRequestsPage() {
                     className="p-6 border border-gray-200 rounded-2xl bg-white hover:shadow-lg transition-shadow"
                   >
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full flex items-center justify-center">
                         <span className="text-white font-bold text-lg">
                           {followerUsername?.charAt(0)?.toUpperCase() || "?"}
                         </span>
@@ -286,3 +286,6 @@ export default function FollowRequestsPage() {
     </div>
   );
 }
+
+
+

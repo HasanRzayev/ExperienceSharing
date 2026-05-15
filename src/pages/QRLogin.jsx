@@ -145,3 +145,6 @@ const QRLogin = () => {
 };
 
 export default QRLogin;
+
+
+

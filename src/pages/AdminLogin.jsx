@@ -142,7 +142,7 @@ function AdminLogin() {
 
             <div className="mt-6 text-center">
               <p className="text-gray-600 text-sm">
-                <a href="/" className="text-purple-600 hover:text-purple-500 font-semibold">
+                <a href="/" className="text-orange-600 hover:text-orange-500 font-semibold">
                   ← Back to Main Site
                 </a>
               </p>
@@ -165,3 +165,6 @@ function AdminLogin() {
 }
 
 export default AdminLogin;
+
+
+

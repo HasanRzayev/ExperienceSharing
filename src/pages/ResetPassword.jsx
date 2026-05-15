@@ -67,20 +67,20 @@ function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
-        <div className="glass rounded-3xl overflow-hidden shadow-2xl">
-          <div className="bg-gradient-to-br from-green-600 via-blue-600 to-purple-700 p-8 text-white text-center">
+        <div className="glass rounded-3xl overflow-hidden shadow-soft">
+          <div className="bg-gradient-to-br from-orange-500 via-amber-500 to-rose-500 p-8 text-white text-center">
             <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
             <h1 className="text-3xl font-bold mb-2">Create New Password</h1>
-            <p className="text-blue-100">Enter your new password below</p>
+            <p className="text-white/85">Enter your new password below</p>
           </div>
 
-          <div className="p-8 bg-white">
+          <div className="p-8 bg-white/80 dark:bg-slate-950/40">
             {!token ? (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-center">
                 <svg className="w-12 h-12 mx-auto mb-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,7 +89,7 @@ function ResetPassword() {
                 <p className="font-medium">Token mövcud deyil</p>
                 <button
                   onClick={() => navigate('/forgot-password')}
-                  className="mt-4 text-purple-600 hover:text-purple-700 font-semibold"
+                  className="mt-4 font-semibold text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200"
                 >
                   Forgot Password səhifəsinə qayıt
                 </button>
@@ -97,7 +97,7 @@ function ResetPassword() {
             ) : (
               <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">
                     New Password
                   </label>
                   <input 
@@ -113,7 +113,7 @@ function ResetPassword() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">
                     Confirm Password
                   </label>
                   <input 
@@ -170,7 +170,7 @@ function ResetPassword() {
             <div className="mt-6 text-center">
               <button
                 onClick={() => navigate('/login')}
-                className="text-purple-600 hover:text-purple-500 font-semibold"
+                className="font-semibold text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200"
               >
                 ← Back to Login
               </button>
@@ -183,4 +183,7 @@ function ResetPassword() {
 }
 
 export default ResetPassword;
+
+
+
 

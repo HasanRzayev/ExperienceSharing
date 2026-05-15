@@ -25,7 +25,7 @@ const DMCA = () => {
       <p className="leading-relaxed">
         Send DMCA notices to:
         <br /><br />
-        <strong>Email:</strong> <a href="mailto:wanderly.project@gmail.com" className="text-purple-600 hover:text-purple-700 font-semibold">wanderly.project@gmail.com</a>
+        <strong>Email:</strong> <a href="mailto:wanderly.project@gmail.com" className="text-orange-600 hover:text-orange-700 font-semibold">wanderly.project@gmail.com</a>
         <br />
         <strong>Subject:</strong> DMCA Takedown Request
       </p>
@@ -41,4 +41,7 @@ const DMCA = () => {
 };
 
 export default DMCA;
+
+
+
 

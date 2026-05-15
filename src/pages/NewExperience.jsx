@@ -297,7 +297,7 @@ const NewExperience = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-slate-50 to-amber-100 py-12">
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold gradient-text mb-4">
@@ -393,7 +393,7 @@ const NewExperience = () => {
               </label>
               <div className="flex flex-wrap gap-2 mb-3">
                 {tags.map((tag, index) => (
-                  <span key={index} className="inline-flex items-center bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+                  <span key={index} className="inline-flex items-center bg-gradient-to-r from-orange-500 to-rose-500 text-white px-4 py-2 rounded-full text-sm font-medium">
                     {tag}
                     <button 
                       type="button" 
@@ -434,16 +434,16 @@ const NewExperience = () => {
               >
                 <Label
                   htmlFor="dropzone-file"
-                  className="flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100 hover:from-purple-50 hover:to-blue-50 hover:border-purple-400 transition-all duration-300"
+                  className="flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100 hover:from-orange-50 hover:to-amber-50 hover:border-orange-400 transition-all duration-300"
                 >
                   <div className="flex flex-col items-center justify-center pb-6 pt-5">
-                    <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                       <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     </div>
                     <p className="mb-2 text-lg font-semibold text-gray-700">
-                      <span className="text-purple-600">Click to upload</span> or drag and drop
+                      <span className="text-orange-600">Click to upload</span> or drag and drop
                     </p>
                     <p className="text-sm text-gray-500">PNG, JPG, GIF up to 10MB each</p>
                   </div>
@@ -547,16 +547,16 @@ const NewExperience = () => {
                 {!video ? (
                   <Label
                     htmlFor="video-upload"
-                    className="flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100 hover:from-purple-50 hover:to-blue-50 hover:border-purple-400 transition-all duration-300"
+                    className="flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100 hover:from-orange-50 hover:to-amber-50 hover:border-orange-400 transition-all duration-300"
                   >
                     <div className="flex flex-col items-center justify-center pb-6 pt-5">
-                      <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                         <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                         </svg>
                       </div>
                       <p className="mb-1 text-base font-semibold text-gray-700">
-                        <span className="text-purple-600">Click to upload</span> a video
+                        <span className="text-orange-600">Click to upload</span> a video
                       </p>
                       <p className="text-xs text-gray-500">MP4, MOV up to 100MB</p>
                     </div>
@@ -641,3 +641,6 @@ const NewExperience = () => {
 };
 
 export default NewExperience;
+
+
+

@@ -44,7 +44,7 @@ const HelpCenter = () => {
       <section>
         <h3 className="text-xl font-bold text-gray-800 mb-4">Need More Help?</h3>
         <p className="text-gray-700 leading-relaxed mb-4">
-          Can't find what you're looking for? Visit our <a href="/faq" className="text-purple-600 hover:text-purple-700 font-semibold">FAQ page</a> or <a href="/contact" className="text-purple-600 hover:text-purple-700 font-semibold">contact us</a> directly.
+          Can't find what you're looking for? Visit our <a href="/faq" className="text-orange-600 hover:text-orange-700 font-semibold">FAQ page</a> or <a href="/contact" className="text-orange-600 hover:text-orange-700 font-semibold">contact us</a> directly.
         </p>
       </section>
     </div>
@@ -54,4 +54,7 @@ const HelpCenter = () => {
 };
 
 export default HelpCenter;
+
+
+
 

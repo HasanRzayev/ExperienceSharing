@@ -25,7 +25,7 @@ function TravelGuide() {
     { 
       icon: FaCamera, 
       title: "Entertainment & Social", 
-      color: "from-purple-500 to-pink-600",
+      color: "from-orange-500 to-rose-600",
       emoji: "📸"
     },
     { 
@@ -37,7 +37,7 @@ function TravelGuide() {
     { 
       icon: FaSpa, 
       title: "Relaxation & Wellness", 
-      color: "from-blue-500 to-cyan-600",
+      color: "from-emerald-500 to-teal-600",
       emoji: "🧘‍♂️"
     },
     { 
@@ -255,7 +255,7 @@ Format each section clearly with bullet points. Be specific with names and locat
         
         formatted.push(
           <div key={index} className="flex gap-3 mb-3">
-            <span className="text-purple-600 font-bold text-lg mt-1">•</span>
+            <span className="text-orange-600 font-bold text-lg mt-1">•</span>
             <div className="flex-1">
               {parts.map((part, i) => 
                 i % 2 === 1 ? (
@@ -293,7 +293,7 @@ Format each section clearly with bullet points. Be specific with names and locat
     const Icon = icon;
     
     return (
-      <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 animate-fadeInUp border-l-4 border-transparent hover:border-purple-500">
+      <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 animate-fadeInUp border-l-4 border-transparent hover:border-orange-500">
         <div className="flex items-center gap-3 mb-6 pb-3 border-b-2 border-gray-100">
           <div className={`w-14 h-14 bg-gradient-to-br ${color} rounded-xl flex items-center justify-center text-3xl shadow-lg transform hover:scale-110 transition-transform`}>
             {emoji}
@@ -308,9 +308,9 @@ Format each section clearly with bullet points. Be specific with names and locat
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <main className="min-h-screen bg-gradient-to-br from-orange-50 via-slate-50 to-amber-100">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white py-20 px-4 overflow-hidden">
+      <div className="relative bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 text-white py-20 px-4 overflow-hidden">
         {/* Animated Background */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse"></div>
@@ -323,10 +323,10 @@ Format each section clearly with bullet points. Be specific with names and locat
               <MdExplore className="text-6xl" />
             </div>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-purple-100">
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-orange-100 to-amber-100">
             AI Travel Guide
           </h1>
-          <p className="text-2xl text-blue-50 mb-10 font-light">
+          <p className="text-2xl text-orange-50 mb-10 font-light">
             Discover amazing activities and hidden gems powered by AI
           </p>
 
@@ -346,7 +346,7 @@ Format each section clearly with bullet points. Be specific with names and locat
               <button
                 type="submit"
                 disabled={loading}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 hover:from-pink-600 hover:via-purple-700 hover:to-indigo-700 text-white px-10 py-4 rounded-full font-bold flex items-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl hover:shadow-3xl transform hover:scale-105"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-orange-500 via-amber-600 to-rose-600 hover:from-orange-600 hover:via-amber-700 hover:to-rose-700 text-white px-10 py-4 rounded-full font-bold flex items-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl hover:shadow-3xl transform hover:scale-105"
               >
                 {loading ? (
                   <>
@@ -387,8 +387,8 @@ Format each section clearly with bullet points. Be specific with names and locat
           <div className="bg-white rounded-3xl shadow-2xl p-12 text-center">
             <div className="flex justify-center mb-6">
               <div className="relative">
-                <div className="w-24 h-24 border-8 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
-                <MdExplore className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl text-purple-600 animate-pulse" />
+                <div className="w-24 h-24 border-8 border-orange-200 border-t-orange-600 rounded-full animate-spin"></div>
+                <MdExplore className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl text-orange-600 animate-pulse" />
               </div>
             </div>
             <h3 className="text-3xl font-bold text-gray-800 mb-3">
@@ -398,9 +398,9 @@ Format each section clearly with bullet points. Be specific with names and locat
               Our AI is discovering the best activities and hidden gems for you
             </p>
             <div className="flex justify-center gap-2">
-              <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce"></div>
-              <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce delay-100"></div>
-              <div className="w-3 h-3 bg-indigo-600 rounded-full animate-bounce delay-200"></div>
+              <div className="w-3 h-3 bg-orange-600 rounded-full animate-bounce"></div>
+              <div className="w-3 h-3 bg-emerald-600 rounded-full animate-bounce delay-100"></div>
+              <div className="w-3 h-3 bg-amber-600 rounded-full animate-bounce delay-200"></div>
             </div>
           </div>
         </div>
@@ -410,7 +410,7 @@ Format each section clearly with bullet points. Be specific with names and locat
       {!recommendations && !loading && (
         <div className="max-w-7xl mx-auto px-4 py-16">
           <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent mb-4">
               What You'll Discover
             </h2>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
@@ -423,13 +423,13 @@ Format each section clearly with bullet points. Be specific with names and locat
               return (
                 <div 
                   key={index}
-                  className="group bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 cursor-pointer border-2 border-transparent hover:border-purple-200 animate-fadeInUp"
+                  className="group bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 cursor-pointer border-2 border-transparent hover:border-orange-200 animate-fadeInUp"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className={`w-20 h-20 bg-gradient-to-br ${category.color} rounded-2xl flex items-center justify-center text-4xl mb-6 shadow-xl group-hover:scale-110 transition-transform`}>
                     {category.emoji}
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-3 group-hover:text-purple-600 transition-colors">
+                  <h3 className="text-2xl font-bold text-gray-800 mb-3 group-hover:text-orange-600 transition-colors">
                     {category.title}
                   </h3>
                   <p className="text-gray-600 leading-relaxed">
@@ -446,10 +446,10 @@ Format each section clearly with bullet points. Be specific with names and locat
       {recommendations && (
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center mb-12 animate-fadeInUp">
-            <div className="inline-block mb-4 px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white font-semibold shadow-lg">
+            <div className="inline-block mb-4 px-6 py-2 bg-gradient-to-r from-orange-500 to-rose-500 rounded-full text-white font-semibold shadow-lg">
               ✨ AI Recommendations
             </div>
-            <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4">
+            <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 bg-clip-text text-transparent mb-4">
               Your Guide to {location}
             </h2>
             <p className="text-gray-600 text-xl max-w-2xl mx-auto">
@@ -476,7 +476,7 @@ Format each section clearly with bullet points. Be specific with names and locat
               "Entertainment & Social",
               recommendations.entertainment,
               FaCamera,
-              "from-purple-500 to-pink-600",
+              "from-orange-500 to-rose-600",
               "📸"
             )}
             {renderSection(
@@ -490,7 +490,7 @@ Format each section clearly with bullet points. Be specific with names and locat
               "Relaxation & Wellness",
               recommendations.relaxation,
               FaSpa,
-              "from-blue-500 to-cyan-600",
+              "from-emerald-500 to-teal-600",
               "🧘‍♂️"
             )}
             {renderSection(
@@ -504,7 +504,7 @@ Format each section clearly with bullet points. Be specific with names and locat
 
           {/* Photo Spots */}
           {recommendations.photoSpots && (
-            <div className="mt-6 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 rounded-2xl shadow-2xl p-8 text-white transform hover:scale-[1.02] transition-transform">
+            <div className="mt-6 bg-gradient-to-r from-rose-500 via-orange-500 to-amber-600 rounded-2xl shadow-2xl p-8 text-white transform hover:scale-[1.02] transition-transform">
               <div className="flex items-center gap-4 mb-6 pb-4 border-b-2 border-white/30">
                 <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
                   <FaCamera className="text-4xl" />
@@ -540,7 +540,7 @@ Format each section clearly with bullet points. Be specific with names and locat
                 setLocation("");
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="group bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700 text-white px-12 py-5 rounded-full font-bold text-xl shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 flex items-center gap-3 mx-auto"
+              className="group bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 hover:from-orange-700 hover:via-amber-700 hover:to-rose-700 text-white px-12 py-5 rounded-full font-bold text-xl shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 flex items-center gap-3 mx-auto"
             >
               <FaSearch className="text-2xl group-hover:rotate-12 transition-transform" />
               <span>Explore Another Destination</span>
@@ -602,4 +602,7 @@ Format each section clearly with bullet points. Be specific with names and locat
 }
 
 export default TravelGuide;
+
+
+
 

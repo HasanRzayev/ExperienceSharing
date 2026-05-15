@@ -25,7 +25,7 @@ const ReportIssue = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
-      <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white py-16">
+      <div className="bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 text-white py-16">
         <div className="container mx-auto px-6">
           <div className="text-center max-w-4xl mx-auto">
             <FaFlag className="text-6xl mx-auto mb-4" />
@@ -92,7 +92,7 @@ const ReportIssue = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
                 >
                   <FaPaperPlane />
                   Submit Report
@@ -114,4 +114,7 @@ const ReportIssue = () => {
 };
 
 export default ReportIssue;
+
+
+
 

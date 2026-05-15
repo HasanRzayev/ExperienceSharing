@@ -41,23 +41,23 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
-        <div className="glass rounded-3xl overflow-hidden shadow-2xl">
-          <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 p-8 text-white text-center">
+        <div className="glass rounded-3xl overflow-hidden shadow-soft">
+          <div className="bg-gradient-to-br from-orange-500 via-amber-500 to-rose-500 p-8 text-white text-center">
             <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
               </svg>
             </div>
             <h1 className="text-3xl font-bold mb-2">Reset Password</h1>
-            <p className="text-blue-100">Enter your email and new password</p>
+            <p className="text-white/85">Enter your email and new password</p>
           </div>
 
-          <div className="p-8 bg-white">
+          <div className="p-8 bg-white/80 dark:bg-slate-950/40">
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">
                   Email Address
                 </label>
                 <input 
@@ -69,7 +69,7 @@ function ForgotPassword() {
                   disabled={isLoading}
                   className="input-modern w-full" 
                 />
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
                   Sistemdə qeydiyyatdan keçmiş email adresinizi daxil edin
                 </p>
               </div>
@@ -93,7 +93,7 @@ function ForgotPassword() {
                     </svg>
                     <div>
                       <span className="font-medium text-green-700 block">{success}</span>
-                      <p className="text-sm text-gray-600 mt-2">
+                      <p className="text-sm text-slate-600 mt-2">
                         📧 Zəhmət olmasa email qutunuzu yoxlayın və linki klikləyin.
                       </p>
                     </div>
@@ -120,7 +120,7 @@ function ForgotPassword() {
             <div className="mt-6 text-center">
               <button
                 onClick={() => navigate('/login')}
-                className="text-purple-600 hover:text-purple-500 font-semibold"
+                className="font-semibold text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200"
               >
                 ← Back to Login
               </button>
@@ -133,4 +133,7 @@ function ForgotPassword() {
 }
 
 export default ForgotPassword;
+
+
+
 

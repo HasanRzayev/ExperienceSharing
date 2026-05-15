@@ -97,7 +97,7 @@ const UserProfilePage = () => {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mb-4"></div>
           <p className="text-gray-600">Loading profile...</p>
         </div>
       </div>
@@ -113,7 +113,7 @@ const UserProfilePage = () => {
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => navigate(-1)}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
           >
             Go Back
           </button>
@@ -145,7 +145,7 @@ const UserProfilePage = () => {
       <div className="bg-white w-full max-w-4xl shadow-md rounded-lg overflow-hidden">
         <div className="relative bg-gray-300 h-48">
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="w-24 h-24 border-4 border-white rounded-full overflow-hidden bg-gradient-to-br from-purple-400 to-blue-500">
+            <div className="w-24 h-24 border-4 border-white rounded-full overflow-hidden bg-gradient-to-br from-orange-400 to-amber-500">
               <img src={profileImage} alt="Profile" className="w-full h-full object-cover" onError={(e) => { e.target.src = getProfileImage(null, userName); }} />
             </div>
           </div>
@@ -231,3 +231,6 @@ const UserProfilePage = () => {
 };
 
 export default UserProfilePage;
+
+
+

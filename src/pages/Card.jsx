@@ -266,7 +266,7 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
       {/* Content */}
       <div className="p-6">
         <div className="flex items-start justify-between mb-3">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-purple-600 transition-colors duration-300 line-clamp-2">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-orange-600 transition-colors duration-300 line-clamp-2">
             {title}
           </h3>
           <div className="flex items-center ml-2">
@@ -287,17 +287,17 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <img
-              src={user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`}
+              src={user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.userName || 'User')}&background=f97316&color=fff&size=128&bold=true`}
               alt={user?.userName || "User"}
-              className="w-8 h-8 rounded-full object-cover border-2 border-white shadow-md bg-gradient-to-br from-purple-400 to-blue-500"
+              className="w-8 h-8 rounded-full object-cover border-2 border-white shadow-md bg-gradient-to-br from-orange-400 to-amber-500"
               loading="lazy"
               decoding="async"
               onError={(e) => {
-                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`;
+                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.userName || 'User')}&background=f97316&color=fff&size=128&bold=true`;
               }}
             />
             <div>
-              <p className="text-sm font-medium text-gray-800 cursor-pointer hover:text-purple-600 transition-colors" onClick={handleUserNameClick}>
+              <p className="text-sm font-medium text-gray-800 cursor-pointer hover:text-orange-600 transition-colors" onClick={handleUserNameClick}>
                 {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.userName || "Unknown User"}
               </p>
               <p className="text-xs text-gray-500">
@@ -360,3 +360,6 @@ const CustomCard = ({ imageUrls, date, title, description, location, rating, use
 
 // Use React.memo to prevent unnecessary re-renders
 export default memo(CustomCard);
+
+
+

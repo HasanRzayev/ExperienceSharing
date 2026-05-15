@@ -136,8 +136,8 @@ const TripDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-slate-50 to-amber-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
       </div>
     );
   }
@@ -147,12 +147,12 @@ const TripDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-slate-50 to-amber-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <button
           onClick={() => navigate('/trip-planner')}
-          className="mb-6 flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+          className="mb-6 flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -162,7 +162,7 @@ const TripDetail = () => {
 
         {/* Trip Header */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mb-6">
-          <div className="h-64 bg-gradient-to-br from-purple-400 to-blue-500 relative">
+          <div className="h-64 bg-gradient-to-br from-orange-400 to-amber-500 relative">
             {trip.coverImage && (
               <img src={trip.coverImage} alt={trip.title} className="w-full h-full object-cover" />
             )}
@@ -179,8 +179,8 @@ const TripDetail = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   </svg>
                 </div>
@@ -223,7 +223,7 @@ const TripDetail = () => {
             <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={handleEditClick}
-                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                className="flex-1 bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
               >
                 Edit Trip
               </button>
@@ -250,7 +250,7 @@ const TripDetail = () => {
                   key={te.id}
                   className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors group"
                 >
-                  <div className="w-12 h-12 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="w-12 h-12 bg-orange-600 text-white rounded-full flex items-center justify-center font-bold">
                     {index + 1}
                   </div>
                   {te.experience?.imageUrls?.[0]?.url && (
@@ -331,7 +331,7 @@ const TripDetail = () => {
                   required
                   value={editTrip.title}
                   onChange={(e) => setEditTrip({ ...editTrip, title: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                   placeholder="e.g., Summer Europe Trip 2024"
                 />
               </div>
@@ -344,7 +344,7 @@ const TripDetail = () => {
                   value={editTrip.description}
                   onChange={(e) => setEditTrip({ ...editTrip, description: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                   placeholder="Describe your trip..."
                 />
               </div>
@@ -358,7 +358,7 @@ const TripDetail = () => {
                   required
                   value={editTrip.destination}
                   onChange={(e) => setEditTrip({ ...editTrip, destination: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                   placeholder="e.g., Paris, France"
                 />
               </div>
@@ -373,7 +373,7 @@ const TripDetail = () => {
                     required
                     value={editTrip.startDate}
                     onChange={(e) => setEditTrip({ ...editTrip, startDate: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
                 <div>
@@ -385,7 +385,7 @@ const TripDetail = () => {
                     required
                     value={editTrip.endDate}
                     onChange={(e) => setEditTrip({ ...editTrip, endDate: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
               </div>
@@ -399,7 +399,7 @@ const TripDetail = () => {
                     type="number"
                     value={editTrip.budget}
                     onChange={(e) => setEditTrip({ ...editTrip, budget: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                     placeholder="0"
                   />
                 </div>
@@ -410,7 +410,7 @@ const TripDetail = () => {
                   <select
                     value={editTrip.currency}
                     onChange={(e) => setEditTrip({ ...editTrip, currency: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                   >
                     <option value="USD">USD ($)</option>
                     <option value="EUR">EUR (€)</option>
@@ -428,7 +428,7 @@ const TripDetail = () => {
                 <select
                   value={editTrip.status}
                   onChange={(e) => setEditTrip({ ...editTrip, status: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                 >
                   <option value="Planning">Planning</option>
                   <option value="Ongoing">Ongoing</option>
@@ -446,7 +446,7 @@ const TripDetail = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
+                  className="flex-1 bg-gradient-to-r from-orange-600 to-amber-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-orange-700 hover:to-amber-700 transition-all"
                 >
                   Update Trip
                 </button>
@@ -460,4 +460,7 @@ const TripDetail = () => {
 };
 
 export default TripDetail;
+
+
+
 

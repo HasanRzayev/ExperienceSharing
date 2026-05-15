@@ -158,7 +158,7 @@ function AdminComments() {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading comments...</p>
         </div>
       </div>
@@ -202,7 +202,7 @@ function AdminComments() {
             placeholder="Search comments..."
             value={searchTerm}
             onChange={handleSearch}
-            className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           />
         </div>
 
@@ -295,7 +295,7 @@ function AdminComments() {
                   onChange={handleInputChange}
                   rows="4"
                   placeholder="Enter comment content..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
               </div>
               
@@ -307,7 +307,7 @@ function AdminComments() {
                   value={formData.experienceId}
                   onChange={handleInputChange}
                   placeholder="Enter experience ID"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
               </div>
               
@@ -319,7 +319,7 @@ function AdminComments() {
                   value={formData.userId}
                   onChange={handleInputChange}
                   placeholder="Enter user ID"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -333,7 +333,7 @@ function AdminComments() {
               </button>
               <button
                 onClick={handleSave}
-                className="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                className="px-4 py-2 text-sm bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
               >
                 Save
               </button>
@@ -346,3 +346,6 @@ function AdminComments() {
 }
 
 export default AdminComments;
+
+
+

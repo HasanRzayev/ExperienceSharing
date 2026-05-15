@@ -923,7 +923,7 @@ const filteredUsers = users.filter(user =>
             key={user.id || `user-${index}`}
             className={`p-4 flex items-center space-x-4 cursor-pointer rounded-xl transition-smooth hover:shadow-hover ${
               selectedUser?.id === user.id 
-                ? "bg-gradient-to-r from-purple-600 to-blue-600 shadow-lg" 
+                ? "bg-gradient-to-r from-orange-600 to-amber-600 shadow-lg" 
                 : "glass hover:bg-white hover:bg-opacity-10"
             }`}
             onClick={() => {
@@ -972,7 +972,7 @@ const filteredUsers = users.filter(user =>
       {/* SAĞ PANEL */}
       <div className="w-3/4 glass my-4 mr-4 rounded-2xl overflow-hidden shadow-2xl flex flex-col" style={{ height: 'calc(100vh - 2rem)' }}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 text-center flex-shrink-0">
+        <div className="bg-gradient-to-r from-orange-600 to-amber-600 p-6 text-center flex-shrink-0">
           {selectedUser ? (
             <div className="flex items-center justify-center space-x-4">
               <img
@@ -1191,7 +1191,7 @@ const filteredUsers = users.filter(user =>
                     controls={false}
                   />
                 ) : filePreview.type.startsWith('audio/') ? (
-                  <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                  <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center">
                     <span className="text-white text-xl">🎵</span>
                   </div>
                 ) : (
@@ -1391,6 +1391,9 @@ if (!document.head.querySelector('style[data-scrollbar]')) {
   styleSheet.setAttribute('data-scrollbar', 'true');
   document.head.appendChild(styleSheet);
 }
+
+
+
 
 
 

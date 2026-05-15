@@ -1,33 +1,32 @@
-import { Footer } from "flowbite-react";
 import { BsGithub, BsLinkedin, BsTelegram } from "react-icons/bs";
 import { Link } from "react-router-dom";
 
 const FooterComponent = () => {
     return (
-        <footer className="bg-gradient-to-r from-gray-900 via-purple-900 to-blue-900 text-white">
-          <div className="container mx-auto px-6 py-12">
+        <footer className="bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 text-white border-t border-white/10">
+          <div className="max-w-7xl mx-auto px-6 py-14">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {/* Brand Section */}
               <div className="lg:col-span-1">
                 <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                  <div className="w-11 h-11 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-900/30">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
                   </div>
-                  <span className="text-2xl font-bold gradient-text">ExperienceShare</span>
+                  <span className="text-2xl font-bold gradient-text">Wanderly</span>
                 </div>
                 <p className="text-gray-300 mb-6 leading-relaxed">
                   Connect with travelers worldwide and share your amazing experiences. Discover new places, create lasting memories, and inspire others.
                 </p>
                 <div className="flex space-x-4">
-                  <a href="https://github.com/HasanRzayev" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors" title="GitHub">
+                  <a href="https://github.com/HasanRzayev" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center hover:bg-orange-500/20 hover:text-orange-200 transition-colors ring-1 ring-white/10" title="GitHub">
                     <BsGithub className="w-5 h-5" />
                   </a>
-                  <a href="https://t.me/hasanrzayev" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors" title="Telegram">
+                  <a href="https://t.me/hasanrzayev" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center hover:bg-orange-500/20 hover:text-orange-200 transition-colors ring-1 ring-white/10" title="Telegram">
                     <BsTelegram className="w-5 h-5" />
                   </a>
-                  <a href="https://www.linkedin.com/in/HasanRzayev/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors" title="LinkedIn">
+                  <a href="https://www.linkedin.com/in/HasanRzayev/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center hover:bg-orange-500/20 hover:text-orange-200 transition-colors ring-1 ring-white/10" title="LinkedIn">
                     <BsLinkedin className="w-5 h-5" />
                   </a>
                 </div>
@@ -74,7 +73,7 @@ const FooterComponent = () => {
             <div className="border-t border-white/10 mt-12 pt-8">
               <div className="flex flex-col md:flex-row justify-between items-center">
                 <div className="text-gray-300 text-sm mb-4 md:mb-0">
-                  © 2024 ExperienceShare. All rights reserved. Made with ❤️ for travelers worldwide.
+                  © 2024 Wanderly. All rights reserved. Made with ❤️ for travelers worldwide.
                 </div>
                 <div className="flex items-center space-x-6 text-sm">
                   <span className="text-gray-300">Available on:</span>

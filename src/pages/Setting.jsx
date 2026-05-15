@@ -92,7 +92,7 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-slate-50 to-amber-100 py-12">
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold gradient-text mb-4">Account Settings</h1>
@@ -112,7 +112,7 @@ const UserProfile = () => {
                     alt="Profile"
                     className="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-white shadow-2xl object-cover"
                   />
-                  <label className="absolute bottom-2 right-2 w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform shadow-lg">
+                  <label className="absolute bottom-2 right-2 w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform shadow-lg">
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -197,7 +197,7 @@ const UserProfile = () => {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6">
+                  <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-6">
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-500 mb-1">Full Name</label>
@@ -240,3 +240,6 @@ const UserProfile = () => {
 };
 
 export default UserProfile;
+
+
+

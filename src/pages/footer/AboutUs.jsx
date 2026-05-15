@@ -5,7 +5,7 @@ const AboutUs = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white py-20">
+      <div className="bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 text-white py-20">
         <div className="container mx-auto px-6">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-5xl font-bold mb-6">About Experience Sharing</h1>
@@ -21,7 +21,7 @@ const AboutUs = () => {
         {/* Our Story */}
         <div className="max-w-4xl mx-auto mb-16">
           <h2 className="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-            <FaHeart className="text-purple-600" />
+            <FaHeart className="text-orange-600" />
             Our Story
           </h2>
           <div className="bg-white rounded-2xl shadow-lg p-8 space-y-4">
@@ -42,7 +42,7 @@ const AboutUs = () => {
         <div className="grid md:grid-cols-2 gap-8 mb-16">
           {/* Mission */}
           <div className="bg-white rounded-2xl shadow-lg p-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center mb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center mb-6">
               <FaRocket className="text-3xl text-white" />
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-4">Our Mission</h3>
@@ -109,7 +109,7 @@ const AboutUs = () => {
 
         {/* Team Section */}
         <div className="max-w-4xl mx-auto bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl p-8 text-center">
-          <FaUsers className="text-5xl text-purple-600 mx-auto mb-6" />
+          <FaUsers className="text-5xl text-orange-600 mx-auto mb-6" />
           <h2 className="text-3xl font-bold text-gray-800 mb-4">Join Our Community</h2>
           <p className="text-gray-700 leading-relaxed mb-6">
             We're more than just a platform – we're a global community of passionate travelers, 
@@ -118,7 +118,7 @@ const AboutUs = () => {
           </p>
           <div className="flex justify-center gap-6 text-lg">
             <div className="bg-white rounded-xl px-6 py-4 shadow-md">
-              <div className="text-3xl font-bold text-purple-600 mb-1">10K+</div>
+              <div className="text-3xl font-bold text-orange-600 mb-1">10K+</div>
               <div className="text-gray-600">Active Users</div>
             </div>
             <div className="bg-white rounded-xl px-6 py-4 shadow-md">
@@ -126,7 +126,7 @@ const AboutUs = () => {
               <div className="text-gray-600">Experiences Shared</div>
             </div>
             <div className="bg-white rounded-xl px-6 py-4 shadow-md">
-              <div className="text-3xl font-bold text-indigo-600 mb-1">150+</div>
+              <div className="text-3xl font-bold text-orange-600 mb-1">150+</div>
               <div className="text-gray-600">Countries</div>
             </div>
           </div>
@@ -137,4 +137,7 @@ const AboutUs = () => {
 };
 
 export default AboutUs;
+
+
+
 

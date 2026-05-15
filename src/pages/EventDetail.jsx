@@ -173,8 +173,8 @@ const EventDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-slate-50 to-amber-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
       </div>
     );
   }
@@ -184,12 +184,12 @@ const EventDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-slate-50 to-amber-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <button
           onClick={() => navigate('/events')}
-          className="mb-6 flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+          className="mb-6 flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -199,7 +199,7 @@ const EventDetail = () => {
 
         {/* Event Header */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mb-6">
-          <div className="h-96 bg-gradient-to-br from-purple-400 to-blue-500 relative">
+          <div className="h-96 bg-gradient-to-br from-orange-400 to-amber-500 relative">
             {event.coverImage ? (
               <img src={event.coverImage} alt={event.title} className="w-full h-full object-cover" />
             ) : (
@@ -236,8 +236,8 @@ const EventDetail = () => {
             {/* Event Info Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-                  <FaCalendarAlt className="text-purple-600 dark:text-purple-400" />
+                <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
+                  <FaCalendarAlt className="text-orange-600 dark:text-orange-400" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-500">Date & Time</p>
@@ -281,7 +281,7 @@ const EventDetail = () => {
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-500">Attendees</p>
                   <p className="font-semibold">{goingAttendees.length} going, {interestedAttendees.length} interested</p>
-                  <p className="text-xs text-purple-600 dark:text-purple-400">Click to see who's attending</p>
+                  <p className="text-xs text-orange-600 dark:text-orange-400">Click to see who's attending</p>
                 </div>
               </div>
 
@@ -305,17 +305,17 @@ const EventDetail = () => {
               {/* Organizer Info */}
               <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 md:col-span-2">
                 <img
-                  src={event.createdBy?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(event.createdBy?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`}
+                  src={event.createdBy?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(event.createdBy?.userName || 'User')}&background=f97316&color=fff&size=128&bold=true`}
                   alt={event.createdBy?.userName}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-purple-200 bg-gradient-to-br from-purple-400 to-blue-500"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-purple-200 bg-gradient-to-br from-orange-400 to-amber-500"
                   onError={(e) => {
-                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(event.createdBy?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`;
+                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(event.createdBy?.userName || 'User')}&background=f97316&color=fff&size=128&bold=true`;
                   }}
                 />
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-500">Organized by</p>
                   <p 
-                    className="font-semibold cursor-pointer hover:text-purple-600 dark:hover:text-purple-400"
+                    className="font-semibold cursor-pointer hover:text-orange-600 dark:hover:text-orange-400"
                     onClick={() => navigate(`/profile/${event.createdByUserId}`)}
                   >
                     {event.createdBy?.userName || 'Unknown'}
@@ -355,7 +355,7 @@ const EventDetail = () => {
                     <>
                       <button
                         onClick={handleEditClick}
-                        className="px-6 py-4 border-2 border-blue-500 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-xl font-bold transition-colors"
+                        className="px-6 py-4 border-2 border-blue-500 text-orange-500 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-xl font-bold transition-colors"
                         title="Edit Event"
                       >
                         <FaEdit className="text-xl" />
@@ -373,7 +373,7 @@ const EventDetail = () => {
               ) : (
                 <button
                   onClick={() => navigate('/login')}
-                  className="flex-1 bg-purple-600 text-white px-6 py-4 rounded-xl font-bold text-lg hover:bg-purple-700 transition-colors"
+                  className="flex-1 bg-orange-600 text-white px-6 py-4 rounded-xl font-bold text-lg hover:bg-orange-700 transition-colors"
                 >
                   Login to RSVP
                 </button>
@@ -424,11 +424,11 @@ const EventDetail = () => {
                           onClick={() => navigate(`/profile/${attendee.userId}`)}
                         >
                           <img
-                            src={attendee.user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(attendee.user?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`}
+                            src={attendee.user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(attendee.user?.userName || 'User')}&background=f97316&color=fff&size=128&bold=true`}
                             alt={attendee.user?.userName}
-                            className="w-10 h-10 rounded-full object-cover bg-gradient-to-br from-purple-400 to-blue-500"
+                            className="w-10 h-10 rounded-full object-cover bg-gradient-to-br from-orange-400 to-amber-500"
                             onError={(e) => {
-                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(attendee.user?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`;
+                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(attendee.user?.userName || 'User')}&background=f97316&color=fff&size=128&bold=true`;
                             }}
                           />
                           <div className="flex-1">
@@ -467,11 +467,11 @@ const EventDetail = () => {
                           onClick={() => navigate(`/profile/${attendee.userId}`)}
                         >
                           <img
-                            src={attendee.user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(attendee.user?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`}
+                            src={attendee.user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(attendee.user?.userName || 'User')}&background=f97316&color=fff&size=128&bold=true`}
                             alt={attendee.user?.userName}
-                            className="w-10 h-10 rounded-full object-cover bg-gradient-to-br from-purple-400 to-blue-500"
+                            className="w-10 h-10 rounded-full object-cover bg-gradient-to-br from-orange-400 to-amber-500"
                             onError={(e) => {
-                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(attendee.user?.userName || 'User')}&background=667eea&color=fff&size=128&bold=true`;
+                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(attendee.user?.userName || 'User')}&background=f97316&color=fff&size=128&bold=true`;
                             }}
                           />
                           <div>
@@ -529,7 +529,7 @@ const EventDetail = () => {
                   required
                   value={editEvent.title}
                   onChange={(e) => setEditEvent({ ...editEvent, title: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                   placeholder="e.g., Summer Music Festival 2024"
                 />
               </div>
@@ -542,7 +542,7 @@ const EventDetail = () => {
                   value={editEvent.description}
                   onChange={(e) => setEditEvent({ ...editEvent, description: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                   placeholder="Describe your event..."
                 />
               </div>
@@ -556,7 +556,7 @@ const EventDetail = () => {
                   required
                   value={editEvent.location}
                   onChange={(e) => setEditEvent({ ...editEvent, location: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                   placeholder="e.g., Central Park, New York"
                 />
               </div>
@@ -570,7 +570,7 @@ const EventDetail = () => {
                   required
                   value={editEvent.eventDate}
                   onChange={(e) => setEditEvent({ ...editEvent, eventDate: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                 />
               </div>
 
@@ -584,7 +584,7 @@ const EventDetail = () => {
                     min="0"
                     value={editEvent.maxAttendees}
                     onChange={(e) => setEditEvent({ ...editEvent, maxAttendees: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                     placeholder="0"
                   />
                 </div>
@@ -595,7 +595,7 @@ const EventDetail = () => {
                   <select
                     value={editEvent.currency}
                     onChange={(e) => setEditEvent({ ...editEvent, currency: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                   >
                     <option value="USD">USD ($)</option>
                     <option value="EUR">EUR (€)</option>
@@ -616,7 +616,7 @@ const EventDetail = () => {
                   step="0.01"
                   value={editEvent.price}
                   onChange={(e) => setEditEvent({ ...editEvent, price: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                   placeholder="0"
                 />
               </div>
@@ -631,7 +631,7 @@ const EventDetail = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
+                  className="flex-1 bg-gradient-to-r from-orange-600 to-amber-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-orange-700 hover:to-amber-700 transition-all"
                 >
                   Update Event
                 </button>
@@ -645,4 +645,7 @@ const EventDetail = () => {
 };
 
 export default EventDetail;
+
+
+
 

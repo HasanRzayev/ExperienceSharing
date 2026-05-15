@@ -184,14 +184,14 @@ const Events = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-slate-50 to-amber-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-slate-50 to-amber-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
@@ -204,7 +204,7 @@ const Events = () => {
             {token && (
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2 shadow-lg"
+                className="bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-orange-700 transition-colors flex items-center gap-2 shadow-lg"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -220,7 +220,7 @@ const Events = () => {
               onClick={() => setFilter('all')}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 filter === 'all' 
-                  ? 'bg-purple-600 text-white shadow-lg' 
+                  ? 'bg-orange-600 text-white shadow-lg' 
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
               }`}
             >
@@ -279,7 +279,7 @@ const Events = () => {
               onClick={() => navigate(`/event/${event.id}`)}
               className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all cursor-pointer group"
             >
-              <div className="h-48 bg-gradient-to-br from-purple-400 to-blue-500 relative">
+              <div className="h-48 bg-gradient-to-br from-orange-400 to-amber-500 relative">
                 {event.coverImage && (
                   <img src={event.coverImage} alt={event.title} className="w-full h-full object-cover" />
                 )}
@@ -315,7 +315,7 @@ const Events = () => {
                     </svg>
                     {event.location}
                   </div>
-                  <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
+                  <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
@@ -334,7 +334,7 @@ const Events = () => {
                         className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all text-sm ${
                           getMyRSVP(event) === 'Going'
                             ? 'bg-green-500 text-white shadow-lg scale-105'
-                            : 'bg-purple-600 text-white hover:bg-purple-700'
+                            : 'bg-orange-600 text-white hover:bg-orange-700'
                         }`}
                       >
                         {getMyRSVP(event) === 'Going' ? '✓ Going' : 'Going'}
@@ -359,7 +359,7 @@ const Events = () => {
                         e.stopPropagation();
                         navigate('/login');
                       }}
-                      className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors text-sm"
+                      className="flex-1 bg-orange-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-700 transition-colors text-sm"
                     >
                       Login to RSVP
                     </button>
@@ -414,7 +414,7 @@ const Events = () => {
                     required
                     value={newEvent.title}
                     onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                     placeholder="e.g., Baku Food Tour Meetup"
                   />
                 </div>
@@ -428,7 +428,7 @@ const Events = () => {
                     rows={4}
                     value={newEvent.description}
                     onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                     placeholder="Describe your event..."
                   />
                 </div>
@@ -443,7 +443,7 @@ const Events = () => {
                       required
                       value={newEvent.location}
                       onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                       placeholder="e.g., Baku, Azerbaijan"
                     />
                   </div>
@@ -458,7 +458,7 @@ const Events = () => {
                       min={getMinDate()}
                       value={newEvent.eventDate}
                       onChange={(e) => setNewEvent({ ...newEvent, eventDate: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                     />
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Event must be at least 1 hour from now
@@ -476,7 +476,7 @@ const Events = () => {
                       min="0"
                       value={newEvent.maxAttendees}
                       onChange={(e) => setNewEvent({ ...newEvent, maxAttendees: parseInt(e.target.value) || 0 })}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
 
@@ -488,7 +488,7 @@ const Events = () => {
                       <select
                         value={newEvent.currency}
                         onChange={(e) => setNewEvent({ ...newEvent, currency: e.target.value })}
-                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                       >
                         <option value="USD">USD</option>
                         <option value="AZN">AZN</option>
@@ -500,7 +500,7 @@ const Events = () => {
                         step="0.01"
                         value={newEvent.price}
                         onChange={(e) => setNewEvent({ ...newEvent, price: parseFloat(e.target.value) || 0 })}
-                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                       />
                     </div>
                   </div>
@@ -516,7 +516,7 @@ const Events = () => {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 transition-colors"
+                    className="flex-1 px-6 py-3 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-700 transition-colors"
                   >
                     Create Event
                   </button>
@@ -531,4 +531,7 @@ const Events = () => {
 };
 
 export default Events;
+
+
+
 

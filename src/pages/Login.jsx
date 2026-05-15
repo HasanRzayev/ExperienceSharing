@@ -58,17 +58,17 @@ function Login({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-900 via-red-900 to-amber-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl">
-        <div className="glass rounded-3xl overflow-hidden shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-5xl">
+        <div className="glass rounded-3xl overflow-hidden shadow-soft">
           <div className="grid md:grid-cols-2 gap-0">
             {/* Left Side - Visual */}
-            <div className="relative bg-gradient-to-br from-orange-600 via-red-600 to-amber-700 p-12 flex flex-col justify-center items-center text-white">
-              <div className="absolute inset-0 bg-black opacity-20"></div>
+            <div className="relative bg-gradient-to-br from-orange-500 via-amber-500 to-rose-500 p-10 sm:p-12 flex flex-col justify-center items-center text-white">
+              <div className="absolute inset-0 bg-slate-900/15"></div>
               <div className="relative z-10 text-center">
                 <div className="text-8xl mb-6">🌟</div>
-                <h1 className="text-5xl font-bold mb-6">Welcome Back!</h1>
-                <div className="space-y-4 text-xl">
+                <h1 className="text-4xl sm:text-5xl font-bold mb-6 tracking-tight">Welcome Back!</h1>
+                <div className="space-y-4 text-lg sm:text-xl">
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 bg-white rounded-full"></div>
                     <span>Your Perfect Getaway</span>
@@ -91,17 +91,17 @@ function Login({ onLogin }) {
             </div>
 
             {/* Right Side - Form */}
-            <div className="p-12 flex flex-col justify-center bg-white dark:bg-gray-800">
+            <div className="p-8 sm:p-12 flex flex-col justify-center bg-white/80 dark:bg-slate-950/40">
               <div className="max-w-md mx-auto w-full">
                 <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">Sign In</h2>
-                  <p className="text-gray-600 dark:text-gray-400">Welcome back! Please sign in to your account</p>
+                  <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Sign In</h2>
+                  <p className="text-slate-600 dark:text-slate-300">Welcome back! Please sign in to your account</p>
                 </div>
 
                 <form className="space-y-6" onSubmit={handleSubmit}>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">Email Address</label>
                       <input 
                         type="email" 
                         placeholder="Enter your email" 
@@ -113,7 +113,7 @@ function Login({ onLogin }) {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">Password</label>
                       <input 
                         type="password" 
                         placeholder="Enter your password" 
@@ -128,9 +128,9 @@ function Login({ onLogin }) {
                   <div className="flex items-center justify-between">
                     <label className="flex items-center">
                       <input type="checkbox" className="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
-                      <span className="ml-2 text-sm text-gray-600">Remember me</span>
+                      <span className="ml-2 text-sm text-slate-600 dark:text-slate-300">Remember me</span>
                     </label>
-                    <a href="/forgot-password" className="text-sm text-orange-600 hover:text-orange-500">Forgot password?</a>
+                    <a href="/forgot-password" className="text-sm font-semibold text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200">Forgot password?</a>
                   </div>
 
                   {error && (
@@ -155,10 +155,10 @@ function Login({ onLogin }) {
                 <div className="mt-6">
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-300"></div>
+                      <div className="w-full border-t border-slate-200/80 dark:border-white/10"></div>
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                      <span className="px-2 bg-white/80 dark:bg-slate-950/40 text-slate-500 dark:text-slate-300">Or continue with</span>
                     </div>
                   </div>
 
@@ -174,9 +174,9 @@ function Login({ onLogin }) {
                 </div>
 
                 <div className="mt-8 text-center">
-                  <p className="text-gray-600">
+                  <p className="text-slate-600 dark:text-slate-300">
                     Don't have an account? 
-                    <a href="/signup" className="text-orange-600 hover:text-orange-500 font-semibold ml-1">
+                    <a href="/signup" className="text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200 font-semibold ml-1">
                       Create Account
                     </a>
                   </p>
@@ -192,3 +192,6 @@ function Login({ onLogin }) {
 
 
 export default Login;
+
+
+

@@ -208,12 +208,12 @@ const ProfilePage = () => {
   const userExperiences = userData.userExperiences || userData.UserExperiences || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-slate-50 to-amber-100 py-12">
       <div className="max-w-6xl mx-auto px-6">
         {/* Profile Header */}
         <div className="card-modern overflow-hidden mb-8">
           {/* Cover Photo */}
-          <div className="h-64 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 relative">
+          <div className="h-64 bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 relative">
             <div className="absolute inset-0 bg-black opacity-20"></div>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center text-white">
@@ -232,7 +232,7 @@ const ProfilePage = () => {
             <div className="flex flex-col md:flex-row items-center md:items-end space-y-6 md:space-y-0 md:space-x-8">
               <div className="relative">
                 <img
-                  className="w-40 h-40 object-cover rounded-full border-8 border-white shadow-2xl bg-gradient-to-br from-purple-400 to-blue-500"
+                  className="w-40 h-40 object-cover rounded-full border-8 border-white shadow-2xl bg-gradient-to-br from-orange-400 to-amber-500"
                   src={profileImage}
                   alt="Profile"
                   onError={(e) => { e.target.src = getProfileImage(null, userName); }}
@@ -265,19 +265,19 @@ const ProfilePage = () => {
             {/* Stats */}
             <div className="mt-8 flex justify-center md:justify-start space-x-12 border-t pt-8">
               <div onClick={() => navigate("/Follow")} className="cursor-pointer text-center group">
-                <div className="text-3xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors">
+                <div className="text-3xl font-bold text-gray-800 group-hover:text-orange-600 transition-colors">
                   {followersCount}
                 </div>
                 <div className="text-gray-600 font-medium">Followers</div>
               </div>
               <div onClick={() => navigate("/Following")} className="cursor-pointer text-center group">
-                <div className="text-3xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors">
+                <div className="text-3xl font-bold text-gray-800 group-hover:text-orange-600 transition-colors">
                   {followingCount}
                 </div>
                 <div className="text-gray-600 font-medium">Following</div>
               </div>
               <div className="cursor-pointer text-center group">
-                <div className="text-3xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors">
+                <div className="text-3xl font-bold text-gray-800 group-hover:text-orange-600 transition-colors">
                   {userExperiences.length}
                 </div>
                 <div className="text-gray-600 font-medium">Experiences</div>
@@ -286,7 +286,7 @@ const ProfilePage = () => {
                 onClick={() => setActiveTab('liked-experiences')} 
                 className="cursor-pointer text-center group"
               >
-                <div className="text-3xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors">
+                <div className="text-3xl font-bold text-gray-800 group-hover:text-orange-600 transition-colors">
                   {likedExperiences.length}
                 </div>
                 <div className="text-gray-600 font-medium">Liked</div>
@@ -295,7 +295,7 @@ const ProfilePage = () => {
                 onClick={() => setActiveTab('saved-experiences')} 
                 className="cursor-pointer text-center group"
               >
-                <div className="text-3xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors">
+                <div className="text-3xl font-bold text-gray-800 group-hover:text-orange-600 transition-colors">
                   {savedExperiences.length}
                 </div>
                 <div className="text-gray-600 font-medium">Saved</div>
@@ -312,8 +312,8 @@ const ProfilePage = () => {
                 onClick={() => setActiveTab('my-experiences')}
                 className={`px-6 py-3 rounded-md font-medium transition-all duration-200 ${
                   activeTab === 'my-experiences'
-                    ? 'bg-white text-purple-600 shadow-md'
-                    : 'text-gray-600 hover:text-purple-600 hover:bg-white/50'
+                    ? 'bg-white text-orange-600 shadow-md'
+                    : 'text-gray-600 hover:text-orange-600 hover:bg-white/50'
                 }`}
               >
                 <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -328,8 +328,8 @@ const ProfilePage = () => {
                 }}
                 className={`px-6 py-3 rounded-md font-medium transition-all duration-200 ${
                   activeTab === 'liked-experiences'
-                    ? 'bg-white text-purple-600 shadow-md'
-                    : 'text-gray-600 hover:text-purple-600 hover:bg-white/50'
+                    ? 'bg-white text-orange-600 shadow-md'
+                    : 'text-gray-600 hover:text-orange-600 hover:bg-white/50'
                 }`}
               >
                 <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -344,8 +344,8 @@ const ProfilePage = () => {
                 }}
                 className={`px-6 py-3 rounded-md font-medium transition-all duration-200 ${
                   activeTab === 'saved-experiences'
-                    ? 'bg-white text-purple-600 shadow-md'
-                    : 'text-gray-600 hover:text-purple-600 hover:bg-white/50'
+                    ? 'bg-white text-orange-600 shadow-md'
+                    : 'text-gray-600 hover:text-orange-600 hover:bg-white/50'
                 }`}
               >
                 <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -357,8 +357,8 @@ const ProfilePage = () => {
                 onClick={() => setActiveTab('analytics')}
                 className={`px-6 py-3 rounded-md font-medium transition-all duration-200 ${
                   activeTab === 'analytics'
-                    ? 'bg-white text-purple-600 shadow-md'
-                    : 'text-gray-600 hover:text-purple-600 hover:bg-white/50'
+                    ? 'bg-white text-orange-600 shadow-md'
+                    : 'text-gray-600 hover:text-orange-600 hover:bg-white/50'
                 }`}
               >
                 <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -469,7 +469,7 @@ const ProfilePage = () => {
             <>
               {loadingLiked ? (
                 <div className="text-center py-20">
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
                   <p className="mt-4 text-gray-600">Loading your liked experiences...</p>
                 </div>
               ) : likedExperiences.length > 0 ? (
@@ -530,7 +530,7 @@ const ProfilePage = () => {
             <>
               {loadingSaved ? (
                 <div className="text-center py-20">
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
                   <p className="mt-4 text-gray-600">Loading your saved experiences...</p>
                 </div>
               ) : savedExperiences.length > 0 ? (
@@ -588,3 +588,6 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
+
+
+

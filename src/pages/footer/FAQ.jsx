@@ -57,7 +57,7 @@ const FAQ = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
-      <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white py-16">
+      <div className="bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 text-white py-16">
         <div className="container mx-auto px-6">
           <div className="text-center max-w-4xl mx-auto">
             <FaQuestionCircle className="text-6xl mx-auto mb-4" />
@@ -77,7 +77,7 @@ const FAQ = () => {
               >
                 <h3 className="text-lg font-bold text-gray-800 text-left">{faq.question}</h3>
                 {openIndex === index ? (
-                  <FaChevronUp className="text-purple-600 text-xl flex-shrink-0 ml-4" />
+                  <FaChevronUp className="text-orange-600 text-xl flex-shrink-0 ml-4" />
                 ) : (
                   <FaChevronDown className="text-gray-400 text-xl flex-shrink-0 ml-4" />
                 )}
@@ -99,7 +99,7 @@ const FAQ = () => {
           </p>
           <a
             href="/contact"
-            className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl"
+            className="inline-block bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl"
           >
             Contact Support
           </a>
@@ -110,4 +110,7 @@ const FAQ = () => {
 };
 
 export default FAQ;
+
+
+
 

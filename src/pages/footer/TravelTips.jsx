@@ -6,7 +6,7 @@ const TravelTips = () => {
     {
       icon: <FaPlane className="text-3xl" />,
       title: "Planning Your Trip",
-      color: "from-purple-500 to-blue-500",
+      color: "from-orange-500 to-amber-500",
       tips: [
         "Book flights 2-3 months in advance for best prices",
         "Use incognito mode when searching for flights",
@@ -73,7 +73,7 @@ const TravelTips = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
-      <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white py-16">
+      <div className="bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 text-white py-16">
         <div className="container mx-auto px-6">
           <div className="text-center max-w-4xl mx-auto">
             <div className="text-6xl mb-4">✈️</div>
@@ -96,7 +96,7 @@ const TravelTips = () => {
               <ul className="space-y-3">
                 {category.tips.map((tip, tipIndex) => (
                   <li key={tipIndex} className="flex items-start gap-2">
-                    <span className="text-purple-600 text-xl mt-0.5">•</span>
+                    <span className="text-orange-600 text-xl mt-0.5">•</span>
                     <span className="text-gray-700 leading-relaxed">{tip}</span>
                   </li>
                 ))}
@@ -112,7 +112,7 @@ const TravelTips = () => {
           </p>
           <a
             href="/signup"
-            className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl"
+            className="inline-block bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl"
           >
             Share Your Tips
           </a>
@@ -123,4 +123,7 @@ const TravelTips = () => {
 };
 
 export default TravelTips;
+
+
+
 

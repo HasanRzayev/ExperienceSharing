@@ -57,17 +57,17 @@ function SignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-900 via-red-900 to-amber-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl">
-        <div className="glass rounded-3xl overflow-hidden shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-5xl">
+        <div className="glass rounded-3xl overflow-hidden shadow-soft">
           <div className="grid md:grid-cols-2 gap-0">
             {/* Left Side - Visual */}
-            <div className="relative bg-gradient-to-br from-orange-600 via-red-600 to-amber-700 p-12 flex flex-col justify-center items-center text-white">
-              <div className="absolute inset-0 bg-black opacity-20"></div>
+            <div className="relative bg-gradient-to-br from-orange-500 via-amber-500 to-rose-500 p-10 sm:p-12 flex flex-col justify-center items-center text-white">
+              <div className="absolute inset-0 bg-slate-900/15"></div>
               <div className="relative z-10 text-center">
                 <div className="text-8xl mb-6">🚀</div>
-                <h1 className="text-5xl font-bold mb-6">Join Our Community!</h1>
-                <div className="space-y-4 text-xl">
+                <h1 className="text-4xl sm:text-5xl font-bold mb-6 tracking-tight">Join Our Community!</h1>
+                <div className="space-y-4 text-lg sm:text-xl">
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 bg-white rounded-full"></div>
                     <span>Create Lasting Memories</span>
@@ -90,17 +90,17 @@ function SignUp() {
             </div>
 
             {/* Right Side - Form */}
-            <div className="p-12 flex flex-col justify-center bg-white">
+            <div className="p-8 sm:p-12 flex flex-col justify-center bg-white/80 dark:bg-slate-950/40">
               <div className="max-w-md mx-auto w-full">
                 <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold text-gray-800 mb-2">Create Account</h2>
-                  <p className="text-gray-600">Join thousands of travelers sharing their experiences</p>
+                  <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Create Account</h2>
+                  <p className="text-slate-600 dark:text-slate-300">Join thousands of travelers sharing their experiences</p>
                 </div>
 
                 <form className="space-y-6" onSubmit={handleSignUp}>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">First Name</label>
                       <input 
                         type="text" 
                         placeholder="John" 
@@ -111,7 +111,7 @@ function SignUp() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">Last Name</label>
                       <input 
                         type="text" 
                         placeholder="Doe" 
@@ -124,7 +124,7 @@ function SignUp() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">Username</label>
                     <input 
                       type="text" 
                       placeholder="johndoe" 
@@ -136,7 +136,7 @@ function SignUp() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">Email Address</label>
                     <input 
                       type="email" 
                       placeholder="john@example.com" 
@@ -148,7 +148,7 @@ function SignUp() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">Password</label>
                     <input 
                       type="password" 
                       placeholder="Create a strong password" 
@@ -160,7 +160,7 @@ function SignUp() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">Country</label>
                     <input 
                       type="text" 
                       placeholder="United States" 
@@ -172,14 +172,14 @@ function SignUp() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
-                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-orange-400 transition-colors">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">Profile Picture</label>
+                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300/80 dark:border-white/10 border-dashed rounded-2xl hover:border-orange-400 transition-colors bg-white/50 dark:bg-slate-950/20">
                       <div className="space-y-1 text-center">
                         <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                           <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        <div className="flex text-sm text-gray-600">
-                          <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none">
+                        <div className="flex text-sm text-slate-600 dark:text-slate-300 justify-center flex-wrap gap-x-1">
+                          <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-semibold text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200 focus-within:outline-none">
                             <span>Upload a file</span>
                             <input 
                               id="file-upload" 
@@ -189,9 +189,9 @@ function SignUp() {
                               onChange={(e) => setProfileImage(e.target.files[0])}
                             />
                           </label>
-                          <p className="pl-1">or drag and drop</p>
+                          <p>or drag and drop</p>
                         </div>
-                        <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">PNG, JPG, GIF up to 10MB</p>
                       </div>
                     </div>
                   </div>
@@ -203,8 +203,8 @@ function SignUp() {
                       className="rounded border-gray-300 text-orange-600 focus:ring-orange-500" 
                       required
                     />
-                    <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
-                      I agree to the <a href="#" className="text-orange-600 hover:text-orange-500">Terms and Conditions</a> and <a href="#" className="text-orange-600 hover:text-orange-500">Privacy Policy</a>
+                    <label htmlFor="terms" className="ml-2 text-sm text-slate-600 dark:text-slate-300">
+                      I agree to the <a href="#" className="font-semibold text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200">Terms and Conditions</a> and <a href="#" className="font-semibold text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200">Privacy Policy</a>
                     </label>
                   </div>
 
@@ -230,10 +230,10 @@ function SignUp() {
                 <div className="mt-6">
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-300"></div>
+                      <div className="w-full border-t border-slate-200/80 dark:border-white/10"></div>
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                      <span className="px-2 bg-white/80 dark:bg-slate-950/40 text-slate-500 dark:text-slate-300">Or continue with</span>
                     </div>
                   </div>
 
@@ -266,3 +266,6 @@ function SignUp() {
 }
 
 export default SignUp ;
+
+
+

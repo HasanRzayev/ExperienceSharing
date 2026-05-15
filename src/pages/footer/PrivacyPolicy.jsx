@@ -1,21 +1,15 @@
 import React from 'react';
 import { FaShieldAlt } from 'react-icons/fa';
+import FooterPage from './FooterPage';
 
 const PrivacyPolicy = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
-      <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white py-16">
-        <div className="container mx-auto px-6">
-          <div className="text-center max-w-4xl mx-auto">
-            <FaShieldAlt className="text-6xl mx-auto mb-4" />
-            <h1 className="text-4xl font-bold mb-4">Privacy Policy</h1>
-            <p className="text-lg text-blue-100">Last updated: October 18, 2025</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-6 py-16 max-w-4xl">
-        <div className="bg-white rounded-2xl shadow-lg p-8 space-y-8">
+    <FooterPage
+      icon={<FaShieldAlt />}
+      title="Privacy Policy"
+      subtitle="Last updated: October 18, 2025"
+      content={
+        <div className="space-y-8">
           <section>
             <h2 className="text-2xl font-bold text-gray-800 mb-4">1. Information We Collect</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
@@ -57,16 +51,13 @@ const PrivacyPolicy = () => {
           <section>
             <h2 className="text-2xl font-bold text-gray-800 mb-4">4. Data Security</h2>
             <p className="text-gray-700 leading-relaxed">
-              We implement industry-standard security measures to protect your data. However, no method 
-              of transmission over the internet is 100% secure.
+              We implement industry-standard security measures to protect your data. However, no method of transmission over the internet is 100% secure.
             </p>
           </section>
 
           <section>
             <h2 className="text-2xl font-bold text-gray-800 mb-4">5. Your Rights</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              You have the right to:
-            </p>
+            <p className="text-gray-700 leading-relaxed mb-4">You have the right to:</p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
               <li>Access and update your personal information</li>
               <li>Delete your account and associated data</li>
@@ -80,16 +71,19 @@ const PrivacyPolicy = () => {
             <p className="text-gray-700 leading-relaxed">
               If you have questions about this Privacy Policy, please contact us at:
               <br />
-              <a href="mailto:wanderly.project@gmail.com" className="text-purple-600 hover:text-purple-700 font-semibold">
+              <a href="mailto:wanderly.project@gmail.com" className="text-orange-600 hover:text-orange-700 font-semibold">
                 wanderly.project@gmail.com
               </a>
             </p>
           </section>
         </div>
-      </div>
-    </div>
+      }
+    />
   );
 };
 
 export default PrivacyPolicy;
+
+
+
 

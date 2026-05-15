@@ -90,7 +90,7 @@ function AdminFollows() {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading follows...</p>
         </div>
       </div>
@@ -151,7 +151,7 @@ function AdminFollows() {
               <div className="text-sm text-gray-600">Current Page</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600">{totalPages}</div>
+              <div className="text-3xl font-bold text-orange-600">{totalPages}</div>
               <div className="text-sm text-gray-600">Total Pages</div>
             </div>
           </div>
@@ -277,3 +277,6 @@ function AdminFollows() {
 }
 
 export default AdminFollows;
+
+
+

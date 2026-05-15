@@ -9,10 +9,10 @@ const Featured = () => {
         Discover our curated collection of the most inspiring travel experiences shared by our community.
       </p>
 
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mt-8">
+      <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-6 mt-8">
         <h4 className="text-lg font-bold text-gray-800 mb-4">This Week's Top Experiences</h4>
         <p className="text-gray-700">
-          Visit our <a href="/explore" className="text-purple-600 hover:text-purple-700 font-semibold">Explore page</a> to browse the most popular and highly-rated experiences from around the world.
+          Visit our <a href="/explore" className="text-orange-600 hover:text-orange-700 font-semibold">Explore page</a> to browse the most popular and highly-rated experiences from around the world.
         </p>
       </div>
 
@@ -41,4 +41,7 @@ const Featured = () => {
 };
 
 export default Featured;
+
+
+
 
